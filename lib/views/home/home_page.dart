@@ -1,72 +1,115 @@
+import 'package:carpooling/widgets/toggle_menu.dart';
 import 'package:flutter/material.dart';
+
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';    // for the map
+import 'package:latlong2/latlong.dart';
+
+import '../../widgets/map.dart';
+import '../../widgets/navigation_bar.dart';
+
+final GlobalKey<MapPageState> _mapKey = GlobalKey<MapPageState>(); // nametag to pin map widget
+  // track the satet of menu over files
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
-
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
   @override
-  var selectedIndex = 0;
+  MapController  mapController = MapController();
+  final ValueNotifier<bool> menuOpenNotifier = ValueNotifier<bool>(false);   // track the satet of menu over files
   
-  void _onItemPressed(int index) {
-    setState(() {
-      selectedIndex = index;
-    });
-  }
-  
+
+
 
   @override
+    void dispose() {
+    menuOpenNotifier.dispose();
+    super.dispose();
+  }
+
+  
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-    children: [
-      Image.asset(
-        'assets/images/map.jpeg',
-        height: double.infinity,
-        width: double.infinity,  
-      ),
-      // Bottom navigation bar positioned over the container
-     Positioned(
-  left: 16,
-  right: 16,
-  bottom: 24,
-  child: Center(
-    child: ClipRRect( // 9nouta mdwrin
-      borderRadius: BorderRadius.circular(20),
-      
-      child: Container( 
-        width: 200,
-        child: BottomNavigationBar(
-          
-          currentIndex: selectedIndex,
-          onTap: _onItemPressed,
-          selectedFontSize: 14,
-          unselectedFontSize: 12,
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.directions_car),
-              label: 'Bookings',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
-        ),
-      ),
-    ),
-  ),
-),
+      body: ValueListenableBuilder<bool>(
+        valueListenable: menuOpenNotifier,
+        builder: (context, isMenuOpen, _) {
+         return Stack(
+          children: [
+            Positioned.fill(
+              child: MapPage(
+                 key: _mapKey,
+              ),
+              ),
 
-    ],
-  ),
+              Positioned(
+                top: 30,
+                left: 15,
+                right: 15,
+                child: Container(
+                  height: 55,
+                  width: double.infinity,
+                  child: Row(
+                    children: [
+                     // MenuToggle(menuOpenNotifier: menuOpenNotifier),
+                      ToggleMenu(),
+                      SizedBox(width: 10) ,// little spacing
+                        
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(30),
+                          child: Material(
+                            elevation: 18,
+                            shadowColor: Colors.black,
+                            child: TextField(
+
+                              
+                              decoration: InputDecoration(
+                                
+                                contentPadding: EdgeInsets.symmetric(vertical: 20),
+
+                                prefixIcon: Icon(
+                                  Icons.search,
+                                  color: Colors.grey,
+                                  ),
+                                hintText: 'Votre destination',
+
+                                
+                                )
+                              
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
+                        ),
+                ),
+              ),
+        
+              Positioned(
+                bottom: 10,
+                right: 10,
+                child: FloatingActionButton(
+                  onPressed: () {
+        
+                    _mapKey.currentState?.centerPosition();
+                  },
+                  child: Icon(
+                    Icons.my_location,
+                   
+        
+                  ),
+                  )
+              )
+            ],
+            );
+            }
+      ),
+  bottomNavigationBar:BottomNavBar()
 );
   }
 }
