@@ -1,5 +1,6 @@
 import 'package:carpooling/views/home/home_page.dart';
 import 'package:carpooling/views/ride/create_ride.dart';
+import 'package:carpooling/widgets/test-nav.dart';
 import 'package:carpooling/widgets/toggle_menu.dart';
 import 'views/splash/splash_page.dart';
 import 'views/bookings/bookings_page.dart';
@@ -30,11 +31,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: AppTheme.lightTheme,
+      theme: lightTheme,
       debugShowCheckedModeBanner: false,
       initialRoute: "/splash",
       routes: {
         "/splash": (context) => const SplashPage(),
+        "/mainnav" : (context) => const MainNavigator(),
         "/home": (context) => const HomePage(),
         "/settings": (context) => const SettingsPage(),
         "/bookings": (context) => const BookingsPage(),
@@ -43,7 +45,7 @@ class MyApp extends StatelessWidget {
         "/create" : (context) => const CreateRidePage()
       },
       
-      home: HomePage(),
+      home: MainNavigator(),
     );
   }
 }

@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:carpooling/views/home/home_page.dart';
 
-import '../views/bookings/bookings_page.dart';
+import 'package:flutter/material.dart';
+
+
+
 
 
 class BottomNavBar extends StatefulWidget {
@@ -12,8 +13,9 @@ class BottomNavBar extends StatefulWidget {
 }
 
 class _BottomNavBarState extends State<BottomNavBar> {
+    int selectedIndex = 0;
 
-  var selectedIndex = 0;
+
   
   void _onItemPressed(int index) {
     setState(() {
@@ -25,7 +27,10 @@ class _BottomNavBarState extends State<BottomNavBar> {
   Widget build(BuildContext context) {
     return BottomNavigationBar(
           currentIndex: selectedIndex,
-          onTap: (index) {
+          
+          onTap: _onItemPressed,
+          
+          /*(index) {
             switch (index) {
               case 0:
              /* Navigator.pushReplacement(
@@ -56,13 +61,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
               Navigator.pushReplacementNamed(context, '/profile');
               break;
             }
-          },
+          },*/
 
-          backgroundColor: Colors.white,
-          selectedItemColor: const Color.fromARGB(255, 31, 145, 245),
-          unselectedItemColor: const Color.fromARGB(255, 104, 184, 250),
-          selectedIconTheme: IconThemeData(size: 16),
-          unselectedIconTheme: IconThemeData(size: 20),
 
           type: BottomNavigationBarType.fixed,
           items: [
@@ -83,6 +83,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                 Icons.message,
                 ),
               label: 'messages',
+              
               ),
             BottomNavigationBarItem(
               icon: Icon(

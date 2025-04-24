@@ -15,20 +15,24 @@ class _ToggleMenuState extends State<ToggleMenu> {
       direction:SpeedDialDirection.down,
       animatedIcon: AnimatedIcons.menu_close,
       backgroundColor: Colors.white,
-      foregroundColor: Colors.black,
+      foregroundColor: Colors.blue[600],
       children: [
         SpeedDialChild(
           child: Icon(Icons.settings),
-          onTap: () {Navigator.pushNamed(context, '/settings');}
-
+          onTap: () {Navigator.pushNamed(context, '/settings');},
+          shape: CircleBorder(),
+          foregroundColor: Colors.blue[600]
         ),
         SpeedDialChild(
           child: Icon(Icons.drive_eta),
-          onTap: () {Navigator.pushNamed(context, '/create');}
-
+          onTap: () {Navigator.pushNamed(context, '/create');},
+          shape: CircleBorder(),
+          foregroundColor: Colors.blue[600]
         ),
         SpeedDialChild(
-          child: Icon(Icons.info)
+          child: Icon(Icons.info),
+          shape: CircleBorder(),
+          foregroundColor: Colors.blue[600]
         )
       ],
     );

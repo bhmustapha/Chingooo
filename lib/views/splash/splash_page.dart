@@ -15,7 +15,7 @@ void initState() {
   super.initState();
 Timer(const Duration(seconds: 2), () {
   if (mounted) {
-    Navigator.pushReplacementNamed(context, '/home');
+    Navigator.pushReplacementNamed(context, '/mainnav');
   }
 });
 }

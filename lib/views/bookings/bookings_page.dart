@@ -15,7 +15,7 @@ class _BookingsPageState extends State<BookingsPage> {
       body: Center(
         child: Text('Bookings Page'),
       ),
-      bottomNavigationBar: BottomNavBar(),
+      
     );
   }
 }

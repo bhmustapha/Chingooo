@@ -12,20 +12,11 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        centerTitle: true,
-        leading: Icon(
-          Icons.edit,
-          color: Colors.black,
-        ),
-        
-      ),
-      body: Column(
+    return Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
+            
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: GreyContainer(
@@ -168,11 +159,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
             )
           ],
-        ),
+        );
+  }}
+        /*,
         
       
 
-      bottomNavigationBar: BottomNavBar(),
+      
     );
   }
-}
+}*/
