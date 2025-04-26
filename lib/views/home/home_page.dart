@@ -22,12 +22,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   MapController  mapController = MapController();
-  final ValueNotifier<bool> menuOpenNotifier = ValueNotifier<bool>(false);   // track the satet of menu over files
-  @override
-    void dispose() {
-    menuOpenNotifier.dispose();
-    super.dispose();
-  }
+
   Widget build(BuildContext context) {
     return  Stack(
           children: [
