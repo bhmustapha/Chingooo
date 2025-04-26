@@ -6,7 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import '../views/home/home_page.dart'; 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-  List<Map<String, dynamic>> suggestions = [];
+List<Map<String, dynamic>> suggestions = [];
 class MapPage extends StatefulWidget {
 // Callback for suggestion tap
 
@@ -17,9 +17,10 @@ class MapPage extends StatefulWidget {
 }
 
 class MapPageState extends State<MapPage> {
-  final MapController _mapController = MapController();
+List<Map<String, dynamic>> get currentSuggestions => suggestions;
 
-  LatLng? _currentLocation;
+final MapController _mapController = MapController();
+LatLng? _currentLocation;
 
   // markers [current + destination]
   List<Marker> _markers = [];

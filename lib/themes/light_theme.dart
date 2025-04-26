@@ -94,6 +94,11 @@ final ThemeData lightTheme = ThemeData(
       titleLarge: TextStyle(
         fontSize: 16,
         color: const Color.fromARGB(255, 4, 20, 32)
+      ),
+      bodySmall: TextStyle(
+        fontSize: 10,
+        fontWeight: FontWeight.w600,
+        color: Colors.black
       )
      ),
     );

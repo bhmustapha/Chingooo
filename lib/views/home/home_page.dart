@@ -10,8 +10,8 @@ import '../../widgets/map.dart';
 import '../../widgets/navigation_bar.dart';
 
 final GlobalKey<MapPageState> _mapKey = GlobalKey<MapPageState>(); // nametag to pin map widget
-  // cpntroller of the search input
-  final TextEditingController searchController = TextEditingController();
+// cpntroller of the search input
+final TextEditingController searchController = TextEditingController();
 
 
 class HomePage extends StatefulWidget {
@@ -56,6 +56,7 @@ class _HomePageState extends State<HomePage> {
                               controller: searchController,
                               onChanged: (value) {
                                 _mapKey.currentState?.fetchSuggestions(value);
+                                setState(() {});
                               },
                               onSubmitted: (value) {
                                 _mapKey.currentState?.searchAndNavigate(); // move map and add marker
@@ -92,7 +93,13 @@ class _HomePageState extends State<HomePage> {
                   top: 90, // just under search bar
                   left: 15,
                   right: 15,
-                  child: Container(
+                  child: StatefulBuilder(
+                    builder: (context, setState) {
+                      final currentSuggestions = _mapKey.currentState?.currentSuggestions ?? [];
+                      if (currentSuggestions.isEmpty) {
+                        return Container();
+                      }
+                      return Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(10),
@@ -102,18 +109,26 @@ class _HomePageState extends State<HomePage> {
                     ),
                     child: ListView.builder(
                       shrinkWrap: true,
-                      itemCount: suggestions.length,
+                      itemCount: _mapKey.currentState?.currentSuggestions.length ?? 0,
                       itemBuilder: (context, index) {
-                        final suggestion = suggestions[index];
+                      final suggestion = _mapKey.currentState!.currentSuggestions[index];
                         return ListTile(
-                          title: Text(suggestion['name']),
+                          title: Text(
+                            suggestion['name'],
+                            style: Theme.of(context).textTheme.bodySmall
+                            ),
                           onTap: () {
                             _mapKey.currentState?.onSuggestionTap(suggestion);
+                            suggestions.clear(); // clear the list
+                            setState(() {}); // refresh the ui
                           },
                         );
                       },
                     ),
-                  ),
+                  );
+                }
+              )
+                  
               ),
         
               Positioned(
