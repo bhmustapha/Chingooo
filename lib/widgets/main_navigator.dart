@@ -3,6 +3,7 @@ import 'package:carpooling/views/home/home_page.dart';
 import 'package:carpooling/views/messages/message_page.dart';
 import 'package:carpooling/views/profile/profile_page.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 
 class MainNavigator extends StatefulWidget {
@@ -37,26 +38,30 @@ class _MainNavigatorState extends State<MainNavigator> {
         items: [
             BottomNavigationBarItem(
               icon: Icon(
-                Icons.search,
+                size: 22,
+                LucideIcons.search,
                 ),
               label : 'Search'
             ),
             BottomNavigationBarItem(
               icon: Icon(
-                Icons.roundabout_right_rounded,
+                size: 22,
+                LucideIcons.ticket,
                 ),
               label: 'Bookings' 
             ),
             BottomNavigationBarItem(
               icon: Icon(
-                Icons.message,
+                size: 22,
+                LucideIcons.messageCircle,
                 ),
               label: 'messages',
               
               ),
             BottomNavigationBarItem(
               icon: Icon(
-                Icons.person,
+                size: 22,
+                LucideIcons.userRound,
                 ),
               label: 'Profile',
               )

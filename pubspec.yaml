@@ -39,6 +39,8 @@ dependencies:
   geolocator: ^14.0.0
   latlong2: ^0.9.1
   flutter_speed_dial: ^7.0.0
+  lucide_icons_flutter: ^2.0.1
+  flutter_switch: ^0.3.2
 
 dev_dependencies:
   flutter_test:
@@ -78,11 +80,14 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins/Poppins-Regular.ttf
+        - asset: assets/fonts/Poppins/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Poppins/Poppins-Bold.ttf
+          weight: 700
   #         style: italic
   #   - family: Trajan Pro
   #     fonts:

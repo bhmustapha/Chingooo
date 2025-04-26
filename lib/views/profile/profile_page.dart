@@ -16,9 +16,18 @@ class _ProfilePageState extends State<ProfilePage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
+            // app bar
+            AppBar(
+              centerTitle:  true,
+              automaticallyImplyLeading: false,
+              title: Text(
+                'Profile',
+              style: Theme.of(context).textTheme.headlineMedium,
+                ),
+            ),
             
             Padding(
-              padding: const EdgeInsets.all(10.0),
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: GreyContainer(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -34,9 +43,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       Expanded(
                         child: Text(
                         'Mustapha Himoun',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold),
+                        style: Theme.of(context).textTheme.bodyMedium
                        ),
                       ),
                     ],
@@ -46,7 +53,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             
             Padding(
-              padding: const EdgeInsets.all(10.0),
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child:  GreyContainer(
                 child:  Padding(
                   padding: const EdgeInsets.all(10.0),
@@ -59,11 +66,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: [
                             Text(
                               'Date de naissance',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black
-                              ),
+                              style: Theme.of(context).textTheme.bodyMedium
                             ),
                             SizedBox(height: 5),
                             Text(
@@ -86,11 +89,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: [
                             Text(
                               'Email',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black
-                              ),
+                              style: Theme.of(context).textTheme.bodyMedium
                             ),
                             SizedBox(height: 5),
                             Text(
@@ -113,11 +112,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: [
                             Text(
                               'Numero de téléphone',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black
-                              ),
+                              style: Theme.of(context).textTheme.bodyMedium
                             ),
                             SizedBox(height: 5),
                             Text(
@@ -139,24 +134,43 @@ class _ProfilePageState extends State<ProfilePage> {
 
             SizedBox(height: 20), // spacing between infos nd logout button
 
-            Container(
-
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: TextButton(
-                onPressed: () {},
-                child: Text(
-                  'Logout',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    fontSize: 22,
-                    backgroundColor: Colors.red,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      
+                      onPressed: () {},
+                      label: Text('History'),
+                      icon: Icon(Icons.history),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        side: BorderSide(color: const Color.fromARGB(255, 212, 212, 212))
+                        
+                       )
+                     
+                       ),
+                       
                   ),
-                  
-                )
-                ),
+                  SizedBox(width: 15,),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {},
+                      label: Text('Edit'),
+                      icon: Icon(Icons.edit),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        side: BorderSide(color: const Color.fromARGB(255, 212, 212, 212))
+                       )
+                    
+                       ),
+                  ),
+                      
+                ],
+              ),
             )
           ],
         );

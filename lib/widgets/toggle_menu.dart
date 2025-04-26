@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ToggleMenu extends StatefulWidget {
   const ToggleMenu({super.key});
@@ -18,19 +19,19 @@ class _ToggleMenuState extends State<ToggleMenu> {
       foregroundColor: Colors.blue[600],
       children: [
         SpeedDialChild(
-          child: Icon(Icons.settings),
+          child: Icon(LucideIcons.settings),
           onTap: () {Navigator.pushNamed(context, '/settings');},
           shape: CircleBorder(),
           foregroundColor: Colors.blue[600]
         ),
         SpeedDialChild(
-          child: Icon(Icons.drive_eta),
+          child: Icon(LucideIcons.carTaxiFront),
           onTap: () {Navigator.pushNamed(context, '/create');},
           shape: CircleBorder(),
           foregroundColor: Colors.blue[600]
         ),
         SpeedDialChild(
-          child: Icon(Icons.info),
+          child: Icon(LucideIcons.info),
           shape: CircleBorder(),
           foregroundColor: Colors.blue[600]
         )

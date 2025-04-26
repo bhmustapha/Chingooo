@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:flutter_switch/flutter_switch.dart';
 
 class NotificationSettingsTile extends StatefulWidget {
    NotificationSettingsTile({super.key});
@@ -14,6 +16,7 @@ class _NotificationSettingsTileState extends State<NotificationSettingsTile> {
    bool reservations = false;
    bool offers = false;
    bool evaluation = false;
+   bool test = false;
 
   @override
  
@@ -35,8 +38,8 @@ class _NotificationSettingsTileState extends State<NotificationSettingsTile> {
                     notification = value;
                   });
                   },
-                  title: Text('Notifications'),
-                  secondary: Icon(Icons.notifications_on_sharp),
+                  title: Text('Notifications', style: Theme.of(context).textTheme.bodyMedium),
+                  secondary: Icon(LucideIcons.bell),
               
                 ),
           
@@ -48,8 +51,8 @@ class _NotificationSettingsTileState extends State<NotificationSettingsTile> {
                   });
 
                   },
-                  title: Text('Reservations'),
-                  secondary: Icon(Icons.directions_car),
+                  title: Text('Reservations', style: Theme.of(context).textTheme.bodyMedium),
+                  secondary: Icon(LucideIcons.car),
               
                 ),
                 SwitchListTile.adaptive(
@@ -59,8 +62,8 @@ class _NotificationSettingsTileState extends State<NotificationSettingsTile> {
                     offers = value;
                   });
                   },
-                  title: Text('Offres'),
-                  secondary: Icon(Icons.local_offer_sharp),
+                  title: Text('Offres', style: Theme.of(context).textTheme.bodyMedium),
+                  secondary: Icon(LucideIcons.ticketCheck),
               
                 ),
                 SwitchListTile.adaptive(
@@ -70,16 +73,17 @@ class _NotificationSettingsTileState extends State<NotificationSettingsTile> {
                     evaluation = value;
                   });
                   },
-                  title: Text('Evaluer'),
-                  secondary: Icon(Icons.star),
+                  title: Text('Evaluer', style: Theme.of(context).textTheme.bodyMedium),
+                  secondary: Transform.scale(scale: 0.8,child: Icon(Icons.star)),
               
                 ),
+                
               ]
             ),
           ),
         )
         
       ],
-    );;
+    );
   }
 }

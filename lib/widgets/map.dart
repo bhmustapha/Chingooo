@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -53,6 +54,8 @@ class MapPageState extends State<MapPage> {
         options: MapOptions(
           initialCenter: _currentLocation ?? LatLng(0, 0),
           initialZoom: 15.0,
+          
+          
         ),
         children: [
           TileLayer(
@@ -67,7 +70,7 @@ class MapPageState extends State<MapPage> {
                 width: 60,
                 height: 60,
                 child: IgnorePointer(
-                  child: Icon(Icons.location_on, color: Colors.red, size: 40),
+                  child: Icon(Icons.location_on, color: Colors.blue, size: 45),
                 ),
               ),
             ],

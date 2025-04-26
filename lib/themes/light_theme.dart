@@ -6,8 +6,13 @@ final ThemeData lightTheme = ThemeData(
       seedColor: Colors.blue,
       secondary: Colors.white
     ),
+
+  // font family
+  fontFamily: 'Poppins',
+
   // app bar
     appBarTheme: AppBarTheme(
+      toolbarHeight: 70,
       backgroundColor: Colors.white,
       foregroundColor: Colors.black,
       elevation: 3,
@@ -42,9 +47,56 @@ final ThemeData lightTheme = ThemeData(
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       elevation: 6,
       selectedItemColor: Colors.blue[600],
-      unselectedItemColor: Colors.grey
+      unselectedItemColor: Colors.grey,
+      selectedLabelStyle: TextStyle(
+        fontSize: 14
+      ),
+      unselectedLabelStyle: TextStyle(
+        fontSize: 11
+      )
       
-    )  
+    ) ,
+    // text field
+     inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: EdgeInsets.all(10),
+      hintStyle: TextStyle(
+        color: Colors.grey[300],
+        fontSize: 10,
+        fontWeight: FontWeight.w300
+      ),
+      border: InputBorder.none,
+      enabledBorder: InputBorder.none,
+      focusedBorder: InputBorder.none
+      
+     ),
+     //switch tile
+     switchTheme: SwitchThemeData(
+      
+     ),
+     //text style
+     textTheme: TextTheme(
+      bodyMedium: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: const Color.fromARGB(255, 8, 36, 59)
+      ),
+      headlineMedium: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+        color: Colors.black
+      ),
+      titleSmall: TextStyle(
+        fontSize: 6,
+        fontWeight: FontWeight.w300,
+        color: Colors.blue[500]
+      ),
+      titleLarge: TextStyle(
+        fontSize: 16,
+        color: const Color.fromARGB(255, 4, 20, 32)
+      )
+     ),
     );
    
     

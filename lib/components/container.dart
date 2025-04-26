@@ -9,8 +9,9 @@ class GreyContainer extends StatelessWidget {
     return Padding(
               padding: const EdgeInsets.all(10.0),
               child: Container(
+                width: double.infinity,
                 decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 224, 224, 224),
+                  color: const Color.fromARGB(255, 236, 236, 236),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: child,

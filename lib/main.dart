@@ -1,6 +1,6 @@
 import 'package:carpooling/views/home/home_page.dart';
 import 'package:carpooling/views/ride/create_ride.dart';
-import 'package:carpooling/widgets/test-nav.dart';
+import 'package:carpooling/widgets/main_navigator.dart';
 import 'package:carpooling/widgets/toggle_menu.dart';
 import 'views/splash/splash_page.dart';
 import 'views/bookings/bookings_page.dart';

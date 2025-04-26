@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';    // for the map
 import 'package:latlong2/latlong.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../widgets/map.dart';
 import '../../widgets/navigation_bar.dart';
@@ -45,36 +46,30 @@ class _HomePageState extends State<HomePage> {
                   width: double.infinity,
                   child: Row(
                     children: [
-                     // MenuToggle(menuOpenNotifier: menuOpenNotifier),
                       ToggleMenu(),
                       SizedBox(width: 10) ,// little spacing
-                        
                       Expanded(
-                        child: ClipRRect(
+                        child: Material(
                           borderRadius: BorderRadius.circular(30),
-                          child: Material(
-                            elevation: 18,
-                            shadowColor: Colors.black,
+                          elevation: 6,
+                          child:Material(
+
                             child: TextField(
-
-                              
-                              decoration: InputDecoration(
+                                decoration: InputDecoration(
+                                  prefixIcon: Icon(
+                                    LucideIcons.search,
+                                    color: Colors.grey,
+                                    ),
+                                  hintText: 'Votre destination',
+                            
+                                  
+                                  )
                                 
-                                contentPadding: EdgeInsets.symmetric(vertical: 20),
-
-                                prefixIcon: Icon(
-                                  Icons.search,
-                                  color: Colors.grey,
-                                  ),
-                                hintText: 'Votre destination',
-
-                                
-                                )
-                              
-                            ),
+                              ),
+                          ),
                           ),
                         ),
-                      )
+                      
                     ],
                         ),
                 ),
@@ -89,7 +84,7 @@ class _HomePageState extends State<HomePage> {
                     _mapKey.currentState?.centerPosition();
                   },
                   child: Icon(
-                    Icons.my_location,
+                    LucideIcons.locate
                    
         
                   ),
