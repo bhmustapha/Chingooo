@@ -63,8 +63,9 @@ final ThemeData lightTheme = ThemeData(
       contentPadding: EdgeInsets.all(10),
       hintStyle: TextStyle(
         color: Colors.grey[300],
-        fontSize: 10,
-        fontWeight: FontWeight.w300
+        fontSize: 13,
+        fontWeight: FontWeight.w100
+        
       ),
       border: InputBorder.none,
       enabledBorder: InputBorder.none,
@@ -72,9 +73,7 @@ final ThemeData lightTheme = ThemeData(
       
      ),
      //switch tile
-     switchTheme: SwitchThemeData(
-      
-     ),
+     switchTheme: SwitchThemeData(),
      //text style
      textTheme: TextTheme(
       bodyMedium: TextStyle(

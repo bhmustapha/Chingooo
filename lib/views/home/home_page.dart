@@ -50,25 +50,33 @@ class _HomePageState extends State<HomePage> {
                       SizedBox(width: 10) ,// little spacing
                       Expanded(
                         child: Material(
-                          borderRadius: BorderRadius.circular(30),
                           elevation: 6,
-                          child:Material(
-
+                          borderRadius: BorderRadius.circular(30),
+                          child:  Container(
+                            height: 55,
                             child: TextField(
                                 decoration: InputDecoration(
-                                  prefixIcon: Icon(
-                                    LucideIcons.search,
-                                    color: Colors.grey,
-                                    ),
-                                  hintText: 'Votre destination',
-                            
-                                  
-                                  )
-                                
+                                  hintText: 'Votre destination ?',
+                                  prefixIcon: Icon(LucideIcons.search),
+                                  border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                  borderSide: BorderSide.none,
+                                ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  borderSide: BorderSide.none,
+                                )
+                                ),
                               ),
                           ),
                           ),
-                        ),
+                        )
+                          
+                        
                       
                     ],
                         ),

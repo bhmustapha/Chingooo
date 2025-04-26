@@ -60,7 +60,6 @@ class MapPageState extends State<MapPage> {
         children: [
           TileLayer(
             urlTemplate: "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=e80bab52-948d-4148-9f15-f56591cca16a",
-            subdomains: ['a', 'b', 'c'],
             userAgentPackageName: 'com.example.carpooling',
           ),
           MarkerLayer(
