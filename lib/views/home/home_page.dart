@@ -31,6 +31,7 @@ class _HomePageState extends State<HomePage> {
             Positioned.fill(
               child: MapPage(
                  key: _mapKey,
+                 
               ),
               ),
 
@@ -53,8 +54,12 @@ class _HomePageState extends State<HomePage> {
                             height: 55,
                             child: TextField(
                               controller: searchController,
+                              onChanged: (value) {
+                                _mapKey.currentState?.fetchSuggestions(value);
+                              },
                               onSubmitted: (value) {
-                                _mapKey.currentState?.searchAndNavigate();
+                                _mapKey.currentState?.searchAndNavigate(); // move map and add marker
+                                _mapKey.currentState?.clearSuggestions(); // clear suggestions
                               },
                                 decoration: InputDecoration(
                                   hintText: 'Votre destination ?',
@@ -82,6 +87,33 @@ class _HomePageState extends State<HomePage> {
                     ],
                         ),
                 ),
+              ),
+              Positioned(
+                  top: 90, // just under search bar
+                  left: 15,
+                  right: 15,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black26, blurRadius: 5),
+                      ],
+                    ),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: suggestions.length,
+                      itemBuilder: (context, index) {
+                        final suggestion = suggestions[index];
+                        return ListTile(
+                          title: Text(suggestion['name']),
+                          onTap: () {
+                            _mapKey.currentState?.onSuggestionTap(suggestion);
+                          },
+                        );
+                      },
+                    ),
+                  ),
               ),
         
               Positioned(

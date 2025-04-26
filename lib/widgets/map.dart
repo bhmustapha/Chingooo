@@ -6,8 +6,10 @@ import 'package:flutter_map/flutter_map.dart';
 import '../views/home/home_page.dart'; 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+  List<Map<String, dynamic>> suggestions = [];
 class MapPage extends StatefulWidget {
+// Callback for suggestion tap
+
   const MapPage({super.key});
 
   @override
@@ -16,7 +18,7 @@ class MapPage extends StatefulWidget {
 
 class MapPageState extends State<MapPage> {
   final MapController _mapController = MapController();
-  
+
   LatLng? _currentLocation;
 
   // markers [current + destination]
@@ -34,6 +36,39 @@ class MapPageState extends State<MapPage> {
 
 
   }
+
+  void clearSuggestions() {
+  setState(() {
+    suggestions = [];
+  });
+}
+
+  void onSuggestionTap(Map<String, dynamic> suggestion) {
+  final lat = suggestion['lat'];
+  final lon = suggestion['lon'];
+  final name = suggestion['name'];
+
+  LatLng location = LatLng(lat, lon);
+
+  _mapController.move(location, 15.0);
+
+  setState(() {
+    suggestions = []; // Clear suggestions
+    _markers.clear();
+    _markers.add(
+      Marker(
+        point: location,
+        width: 60,
+        height: 60,
+        child: IgnorePointer(
+          child: Icon(Icons.location_pin, color: Colors.red, size: 45),
+        ),
+      ),
+    );
+    searchController.text = name; // Update search field
+  });
+}
+
 
   Future<void> _getCurrentLocation() async {
     LocationPermission permission = await Geolocator.requestPermission();
@@ -114,6 +149,39 @@ class MapPageState extends State<MapPage> {
       );
     }
   } 
+
+  Future<void> fetchSuggestions(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        suggestions = [];
+      });
+      return;
+    }
+    final url = Uri.parse(
+    'https://api.stadiamaps.com/geocoding/v1/search?text=${Uri.encodeComponent(query)}'
+    '&api_key=e80bab52-948d-4148-9f15-f56591cca16a'
+    '&boundary.rect.min_lat=35.6645'
+    '&boundary.rect.min_lon=-0.6974'
+    '&boundary.rect.max_lat=35.7527'
+    '&boundary.rect.max_lon=-0.5419'
+    '&autocomplete=true'
+  );
+  final response = await http.get(url);
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+
+    setState(() {
+      suggestions = data['features'].map<Map<String, dynamic>>((feature) {
+        final coords = feature['geometry']['coordinates'];
+        return {
+          'name': feature['properties']['label'], 
+          'lat': coords[1],
+          'lon': coords[0],
+        };
+      }).toList();
+    });
+  }
+  }
 
 
 
