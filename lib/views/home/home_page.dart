@@ -10,7 +10,8 @@ import '../../widgets/map.dart';
 import '../../widgets/navigation_bar.dart';
 
 final GlobalKey<MapPageState> _mapKey = GlobalKey<MapPageState>(); // nametag to pin map widget
-  // track the satet of menu over files
+  // cpntroller of the search input
+  final TextEditingController searchController = TextEditingController();
 
 
 class HomePage extends StatefulWidget {
@@ -21,7 +22,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   @override
-  MapController  mapController = MapController();
+
+
 
   Widget build(BuildContext context) {
     return  Stack(
@@ -50,6 +52,10 @@ class _HomePageState extends State<HomePage> {
                           child:  Container(
                             height: 55,
                             child: TextField(
+                              controller: searchController,
+                              onSubmitted: (value) {
+                                _mapKey.currentState?.searchAndNavigate();
+                              },
                                 decoration: InputDecoration(
                                   hintText: 'Votre destination ?',
                                   prefixIcon: Icon(LucideIcons.search),

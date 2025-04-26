@@ -1,8 +1,11 @@
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../views/home/home_page.dart'; 
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -13,8 +16,11 @@ class MapPage extends StatefulWidget {
 
 class MapPageState extends State<MapPage> {
   final MapController _mapController = MapController();
+  
   LatLng? _currentLocation;
 
+  // markers [current + destination]
+  List<Marker> _markers = [];
   @override
   void initState() {
     super.initState();
@@ -22,7 +28,11 @@ class MapPageState extends State<MapPage> {
   }
 
   void centerPosition() {
-    _mapController.move(_currentLocation!, 15.0);
+     _mapController.move(
+      _currentLocation!,
+       15.0,);
+
+
   }
 
   Future<void> _getCurrentLocation() async {
@@ -44,6 +54,66 @@ class MapPageState extends State<MapPage> {
 
     _mapController.move(userLocation, 15.0);
   }
+
+  // fonction to call geocoding api
+  Future<LatLng?> _getCoordinatesFromAddress(String address) async {
+    
+  final url = Uri.parse(
+  'https://api.stadiamaps.com/geocoding/v1/search?text=${Uri.encodeComponent(address)}'
+    '&api_key=e80bab52-948d-4148-9f15-f56591cca16a'
+    '&boundary.rect.min_lat=35.6645'
+    '&boundary.rect.min_lon=-0.6974'
+    '&boundary.rect.max_lat=35.7527'// limitted search for ORAN
+    '&boundary.rect.max_lon=-0.5419'
+    '&autocomplete=true'
+);
+
+    
+    
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['features'].isNotEmpty) {
+        final coords = data['features'][0]['geometry']['coordinates'];
+        double lon = coords[0];
+        double lat = coords[1];
+        return LatLng(lat, lon);
+      }
+    }
+    return null;   
+  }
+
+  // Function to search and navigate to searched place
+  void searchAndNavigate() async {
+    final query = searchController.text;
+    if (query.isEmpty) return;
+
+    final LatLng? location = await _getCoordinatesFromAddress(query);
+    if (location != null) {
+      _mapController.move(location, 15.0); // zoom to searched location
+      
+      setState(() {
+        //clear the old markers
+        _markers.clear();
+        // Add a new marker for search result
+        _markers.add(
+          Marker(
+            point: location,
+            width: 60,
+            height: 60,
+            child: IgnorePointer(
+              child: Icon(Icons.location_pin, color: Colors.red, size: 45),
+            ),
+          ),
+        );
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Location not found!')),
+      );
+    }
+  } 
 
 
 
@@ -72,6 +142,7 @@ class MapPageState extends State<MapPage> {
                   child: Icon(Icons.location_on, color: Colors.blue, size: 45),
                 ),
               ),
+              ..._markers,
             ],
           ),
         ],
