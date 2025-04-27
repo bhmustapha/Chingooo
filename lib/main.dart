@@ -1,18 +1,18 @@
-import 'package:carpooling/views/home/home_page.dart';
-import 'package:carpooling/views/ride/create_ride.dart';
-import 'package:carpooling/widgets/main_navigator.dart';
-import 'package:carpooling/widgets/toggle_menu.dart';
+import 'views/home/home_page.dart';
+import 'views/ride/create_ride.dart';
 import 'views/splash/splash_page.dart';
 import 'views/bookings/bookings_page.dart';
 import 'views/profile/profile_page.dart';
 import 'views/messages/message_page.dart';
+import 'views/settings/settingspage.dart';
 
+import 'widgets/main_navigator.dart';
 
 import 'package:flutter/material.dart';
 import 'themes/light_theme.dart';
-import 'views/settings/settingspage.dart';
 
-import 'package:flutter/services.dart'; // pour masquer la barre d'etat
+
+import 'package:flutter/services.dart'; // to hide the state bar
 
 
 void main() {

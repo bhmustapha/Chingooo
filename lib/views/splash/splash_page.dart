@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 
@@ -10,15 +9,15 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
-@override
-void initState() {
-  super.initState();
-Timer(const Duration(seconds: 2), () {
-  if (mounted) {
-    Navigator.pushReplacementNamed(context, '/mainnav');
+  @override
+  void initState() {
+    super.initState();
+    Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/mainnav');
+      }
+    });
   }
-});
-}
 
   @override
   Widget build(BuildContext context) {
@@ -27,13 +26,7 @@ Timer(const Duration(seconds: 2), () {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/images/chingooo.png',
-              
-              width: 150,
-            ),
-          ],
+          children: [Image.asset('assets/images/chingooo.png', width: 150)],
         ),
       ),
     );

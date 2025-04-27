@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:carpooling/widgets/navigation_bar.dart';
 
 class MessagesPage extends StatefulWidget {
   const MessagesPage({super.key});
@@ -11,8 +10,6 @@ class MessagesPage extends StatefulWidget {
 class _MessagesPageState extends State<MessagesPage> {
   @override
   Widget build(BuildContext context) {
-    return  Center(
-        child: Text('Messages Page'),
-      );
+    return Center(child: Text('Messages Page'));
   }
 }

@@ -1,4 +1,3 @@
-import 'package:carpooling/widgets/navigation_bar.dart';
 import 'package:flutter/material.dart';
 
 class BookingsPage extends StatefulWidget {
