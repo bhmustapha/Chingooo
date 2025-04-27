@@ -45,7 +45,7 @@ class MapPageState extends State<MapPage> {
     });
   }
 
-  void onSuggestionTap(Map<String, dynamic> suggestion) {
+  void onSuggestionTap(Map<String, dynamic> suggestion) async{
     final lat = suggestion['lat'];
     final lon = suggestion['lon'];
     final name = suggestion['name']; // set the suggestion map
@@ -54,9 +54,15 @@ class MapPageState extends State<MapPage> {
 
     _mapController.move(location, 15.0);
 
+    try {
+    // Call getRoute to draw the route from current location to suggestion
+    final route = await getRoute(_currentLocation!, location);
+
     setState(() {
-      suggestions = []; // Clear suggestions
-      _markers.clear(); // clear markers to add the new one
+      // Set the route points to draw the polyline
+      _routePoints = route;
+      _markers.clear(); // Clear previous markers
+      // Add new marker for the selected suggestion
       _markers.add(
         Marker(
           point: location,
@@ -67,8 +73,18 @@ class MapPageState extends State<MapPage> {
           ),
         ),
       );
-      searchController.text = name; // Update search field 
     });
+  } catch (e) {
+    // Handle error (ex: no route found)
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to get route: $e')),
+    );
+  }
+
+  setState(() {
+    suggestions = []; // Clear suggestions after tapping
+    searchController.text = name; // Update search text field with the suggestion name
+  });
   }
 
       // function to draw the route
