@@ -11,11 +11,6 @@ class BookingsPage extends StatefulWidget {
 class _BookingsPageState extends State<BookingsPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Text('Bookings Page'),
-      ),
-      
-    );
+    return Scaffold(body: Center(child: Text('Bookings Page')));
   }
 }

@@ -6,6 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import '../views/home/home_page.dart'; 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../views/ride/create_ride.dart';
 List<Map<String, dynamic>> suggestions = [];
 class MapPage extends StatefulWidget {
 // Callback for suggestion tap
@@ -122,7 +123,12 @@ LatLng? _currentLocation;
 
   // Function to search and navigate to searched place
   void searchAndNavigate() async {
-    final query = searchController.text;
+   // Get text from both controllers
+  final query1 = searchController.text;
+  final query2 = createSearchController.text; 
+  // choose which one is not empty
+  final query = query1.isNotEmpty ? query1 : query2;
+  
     if (query.isEmpty) return;
 
     final LatLng? location = await _getCoordinatesFromAddress(query);

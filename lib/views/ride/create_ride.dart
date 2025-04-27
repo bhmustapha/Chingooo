@@ -3,7 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../widgets/map.dart';
 
 final TextEditingController createSearchController = TextEditingController();
-final GlobalKey<MapPageState> _mapKey = GlobalKey<MapPageState>(); 
+final GlobalKey<MapPageState> _mapKey = GlobalKey<MapPageState>();
 
 class CreateRidePage extends StatefulWidget {
   const CreateRidePage({super.key});
@@ -38,10 +38,12 @@ class _CreateRidePageState extends State<CreateRidePage> {
                 _mapKey.currentState?.fetchSuggestions(value);
                 setState(() {});
               },
-              onSubmitted: (value) {
-                _mapKey.currentState
-                    ?.searchAndNavigate(); // move map and add marker
-                _mapKey.currentState?.clearSuggestions(); // clear suggestions
+              onSubmitted: (value)  {
+                _mapKey.currentState?.searchAndNavigate();
+                _mapKey.currentState?.clearSuggestions();
+                setState(
+                  () {},
+                ); // this line refreshes and hides the suggestion container
               },
 
               textAlign: TextAlign.start,
@@ -61,27 +63,29 @@ class _CreateRidePageState extends State<CreateRidePage> {
             ),
           ),
           SizedBox(height: 80),
-          ListView(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  width: double.infinity,
-                  height: 100,
-                  color: Colors.grey,
-                  child: Center(child: Text('old active ride')),
+          Expanded(
+            child: ListView(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    width: double.infinity,
+                    height: 100,
+                    color: Colors.grey,
+                    child: Center(child: Text('old active ride')),
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  width: double.infinity,
-                  height: 100,
-                  color: Colors.grey,
-                  child: Center(child: Text('old active ride')),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    width: double.infinity,
+                    height: 100,
+                    color: Colors.grey,
+                    child: Center(child: Text('old active ride')),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

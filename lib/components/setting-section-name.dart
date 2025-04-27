@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+// reusable setting section name
 class SettingSectionName extends StatelessWidget {
   final String name;
   const SettingSectionName({required this.name});
@@ -11,11 +12,8 @@ class SettingSectionName extends StatelessWidget {
       style: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.bold,
-        color: Colors.black
+        color: Colors.black,
       ),
     );
   }
-  
-
-
-} 
+}
