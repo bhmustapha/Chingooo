@@ -35,9 +35,7 @@ class _HomePageState extends State<HomePage> {
                   child: Material( // for the elevation + the borders
                     elevation: 6,
                     borderRadius: BorderRadius.circular(30),
-                    child: Container( // to set a height 
-                      height: 55,
-                      child: TextField( // search bar
+                    child:  TextField( // search bar
                         controller: searchController,
                         onChanged: (value) {
                           _mapKey.currentState?.fetchSuggestions(value); // shwo the suggestions 
@@ -51,6 +49,17 @@ class _HomePageState extends State<HomePage> {
                           setState(() {});
                         },
                         decoration: InputDecoration(
+                          // button to clear the text
+                          suffixIcon: searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: Icon(LucideIcons.x, color: Colors.grey),
+                                onPressed: () {
+                                  searchController.clear();
+                                  setState(() {});
+                                },
+                            )
+                            : null // so show 'x' only when there is text
+                            ,
                           hintText: 'Votre destination ?',
                           prefixIcon: Icon(LucideIcons.search),
                           border: OutlineInputBorder(
@@ -66,8 +75,7 @@ class _HomePageState extends State<HomePage> {
                             borderSide: BorderSide.none,
                           ),
                         ),
-                      ),
-                    ),
+                      ), 
                   ),
                 ),
               ],

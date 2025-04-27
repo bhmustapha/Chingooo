@@ -15,6 +15,7 @@ class _ToggleMenuState extends State<ToggleMenu> {
     return SpeedDial(
       direction: SpeedDialDirection.down,
       animatedIcon: AnimatedIcons.menu_close,
+      buttonSize: Size(50, 50),
       backgroundColor: Colors.white,
       foregroundColor: Colors.blue[600],
       children: [

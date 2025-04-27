@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_final_fields
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
@@ -28,7 +26,6 @@ class MapPageState extends State<MapPage> {
   List<Marker> _markers = []; // list of markers (current + destination)
   List<LatLng> _routePoints = []; // to draw the polyline in the map
 
-
   @override
   void initState() {
     super.initState();
@@ -36,16 +33,19 @@ class MapPageState extends State<MapPage> {
   }
 
   void centerPosition() {
-    _mapController.move(_currentLocation!, 15.0); // move the map to the current loc ( for the button )
+    _mapController.move(
+      _currentLocation!,
+      15.0,
+    ); // move the map to the current loc ( for the button )
   }
 
   void clearSuggestions() {
     setState(() {
-      suggestions = []; // clear sugg when tap 
+      suggestions = []; // clear sugg when tap
     });
   }
 
-  void onSuggestionTap(Map<String, dynamic> suggestion) async{
+  void onSuggestionTap(Map<String, dynamic> suggestion) async {
     final lat = suggestion['lat'];
     final lon = suggestion['lon'];
     final name = suggestion['name']; // set the suggestion map
@@ -55,72 +55,94 @@ class MapPageState extends State<MapPage> {
     _mapController.move(location, 15.0);
 
     try {
-    // Call getRoute to draw the route from current location to suggestion
-    final route = await getRoute(_currentLocation!, location);
+      // Call getRoute to draw the route from current location to suggestion
+      final route = await getRoute(_currentLocation!, location);
+
+      setState(() {
+        // Set the route points to draw the polyline
+        _routePoints = route;
+        _markers.clear(); // Clear previous markers
+        // Add new marker for the selected suggestion
+        _markers.add(
+          Marker(
+            point: location,
+            width: 60,
+            height: 60,
+            child: IgnorePointer(
+              child: Icon(
+                Icons.location_pin,
+                color: Colors.blue[700],
+                size: 45,
+              ),
+            ),
+          ),
+        );
+      });
+      // Calculate the bounds of the route (from current location to destination)
+      final bounds = LatLngBounds(
+        _currentLocation!, // Start location
+        location, // End location
+      );
+      _mapController.move(bounds.center, 11.5);
+    } catch (e) {
+      // Handle error (ex: no route found)
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to get route: $e')));
+    }
 
     setState(() {
-      // Set the route points to draw the polyline
-      _routePoints = route;
-      _markers.clear(); // Clear previous markers
-      // Add new marker for the selected suggestion
-      _markers.add(
-        Marker(
-          point: location,
-          width: 60,
-          height: 60,
-          child: IgnorePointer(
-            child: Icon(Icons.location_pin, color: Colors.blue[700], size: 45),
-          ),
-        ),
-      );
+      suggestions = []; // Clear suggestions after tapping
+      searchController.text =
+          name; // Update search text field with the suggestion name
     });
-  } catch (e) {
-    // Handle error (ex: no route found)
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Failed to get route: $e')),
-    );
+    // Hide the keyboard when a suggestion is tapped
+    FocusScope.of(context).unfocus();
   }
 
-  setState(() {
-    suggestions = []; // Clear suggestions after tapping
-    searchController.text = name; // Update search text field with the suggestion name
-  });
-  }
-
-      // function to draw the route
+  // function to draw the route
   Future<List<LatLng>> getRoute(LatLng start, LatLng end) async {
-  final url = Uri.parse(
-    'https://api.openrouteservice.org/v2/directions/driving-car'
-    '?api_key=5b3ce3597851110001cf62489839c0fa729b43278c806b8b3197872e' // api key from open route
-    '&start=${start.longitude},${start.latitude}'
-    '&end=${end.longitude},${end.latitude}'
-  );
+    final url = Uri.parse(
+      'https://api.openrouteservice.org/v2/directions/driving-car'
+      '?api_key=5b3ce3597851110001cf62489839c0fa729b43278c806b8b3197872e' // api key from open route
+      '&start=${start.longitude},${start.latitude}'
+      '&end=${end.longitude},${end.latitude}',
+    );
 
-  final response = await http.get(url);
+    final response = await http.get(url);
 
-  if (response.statusCode == 200) { // no errors
-    final data = jsonDecode(response.body);
-    final List<dynamic> coordinates = data['features'][0]['geometry']['coordinates'];
+    if (response.statusCode == 200) {
+      // no errors
+      final data = jsonDecode(response.body);
+      final List<dynamic> coordinates =
+          data['features'][0]['geometry']['coordinates'];
 
-    // Convert coordinates to LatLng
-    return coordinates.map<LatLng>((coord) => LatLng(coord[1], coord[0])).toList();
-  } else {
-    throw Exception('Failed to load route');
+      // Convert coordinates to LatLng
+      return coordinates
+          .map<LatLng>((coord) => LatLng(coord[1], coord[0]))
+          .toList();
+    } else {
+      throw Exception('Failed to load route');
+    }
   }
-}
 
   Future<void> _getCurrentLocation() async {
-    LocationPermission permission = await Geolocator.requestPermission(); // user's permission to use the location
+    LocationPermission permission =
+        await Geolocator.requestPermission(); // user's permission to use the location
     if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) { 
+        permission == LocationPermission.deniedForever) {
       return;
     }
 
-    Position position = await Geolocator.getCurrentPosition( // if the user gives the permission
+    Position position = await Geolocator.getCurrentPosition(
+      // if the user gives the permission
       desiredAccuracy: LocationAccuracy.high,
     );
 
-    LatLng userLocation = LatLng(position.latitude, position.longitude); // get the lat,long of user location
+    LatLng userLocation = LatLng(
+      position.latitude,
+      position.longitude,
+    ); // get the lat,long of user location
 
     setState(() {
       _currentLocation = userLocation; // set the current location
@@ -143,10 +165,14 @@ class MapPageState extends State<MapPage> {
 
     final response = await http.get(url); // send an http get request nd wait
 
-    if (response.statusCode == 200) { // 200 means its ok , no errors
-      final data = jsonDecode(response.body); // response.body = thee text of the server's answer (JSON format) / jsondecode to turns  that into dart map or list (easy to work with)
+    if (response.statusCode == 200) {
+      // 200 means its ok , no errors
+      final data = jsonDecode(
+        response.body,
+      ); // response.body = thee text of the server's answer (JSON format) / jsondecode to turns  that into dart map or list (easy to work with)
       if (data['features'].isNotEmpty) {
-        final coords = data['features'][0]['geometry']['coordinates']; // the &st feature + geometry nd coordinates
+        final coords =
+            data['features'][0]['geometry']['coordinates']; // the &st feature + geometry nd coordinates
         double lon = coords[0]; // the server gives lon first then lat
         double lat = coords[1];
         return LatLng(lat, lon); // but the latlng takes lat first then lon
@@ -160,8 +186,11 @@ class MapPageState extends State<MapPage> {
     final query = _pickUserInput();
     if (query.isEmpty) return; // if both r empty then return
 
-    final LatLng? location = await _getCoordinatesFromAddress(query); // get coordinate of the typed place
-    if (location != null && _currentLocation != null) { // if it exist
+    final LatLng? location = await _getCoordinatesFromAddress(
+      query,
+    ); // get coordinate of the typed place
+    if (location != null && _currentLocation != null) {
+      // if it exist
       _mapController.move(location, 15.0); // zoom to searched location
       final route = await getRoute(_currentLocation!, location);
       setState(() {
@@ -176,23 +205,33 @@ class MapPageState extends State<MapPage> {
             width: 60,
             height: 60,
             child: IgnorePointer(
-              child: Icon(Icons.location_pin, color: Colors.blue[700], size: 45),
+              child: Icon(
+                Icons.location_pin,
+                color: Colors.blue[700],
+                size: 45,
+              ),
             ),
           ),
         );
+        final bounds = LatLngBounds(
+          _currentLocation!, // Start location
+          location, // End location
+        );
+        _mapController.move(bounds.center, 11.5);
       });
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Location not found!'))); // shwo small error message in the bottom
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Location not found!')),
+      ); // shwo small error message in the bottom
     }
   }
 
-  String _pickUserInput() => searchController.text.isNotEmpty ? searchController.text : createSearchController.text; // pick input
-  
+  String _pickUserInput() =>
+      searchController.text.isNotEmpty
+          ? searchController.text
+          : createSearchController.text; // pick input
 
   Future<void> fetchSuggestions(String query) async {
-
     if (query.isEmpty) {
       setState(() {
         suggestions = [];
@@ -224,8 +263,6 @@ class MapPageState extends State<MapPage> {
             }).toList(); // convert it into a list
       });
     }
-
-
   }
 
   @override
@@ -249,17 +286,18 @@ class MapPageState extends State<MapPage> {
                 points: _routePoints,
                 color: Colors.blue,
                 strokeWidth: 4.0,
-          ),
-         ],
+              ),
+          ],
         ),
-        
+
         MarkerLayer(
           markers: [
             Marker(
               point: _currentLocation ?? LatLng(0, 0),
               width: 60,
               height: 60,
-              child: IgnorePointer( // invisible to all actions like tap or drag...
+              child: IgnorePointer(
+                // invisible to all actions like tap or drag...
                 child: Icon(Icons.location_on, color: Colors.blue, size: 45),
               ),
             ),
