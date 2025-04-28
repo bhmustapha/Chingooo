@@ -8,13 +8,18 @@ final GlobalKey<MapPageState> _mapKey = GlobalKey<MapPageState>(); // nametag to
 // controller of the search input
 final TextEditingController searchController = TextEditingController();
 
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomePage> createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class HomePageState extends State<HomePage> {
+
+  // a var to track to show the see rides button
+bool isSuggestionSelected = false;
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -46,7 +51,9 @@ class _HomePageState extends State<HomePage> {
                               ?.searchAndNavigate(); // move map and add marker
                           _mapKey.currentState
                               ?.clearSuggestions(); // clear suggestions
-                          setState(() {});
+                          setState(() {
+                            isSuggestionSelected = true;
+                          });
                         },
                         decoration: InputDecoration(
                           // button to clear the text
@@ -55,7 +62,9 @@ class _HomePageState extends State<HomePage> {
                                 icon: Icon(LucideIcons.x, color: Colors.grey),
                                 onPressed: () {
                                   searchController.clear();
-                                  setState(() {});
+                                  setState(() {
+                                    isSuggestionSelected = false;
+                                  });
                                 },
                             )
                             : null // so show 'x' only when there is text
@@ -113,8 +122,10 @@ class _HomePageState extends State<HomePage> {
                       ),
                       onTap: () {
                         _mapKey.currentState?.onSuggestionTap(suggestion);
-                        suggestions.clear(); // clear the list
-                        setState(() {}); // refresh the ui
+                         _mapKey.currentState
+                              ?.clearSuggestions(); // clear the list
+                         setState((){});
+                        // refresh the ui
                       },
                     );
                   },
@@ -126,13 +137,32 @@ class _HomePageState extends State<HomePage> {
         Positioned(
           bottom: 10,
           right: 10,
-          child: FloatingActionButton(
-            onPressed: () {
-              _mapKey.currentState?.centerPosition(); // go to user current location 
-            },
-            child: Icon(LucideIcons.locate),
-          ),
+          child: Row(
+              children: [
+                  Visibility(
+                    visible: isSuggestionSelected,
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        fixedSize: Size(270, 55),
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white
+                      ),
+                      onPressed: () {},
+                      child: Text('See rides')
+                      ),
+                  ),
+                SizedBox(width: 10),
+                FloatingActionButton(
+                      onPressed: () {
+                        _mapKey.currentState?.centerPosition(); // go to user current location 
+                      },
+                      child: Icon(LucideIcons.locate),
+                    ),
+              ],
+            ),
+          
         ),
+        
       ],
     );
   }

@@ -7,7 +7,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../views/ride/create_ride.dart';
 
-List<Map<String, dynamic>> suggestions = [];
+
+
+List<Map<String, dynamic>> _suggestions = [];
+
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -17,8 +20,9 @@ class MapPage extends StatefulWidget {
 }
 
 class MapPageState extends State<MapPage> {
-  // getter for the suggestions
-  List<Map<String, dynamic>> get currentSuggestions => suggestions;
+
+  // getter for the _
+  List<Map<String, dynamic>> get currentSuggestions => _suggestions;
 
   final MapController _mapController = MapController();
   LatLng? _currentLocation; // user current location (latlng is the type)
@@ -41,7 +45,7 @@ class MapPageState extends State<MapPage> {
 
   void clearSuggestions() {
     setState(() {
-      suggestions = []; // clear sugg when tap
+      _suggestions = []; // clear sugg when tap
     });
   }
 
@@ -52,15 +56,18 @@ class MapPageState extends State<MapPage> {
 
     LatLng location = LatLng(lat, lon); // get the location
 
-    _mapController.move(location, 15.0);
-
+    //_mapController.move(location, 15.0);
+    
     try {
       // Call getRoute to draw the route from current location to suggestion
       final route = await getRoute(_currentLocation!, location);
 
       setState(() {
+       
         // Set the route points to draw the polyline
         _routePoints = route;
+
+
         _markers.clear(); // Clear previous markers
         // Add new marker for the selected suggestion
         _markers.add(
@@ -78,6 +85,7 @@ class MapPageState extends State<MapPage> {
           ),
         );
       });
+      _suggestions = [];
       // Calculate the bounds of the route (from current location to destination)
       final bounds = LatLngBounds(
         _currentLocation!, // Start location
@@ -85,6 +93,7 @@ class MapPageState extends State<MapPage> {
       );
       _mapController.move(bounds.center, 11.5);
     } catch (e) {
+      
       // Handle error (ex: no route found)
       ScaffoldMessenger.of(
         context,
@@ -92,7 +101,7 @@ class MapPageState extends State<MapPage> {
     }
 
     setState(() {
-      suggestions = []; // Clear suggestions after tapping
+      _suggestions = []; // Clear suggestions after tapping
       searchController.text =
           name; // Update search text field with the suggestion name
     });
@@ -234,7 +243,7 @@ class MapPageState extends State<MapPage> {
   Future<void> fetchSuggestions(String query) async {
     if (query.isEmpty) {
       setState(() {
-        suggestions = [];
+        _suggestions = [];
       });
       return;
     }
@@ -252,7 +261,7 @@ class MapPageState extends State<MapPage> {
       final data = jsonDecode(response.body);
 
       setState(() {
-        suggestions =
+        _suggestions =
             data['features'].map<Map<String, dynamic>>((feature) {
               final coords = feature['geometry']['coordinates'];
               return {
