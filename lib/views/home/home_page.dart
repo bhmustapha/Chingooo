@@ -17,14 +17,16 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
 
-  // a var to track to show the see rides button
-bool isSuggestionSelected = false;
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Positioned.fill(child: MapPage(key: _mapKey)), // the map
+        Positioned.fill(child: MapPage(key: _mapKey, onRouteDrawn: () {
+          setState(() {});
+        },
+        )
+        ), // the map
         Positioned(
           top: 30,
           left: 15,
@@ -51,9 +53,7 @@ bool isSuggestionSelected = false;
                               ?.searchAndNavigate(); // move map and add marker
                           _mapKey.currentState
                               ?.clearSuggestions(); // clear suggestions
-                          setState(() {
-                            isSuggestionSelected = true;
-                          });
+                          setState(() {});
                         },
                         decoration: InputDecoration(
                           // button to clear the text
@@ -63,7 +63,8 @@ bool isSuggestionSelected = false;
                                 onPressed: () {
                                   searchController.clear();
                                   setState(() {
-                                    isSuggestionSelected = false;
+                                    _mapKey.currentState?.routePoints.clear();
+                                    _mapKey.currentState?.markers.clear();
                                   });
                                 },
                             )
@@ -140,7 +141,7 @@ bool isSuggestionSelected = false;
           child: Row(
               children: [
                   Visibility(
-                    visible: isSuggestionSelected,
+                    visible: _mapKey.currentState?.routePoints.isNotEmpty ?? false,
                     child: TextButton(
                       style: TextButton.styleFrom(
                         fixedSize: Size(270, 55),

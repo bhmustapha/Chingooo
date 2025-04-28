@@ -1,3 +1,5 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
@@ -13,7 +15,8 @@ List<Map<String, dynamic>> _suggestions = [];
 
 
 class MapPage extends StatefulWidget {
-  const MapPage({super.key});
+  final VoidCallback? onRouteDrawn; // to notify the home page that the route is created
+  const MapPage({super.key, this.onRouteDrawn});
 
   @override
   State<MapPage> createState() => MapPageState();
@@ -27,8 +30,8 @@ class MapPageState extends State<MapPage> {
   final MapController _mapController = MapController();
   LatLng? _currentLocation; // user current location (latlng is the type)
 
-  List<Marker> _markers = []; // list of markers (current + destination)
-  List<LatLng> _routePoints = []; // to draw the polyline in the map
+  List<Marker> markers = []; // list of markers (current + destination)
+  List<LatLng> routePoints = []; // to draw the polyline in the map
 
   @override
   void initState() {
@@ -65,12 +68,12 @@ class MapPageState extends State<MapPage> {
       setState(() {
        
         // Set the route points to draw the polyline
-        _routePoints = route;
+        routePoints = route;
 
 
-        _markers.clear(); // Clear previous markers
+        markers.clear(); // Clear previous markers
         // Add new marker for the selected suggestion
-        _markers.add(
+        markers.add(
           Marker(
             point: location,
             width: 60,
@@ -85,6 +88,7 @@ class MapPageState extends State<MapPage> {
           ),
         );
       });
+      widget.onRouteDrawn?.call();
       _suggestions = [];
       // Calculate the bounds of the route (from current location to destination)
       final bounds = LatLngBounds(
@@ -204,11 +208,11 @@ class MapPageState extends State<MapPage> {
       final route = await getRoute(_currentLocation!, location);
       setState(() {
         //set route points to draw the line
-        _routePoints = route;
+        routePoints = route;
         //clear the old markers
-        _markers.clear();
+        markers.clear();
         // Add a new marker for search result
-        _markers.add(
+        markers.add(
           Marker(
             point: location,
             width: 60,
@@ -222,6 +226,7 @@ class MapPageState extends State<MapPage> {
             ),
           ),
         );
+        widget.onRouteDrawn?.call();
         final bounds = LatLngBounds(
           _currentLocation!, // Start location
           location, // End location
@@ -290,9 +295,9 @@ class MapPageState extends State<MapPage> {
         ),
         PolylineLayer(
           polylines: [
-            if (_routePoints.isNotEmpty)
+            if (routePoints.isNotEmpty)
               Polyline(
-                points: _routePoints,
+                points: routePoints,
                 color: Colors.blue,
                 strokeWidth: 4.0,
               ),
@@ -310,7 +315,7 @@ class MapPageState extends State<MapPage> {
                 child: Icon(Icons.location_on, color: Colors.blue, size: 45),
               ),
             ),
-            ..._markers,
+            ...markers,
           ],
         ),
       ],
