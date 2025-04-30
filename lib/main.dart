@@ -1,5 +1,7 @@
+import 'package:carpooling/views/ride/pickUp_create.dart';
+
 import 'views/home/home_page.dart';
-import 'views/ride/create_ride.dart';
+import 'views/ride/test_create.dart';
 import 'views/splash/splash_page.dart';
 import 'views/bookings/bookings_page.dart';
 import 'views/profile/profile_page.dart';
@@ -42,7 +44,8 @@ class MyApp extends StatelessWidget {
         "/bookings": (context) => const BookingsPage(),
         "/profile": (context) => const ProfilePage(),
         "/messages": (context) => const MessagesPage(),
-        "/create" : (context) => const CreateRidePage()
+        "/createTest": (context) => const CreateRideMap(),
+        "/chatgpt": (context) =>  LocationSearchPage()
       },
       
       home: MainNavigator(),

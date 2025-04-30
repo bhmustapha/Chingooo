@@ -7,7 +7,7 @@ import 'package:flutter_map/flutter_map.dart';
 import '../views/home/home_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../views/ride/create_ride.dart';
+
 
 
 
@@ -196,7 +196,7 @@ class MapPageState extends State<MapPage> {
 
   // Function to search and navigate to searched place
   void searchAndNavigate() async {
-    final query = _pickUserInput();
+    final query = searchController.text;
     if (query.isEmpty) return; // if both r empty then return
 
     final LatLng? location = await _getCoordinatesFromAddress(
@@ -240,10 +240,7 @@ class MapPageState extends State<MapPage> {
     }
   }
 
-  String _pickUserInput() =>
-      searchController.text.isNotEmpty
-          ? searchController.text
-          : createSearchController.text; // pick input
+ // pick input
 
   Future<void> fetchSuggestions(String query) async {
     if (query.isEmpty) {

@@ -1,3 +1,4 @@
+import 'package:carpooling/views/ride/see_rides.dart';
 import 'package:carpooling/widgets/toggle_menu.dart';  // menu
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -16,6 +17,8 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
+
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -146,7 +149,12 @@ class HomePageState extends State<HomePage> {
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SeeRidesPage()));
+                      },
                       child: Text('See rides')
                       ),
                   ),

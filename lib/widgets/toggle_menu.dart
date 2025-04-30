@@ -30,7 +30,7 @@ class _ToggleMenuState extends State<ToggleMenu> {
         SpeedDialChild(
           child: Icon(LucideIcons.carTaxiFront),
           onTap: () {
-            Navigator.pushNamed(context, '/create');
+            Navigator.pushNamed(context, '/chatgpt');
           },
           shape: CircleBorder(),
           foregroundColor: Colors.blue[600],
