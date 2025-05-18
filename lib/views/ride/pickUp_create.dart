@@ -1,10 +1,16 @@
 import 'package:carpooling/views/ride/dropOff_create.dart';
 import 'package:carpooling/widgets/main_navigator.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart'; // place mark function
+import 'package:geolocator/geolocator.dart'; // get user's current location
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+String? pickUpLocation; // to save the selected location
+double? selectedPickUpLat; // save the selected Latitude
+double? selectedPickUpLon; // save the selected Longitude
 
 class LocationSearchPage extends StatefulWidget {
   @override
@@ -13,10 +19,31 @@ class LocationSearchPage extends StatefulWidget {
 
 class LocationSearchPageState extends State<LocationSearchPage> {
   final TextEditingController _controller = TextEditingController();
-  List<String> _suggestions = [];
-  final String _apiKey = 'e80bab52-948d-4148-9f15-f56591cca16a'; // Replace with your Stadia Maps API key
+  List<Map<String, dynamic>> _suggestions = [];
+  final String _apiKey =
+      'e80bab52-948d-4148-9f15-f56591cca16a'; // Replace with your Stadia Maps API key
 
-  String? pickUpLocation; // to save the selected location
+
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus && _controller.text.isEmpty) {
+        _showCurrentLocationOnly();
+      }
+    });
+  }
+
+  Future<void> _showCurrentLocationOnly() async {
+    final currentLocation = await _getCurrentLocationSuggestion();
+    if (currentLocation != null) {
+      setState(() {
+        _suggestions = [currentLocation];
+      });
+    }
+  }
 
   // Fetch suggestions from Stadia Maps Geocoding API
   Future<void> onTextChanged(String input) async {
@@ -42,9 +69,22 @@ class LocationSearchPageState extends State<LocationSearchPage> {
         final data = json.decode(response.body);
         final features = data['features'] as List;
 
-        final results = features
-            .map((f) => f['properties']['label'] as String)
-            .toList();
+        final results =
+            features.map((f) {
+              final props = f['properties'];
+              final coords = f['geometry']['coordinates'];
+              return {
+                'label': props['label'],
+                'lat': coords[1],
+                'lon': coords[0],
+              };
+            }).toList();
+
+        final currentLocationSuggestion = await _getCurrentLocationSuggestion();
+
+        if (currentLocationSuggestion != null) {
+          results.insert(0, currentLocationSuggestion); // Add to the top
+        }
 
         setState(() {
           _suggestions = results;
@@ -63,64 +103,111 @@ class LocationSearchPageState extends State<LocationSearchPage> {
     }
   }
 
-  void _onSuggestionTapped(String suggestion) {
-    _controller.text = suggestion;
-    pickUpLocation = suggestion;
-    print(pickUpLocation);
+  void _onSuggestionTapped(Map<String, dynamic> suggestion) {
+    _controller.text = suggestion['label'];
+    pickUpLocation = suggestion['label'];
+    selectedPickUpLat = suggestion['lat'];
+    selectedPickUpLon = suggestion['lon'];
+    print("Selected: $pickUpLocation ($selectedPickUpLat, $selectedPickUpLon)");
     setState(() {
       _suggestions.clear();
     });
   }
 
+  Future<Map<String, dynamic>?> _getCurrentLocationSuggestion() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return null;
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission != LocationPermission.whileInUse &&
+            permission != LocationPermission.always) {
+          return null;
+        }
+      }
+
+      final position = await Geolocator.getCurrentPosition();
+      final placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        final address = "${place.name}, ${place.locality}, ${place.country}";
+
+        return {
+          'label': 'Current Location: $address',
+          'lat': position.latitude,
+          'lon': position.longitude,
+          'isCurrentLocation': true,
+        };
+      }
+    } catch (e) {
+      print("Failed to get current location: $e");
+    }
+
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
       body: Padding(
         padding: const EdgeInsets.all(10.0),
         child: Column(
           children: [
-            SizedBox(height: 60,),
+            SizedBox(height: 60),
             Row(
               children: [
-                IconButton(onPressed: () {
-                  Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MainNavigator(),));
-                }, icon: Icon(LucideIcons.arrowLeft, color: Colors.blue,)),
-                Text('Pick-Up location',
-                style: TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.w700,
-              color: Colors.blue,
-            ),
-                )
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MainNavigator()),
+                    );
+                  },
+                  icon: Icon(LucideIcons.arrowLeft, color: Colors.blue),
+                ),
+                Text(
+                  'Pick-Up location',
+                  style: TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.blue,
+                  ),
+                ),
               ],
             ),
-            SizedBox(height: 25,),
+            SizedBox(height: 25),
             Row(
               children: [
                 Expanded(
                   child: TextField(
+                    focusNode: _focusNode,
                     controller: _controller,
                     decoration: InputDecoration(
-                    hintText: 'Pick-up',
+                      hintText: 'Pick-up',
                       border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide.none,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16)
-                          ),
-                    
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 16,
+                      ),
+                    ),
+
                     onChanged: onTextChanged,
                     onSubmitted: (value) {
                       pickUpLocation = value;
@@ -129,10 +216,10 @@ class LocationSearchPageState extends State<LocationSearchPage> {
                 ),
                 SizedBox(width: 10),
                 FloatingActionButton(
-                   backgroundColor: Colors.blue,
-                   foregroundColor: Colors.white,
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
                   elevation: 0,
-                  
+
                   onPressed:
                       pickUpLocation != null
                           ? () {
@@ -148,7 +235,7 @@ class LocationSearchPageState extends State<LocationSearchPage> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 10),
             if (_suggestions.isNotEmpty)
               Expanded(
@@ -161,18 +248,29 @@ class LocationSearchPageState extends State<LocationSearchPage> {
                   child: ListView.builder(
                     itemCount: _suggestions.length,
                     itemBuilder: (context, index) {
+                      final suggestion = _suggestions[index];
                       return ListTile(
-                        title: Text(_suggestions[index]),
-                        onTap: () => _onSuggestionTapped(_suggestions[index]),
+                        leading:
+                            suggestion['isCurrentLocation'] == true
+                                ? Icon(Icons.my_location)
+                                : Icon(Icons.location_on),
+                        title: Text(suggestion['label']),
+                        onTap: () => _onSuggestionTapped(suggestion),
                       );
                     },
                   ),
                 ),
               ),
-              
           ],
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    _controller.dispose();
+    super.dispose();
   }
 }

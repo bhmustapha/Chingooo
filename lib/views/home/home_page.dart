@@ -2,7 +2,7 @@ import 'package:carpooling/views/ride/see_rides.dart';
 import 'package:carpooling/widgets/toggle_menu.dart';  // menu
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import '../../widgets/map.dart'; // the map
+import '../map/map.dart'; // the map
 
 
 final GlobalKey<MapPageState> _mapKey = GlobalKey<MapPageState>(); // nametag to pin map widget 

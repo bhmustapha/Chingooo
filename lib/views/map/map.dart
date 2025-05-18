@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_map/flutter_map.dart';
-import '../views/home/home_page.dart';
+import '../home/home_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -147,10 +147,7 @@ class MapPageState extends State<MapPage> {
       return;
     }
 
-    Position position = await Geolocator.getCurrentPosition(
-      // if the user gives the permission
-      desiredAccuracy: LocationAccuracy.high,
-    );
+    Position position = await Geolocator.getCurrentPosition();
 
     LatLng userLocation = LatLng(
       position.latitude,
@@ -204,7 +201,6 @@ class MapPageState extends State<MapPage> {
     ); // get coordinate of the typed place
     if (location != null && _currentLocation != null) {
       // if it exist
-      _mapController.move(location, 15.0); // zoom to searched location
       final route = await getRoute(_currentLocation!, location);
       setState(() {
         //set route points to draw the line
@@ -240,7 +236,7 @@ class MapPageState extends State<MapPage> {
     }
   }
 
- // pick input
+
 
   Future<void> fetchSuggestions(String query) async {
     if (query.isEmpty) {

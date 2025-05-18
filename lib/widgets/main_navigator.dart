@@ -1,6 +1,7 @@
 // the pages
 import 'package:carpooling/views/bookings/bookings_page.dart';
 import 'package:carpooling/views/home/home_page.dart';
+import 'package:carpooling/views/messages/conversations_list.dart';
 import 'package:carpooling/views/messages/message_page.dart';
 import 'package:carpooling/views/profile/profile_page.dart';
 
@@ -8,24 +9,30 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class MainNavigator extends StatefulWidget {
+  
   const MainNavigator({super.key});
 
   @override
-  State<MainNavigator> createState() => _MainNavigatorState();
+  State<MainNavigator> createState() => MainNavigatorState();
 }
 
-class _MainNavigatorState extends State<MainNavigator> {
+class MainNavigatorState extends State<MainNavigator> {
   int selectedIndex = 0;
   void _onItemPressed(int index) {
     setState(() {
       selectedIndex = index;
     });
   }
+  void switchTab(int index) {
+  setState(() {
+    selectedIndex = index;
+  });
+}
 
-  final List<Widget> _pages = const [
+  final List<Widget> _pages =  [
     HomePage(),
     BookingsPage(),
-    MessagesPage(),
+    ChatListPage(),
     ProfilePage(),
   ];
   @override

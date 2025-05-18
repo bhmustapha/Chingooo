@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 // light theme
 final ThemeData lightTheme = ThemeData(
+  useMaterial3: true,
   // main color
   colorScheme: ColorScheme.fromSeed(
     seedColor: Colors.blue,
@@ -93,4 +94,35 @@ final ThemeData lightTheme = ThemeData(
       color: Colors.black,
     ),
   ),
+
+
+  // Date Picker Theme
+      datePickerTheme: const DatePickerThemeData(
+        backgroundColor: Colors.white,
+        headerBackgroundColor: Colors.blue,         // Header background
+        headerForegroundColor: Colors.white,        // Text color in header
+
+         // Text inside selected day circle
+
+        dayStyle: TextStyle(color: Colors.black),    // Default day text color
+        // Today's text color
+      ),
+
+      // Time Picker Theme
+      timePickerTheme: const TimePickerThemeData(
+        backgroundColor: Colors.white,
+        hourMinuteTextColor: Colors.white,
+        hourMinuteColor: Colors.blue,               // Hour/Minute box color
+        dayPeriodTextColor: Colors.white,           // AM/PM text color
+        dayPeriodColor: Colors.blue,                // AM/PM background color
+        dialHandColor: Colors.blue,                 // Dial hand color
+        dialBackgroundColor: Colors.blueAccent,    // Dial background color
+        dialTextColor: Colors.white,                // Dial text color
+        entryModeIconColor: Colors.blue,            // Icon color for switching modes
+      ),
+
+      // Buttons in Date/Time Pickers
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: Colors.blue), // Button color
+      ),
 );

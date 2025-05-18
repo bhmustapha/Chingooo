@@ -1,4 +1,4 @@
-import 'package:carpooling/widgets/map.dart';
+import 'package:carpooling/views/map/map.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 

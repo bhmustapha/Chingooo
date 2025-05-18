@@ -1,9 +1,12 @@
-import 'package:carpooling/views/home/home_page.dart';
-import 'package:carpooling/views/ride/pickUp_create.dart';
-import 'package:carpooling/widgets/map.dart';
+import 'package:carpooling/views/ride/pickUp_create.dart'; // to use lat lng
+import 'package:carpooling/views/map/map.dart';
+import 'package:carpooling/views/ride/route_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:geocoding/geocoding.dart'; // place mark function
+import 'package:geolocator/geolocator.dart'; // get user's current location
+import 'package:latlong2/latlong.dart';
 
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -14,11 +17,33 @@ class SecondSearchPage extends StatefulWidget {
 
 class SecondSearchPageState extends State<SecondSearchPage> {
   final TextEditingController _controller = TextEditingController();
-  List<String> _suggestions = [];
+  List<Map<String, dynamic>> _suggestions = [];
   final String _apiKey =
       'e80bab52-948d-4148-9f15-f56591cca16a'; // Replace with your Stadia Maps API key
 
   String? destinationLocation; // to save the selected location
+  double? selectedLat; // save the selected Latitude
+  double? selectedLon; // save the selected Longitude
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus && _controller.text.isEmpty) {
+        _showCurrentLocationOnly();
+      }
+    });
+  }
+
+  Future<void> _showCurrentLocationOnly() async {
+    final currentLocation = await _getCurrentLocationSuggestion();
+    if (currentLocation != null) {
+      setState(() {
+        _suggestions = [currentLocation];
+      });
+    }
+  }
 
   // Fetch suggestions from Stadia Maps Geocoding API
   Future<void> onTextChanged(String input) async {
@@ -45,7 +70,21 @@ class SecondSearchPageState extends State<SecondSearchPage> {
         final features = data['features'] as List;
 
         final results =
-            features.map((f) => f['properties']['label'] as String).toList();
+            features.map((f) {
+              final props = f['properties'];
+              final coords = f['geometry']['coordinates'];
+              return {
+                'label': props['label'],
+                'lat': coords[1],
+                'lon': coords[0],
+              };
+            }).toList();
+
+        final currentLocationSuggestion = await _getCurrentLocationSuggestion();
+
+        if (currentLocationSuggestion != null) {
+          results.insert(0, currentLocationSuggestion); // Add to the top
+        }
 
         setState(() {
           _suggestions = results;
@@ -64,13 +103,53 @@ class SecondSearchPageState extends State<SecondSearchPage> {
     }
   }
 
-  void _onSuggestionTapped(String suggestion) {
-    _controller.text = suggestion;
-    destinationLocation = suggestion;
-    print(destinationLocation);
+  void _onSuggestionTapped(Map<String, dynamic> suggestion) {
+    _controller.text = suggestion['label'];
+    destinationLocation = suggestion['label'];
+    selectedLat = suggestion['lat'];
+    selectedLon = suggestion['lon'];
+    print("Selected: $destinationLocation ($selectedLat, $selectedLon)");
     setState(() {
       _suggestions.clear();
     });
+  }
+
+  Future<Map<String, dynamic>?> _getCurrentLocationSuggestion() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return null;
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission != LocationPermission.whileInUse &&
+            permission != LocationPermission.always) {
+          return null;
+        }
+      }
+
+      final position = await Geolocator.getCurrentPosition();
+      final placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        final address = "${place.name}, ${place.locality}, ${place.country}";
+
+        return {
+          'label': 'Use current location',
+          'lat': position.latitude,
+          'lon': position.longitude,
+          'isCurrentLocation': true,
+        };
+      }
+    } catch (e) {
+      print("Failed to get current location: $e");
+    }
+
+    return null;
   }
 
   @override
@@ -110,7 +189,7 @@ class SecondSearchPageState extends State<SecondSearchPage> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    
+                    focusNode: _focusNode,
                     decoration: InputDecoration(
                       hintText: 'Drop-off',
                       labelText: 'Enter location',
@@ -150,11 +229,16 @@ class SecondSearchPageState extends State<SecondSearchPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => MapPage(),
+                                builder:
+                                    (context) => RoutePreviewPage(
+                                      pickUp: LatLng(selectedPickUpLat!, selectedPickUpLon!),
+                                      dropOff: LatLng(selectedLat!, selectedLon!),
+                                      destinationName: destinationLocation!,
+                                    ),
                               ),
                             );
                           }
-                          : null,
+                          : null, 
                   child: Icon(LucideIcons.arrowRight),
                 ),
               ],
@@ -171,9 +255,14 @@ class SecondSearchPageState extends State<SecondSearchPage> {
                   child: ListView.builder(
                     itemCount: _suggestions.length,
                     itemBuilder: (context, index) {
+                      final suggestion = _suggestions[index];
                       return ListTile(
-                        title: Text(_suggestions[index]),
-                        onTap: () => _onSuggestionTapped(_suggestions[index]),
+                        leading:
+                            suggestion['isCurrentLocation'] == true
+                                ? Icon(LucideIcons.locate)
+                                : Icon(LucideIcons.mapPin),
+                        title: Text(suggestion['label']),
+                        onTap: () => _onSuggestionTapped(suggestion),
                       );
                     },
                   ),
@@ -183,5 +272,12 @@ class SecondSearchPageState extends State<SecondSearchPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    _controller.dispose();
+    super.dispose();
   }
 }
