@@ -15,15 +15,14 @@ class _ProfilePageState extends State<ProfilePage> {
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        // app bar
-        AppBar(
-          centerTitle: true,
-          automaticallyImplyLeading: false, // remove the default return button
-          title: Text(
-            'Profile',
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-        ),
+        SizedBox(height: 24),
+            Text(
+              'Profile',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10.0),
           child: GreyContainer(

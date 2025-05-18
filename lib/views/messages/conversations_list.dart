@@ -20,54 +20,56 @@ class ChatListPage extends StatelessWidget {
       'conversationId': '3',
       'friendName': 'Fatima Ben',
       'lastMessage': 'Ma nrkbch mea rjel khouya',
-      'timestamp': 'Mon',
+      'timestamp': 'Mon', 
     },
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          SizedBox(height: 35),
-          Text(
-            'Messages',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
+      body: SafeArea(
+        child: Column(
+          children: [
+            SizedBox(height: 24),
+            Text(
+              'Messages',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-
-          Expanded(
-            child: ListView.builder(
-              itemCount: chatList.length,
-              itemBuilder: (context, index) {
-                final chat = chatList[index];
-                return ListTile(
-                  leading: CircleAvatar(child: Text(chat['friendName'][0])),
-                  title: Text(chat['friendName']),
-                  subtitle: Text(chat['lastMessage']),
-                  trailing: Text(
-                    chat['timestamp'],
-                    style: TextStyle(fontSize: 12),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => MessagePage(
-                              conversationId: chat['conversationId'],
-                              friendName: chat['friendName'],
-                            ),
-                      ),
-                    );
-                  },
-                );
-              },
+        
+            Expanded(
+              child: ListView.builder(
+                itemCount: chatList.length,
+                itemBuilder: (context, index) {
+                  final chat = chatList[index];
+                  return ListTile(
+                    leading: CircleAvatar(child: Text(chat['friendName'][0])),
+                    title: Text(chat['friendName']),
+                    subtitle: Text(chat['lastMessage']),
+                    trailing: Text(
+                      chat['timestamp'],
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => MessagePage(
+                                conversationId: chat['conversationId'],
+                                friendName: chat['friendName'],
+                              ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
