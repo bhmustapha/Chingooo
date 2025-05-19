@@ -13,160 +13,144 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          SizedBox(height: 24),
-          Text(
-            'Profile',
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: GreyContainer(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      // profil picture
-                      radius: 30,
-                      backgroundImage: AssetImage('assets/images/OIP.jfif'),
-                    ),
-                    SizedBox(width: 20),
-                    Expanded(
-                      // user name
-                      child: Text(
-                        'Mustapha Himoun',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ),
-                  ],
-                ),
+      child: Container(
+        color: Colors.grey.shade100, // subtle background color
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            SizedBox(height: 24),
+            Text(
+              'Profile',
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: GreyContainer(
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      //date de naissance
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Date de naissance',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            'dd/mm/yyyy',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w200,
-                              color: const Color.fromARGB(255, 85, 85, 85),
-                            ),
-                          ),
-                        ],
+            SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: GreyContainer(
+                
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 35, // slightly bigger avatar
+                        backgroundImage: AssetImage('assets/images/OIP.jfif'),
                       ),
-                    ),
-                    SizedBox(height: 15), // spacing between infos elements
-                    Container(
-                      //Email
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Email',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            'exemple@gmail.com',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w200,
-                              color: const Color.fromARGB(255, 85, 85, 85),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 15), // spacing between infos elements
-                    Container(
-                      // numero tel
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Numero de téléphone',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            'xxxx xxx xxx',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w200,
-                              color: const Color.fromARGB(255, 85, 85, 85),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: 20), // spacing between infos nd logout button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {},
-                    label: Text('History'),
-                    icon: Icon(Icons.history),
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
-                      side: BorderSide(
-                        color: const Color.fromARGB(255, 212, 212, 212),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 15),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EditProfilePage(),
+                      SizedBox(width: 25),
+                      Expanded(
+                        child: Text(
+                          'Mustapha Himoun',
+                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
                         ),
-                      );
-                    },
-                    label: Text('Edit'),
-                    icon: Icon(Icons.edit),
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
-                      side: BorderSide(
-                        color: const Color.fromARGB(255, 212, 212, 212),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: GreyContainer(
+                
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInfoRow('Date de naissance', 'dd/mm/yyyy'),
+                      Divider(color: Colors.grey.shade300),
+                      _buildInfoRow('Email', 'exemple@gmail.com'),
+                      Divider(color: Colors.grey.shade300),
+                      _buildInfoRow('Numero de téléphone', 'xxxx xxx xxx'),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 30),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {},
+                      label: Text('History'),
+                      icon: Icon(Icons.history),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black87,
+                        side: BorderSide(color: Colors.grey.shade300),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 14),
                       ),
                     ),
                   ),
+                  SizedBox(width: 15),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditProfilePage(),
+                          ),
+                        );
+                      },
+                      label: Text('Edit'),
+                      icon: Icon(Icons.edit),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black87,
+                        side: BorderSide(color: Colors.grey.shade300),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
                 ),
-              ],
+          ),
+          SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w300,
+              color: Colors.grey.shade700,
             ),
           ),
         ],
@@ -174,3 +158,4 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 }
+
