@@ -33,9 +33,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: lightTheme,
       debugShowCheckedModeBanner: false,
-      initialRoute: "/splash",
+      initialRoute: "/mainnav",
       routes: {
-        "/splash": (context) => const SplashPage(),
+        
         "/mainnav" : (context) => const MainNavigator(),
         "/home": (context) => const HomePage(),
         "/settings": (context) => const SettingsPage(),

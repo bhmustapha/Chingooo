@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart'; // place mark function
 import 'package:geolocator/geolocator.dart'; // get user's current location
 import 'package:http/http.dart' as http;
+import 'package:latlong2/latlong.dart';
 import 'dart:convert';
 
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -22,7 +23,6 @@ class LocationSearchPageState extends State<LocationSearchPage> {
   List<Map<String, dynamic>> _suggestions = [];
   final String _apiKey =
       'e80bab52-948d-4148-9f15-f56591cca16a'; // Replace with your Stadia Maps API key
-
 
   final FocusNode _focusNode = FocusNode();
 
@@ -100,6 +100,39 @@ class LocationSearchPageState extends State<LocationSearchPage> {
       setState(() {
         _suggestions.clear();
       });
+    }
+  }
+
+  // fonction to call geocoding api
+  Future<void> _getCoordinatesFromAddress(String address) async {
+    final url = Uri.parse(
+      'https://api.stadiamaps.com/geocoding/v1/search?text=${Uri.encodeComponent(address)}'
+      '&api_key=e80bab52-948d-4148-9f15-f56591cca16a' // api key
+      '&boundary.rect.min_lat=35.6645'
+      '&boundary.rect.min_lon=-0.6974'
+      '&boundary.rect.max_lat=35.7527' // limitted search for ORAN
+      '&boundary.rect.max_lon=-0.5419'
+      '&autocomplete=true', // auto complete the ser input
+    );
+
+    final response = await http.get(url); // send an http get request nd wait
+
+    if (response.statusCode == 200) {
+      // 200 means its ok , no errors
+      final data = jsonDecode(
+        response.body,
+      ); // response.body = thee text of the server's answer (JSON format) / jsondecode to turns  that into dart map or list (easy to work with)
+      if (data['features'].isNotEmpty) {
+        final coords =
+            data['features'][0]['geometry']['coordinates']; // the &st feature + geometry nd coordinates
+        double lon = coords[0]; // the server gives lon first then lat
+        double lat = coords[1];
+
+        selectedPickUpLat = lat;
+        selectedPickUpLon = lon;
+        // but the latlng takes lat first then lon
+        setState(() {});
+      }
     }
   }
 
@@ -211,6 +244,7 @@ class LocationSearchPageState extends State<LocationSearchPage> {
                     onChanged: onTextChanged,
                     onSubmitted: (value) {
                       pickUpLocation = value;
+                      _getCoordinatesFromAddress(value);
                     },
                   ),
                 ),
@@ -220,17 +254,16 @@ class LocationSearchPageState extends State<LocationSearchPage> {
                   foregroundColor: Colors.white,
                   elevation: 0,
 
-                  onPressed:
-                      pickUpLocation != null
-                          ? () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SecondSearchPage(),
-                              ),
-                            );
-                          }
-                          : null,
+                  onPressed: () {
+                    pickUpLocation = _controller.text;
+                    _getCoordinatesFromAddress(_controller.text);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SecondSearchPage(),
+                      ),
+                    );
+                  },
                   child: Icon(LucideIcons.arrowRight),
                 ),
               ],

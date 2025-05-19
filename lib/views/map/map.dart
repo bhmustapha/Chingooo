@@ -210,13 +210,14 @@ class MapPageState extends State<MapPage> {
         // Add a new marker for search result
         markers.add(
           Marker(
+            rotate: false,
             point: location,
             width: 60,
             height: 60,
             child: IgnorePointer(
               child: Icon(
                 Icons.location_pin,
-                color: Colors.blue[700],
+                color: Colors.blue,
                 size: 45,
               ),
             ),

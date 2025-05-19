@@ -44,6 +44,12 @@ dependencies:
   lucide_icons_flutter: ^2.0.1
   flutter_switch: ^0.3.2
 
+  flutter_native_splash: ^2.4.6
+
+  #to change profile picture
+  image_picker: ^1.1.2
+  
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -54,6 +60,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  
+  
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -99,3 +107,4 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+

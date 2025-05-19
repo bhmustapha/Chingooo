@@ -108,10 +108,41 @@ class SecondSearchPageState extends State<SecondSearchPage> {
     destinationLocation = suggestion['label'];
     selectedLat = suggestion['lat'];
     selectedLon = suggestion['lon'];
-    print("Selected: $destinationLocation ($selectedLat, $selectedLon)");
     setState(() {
       _suggestions.clear();
     });
+  }
+
+  // fonction to call geocoding api
+  Future<void> _getCoordinatesFromAddress(String address) async {
+    final url = Uri.parse(
+      'https://api.stadiamaps.com/geocoding/v1/search?text=${Uri.encodeComponent(address)}'
+      '&api_key=e80bab52-948d-4148-9f15-f56591cca16a' // api key
+      '&boundary.rect.min_lat=35.6645'
+      '&boundary.rect.min_lon=-0.6974'
+      '&boundary.rect.max_lat=35.7527' // limitted search for ORAN
+      '&boundary.rect.max_lon=-0.5419'
+      '&autocomplete=true', // auto complete the ser input
+    );
+
+    final response = await http.get(url); // send an http get request nd wait
+
+    if (response.statusCode == 200) {
+      // 200 means its ok , no errors
+      final data = jsonDecode(
+        response.body,
+      ); // response.body = thee text of the server's answer (JSON format) / jsondecode to turns  that into dart map or list (easy to work with)
+      if (data['features'].isNotEmpty) {
+        final coords =
+            data['features'][0]['geometry']['coordinates']; // the &st feature + geometry nd coordinates
+        double lon = coords[0]; // the server gives lon first then lat
+        double lat = coords[1];
+
+        selectedLat = lat;
+        selectedLon = lon;
+        setState(() {});
+      }
+    }
   }
 
   Future<Map<String, dynamic>?> _getCurrentLocationSuggestion() async {
@@ -212,8 +243,39 @@ class SecondSearchPageState extends State<SecondSearchPage> {
                     ),
 
                     onChanged: onTextChanged,
-                    onSubmitted: (value) {
+                    onSubmitted: (value) async {
                       destinationLocation = value;
+                      await _getCoordinatesFromAddress(
+                        value,
+                      ); // Wait for coordinates to be fetched
+
+                      if (selectedLat != null &&
+                          selectedLon != null &&
+                          selectedPickUpLat != null &&
+                          selectedPickUpLon != null &&
+                          destinationLocation != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => RoutePreviewPage(
+                                  pickUp: LatLng(
+                                    selectedPickUpLat!,
+                                    selectedPickUpLon!,
+                                  ),
+                                  dropOff: LatLng(selectedLat!, selectedLon!),
+                                  destinationName: destinationLocation!,
+                                ),
+                          ),
+                        );
+                      } else {
+                        // Optionally show an error to the user
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("Please select a valid location"),
+                          ),
+                        );
+                      }
                     },
                   ),
                 ),
@@ -223,22 +285,38 @@ class SecondSearchPageState extends State<SecondSearchPage> {
                   foregroundColor: Colors.white,
                   elevation: 0,
 
-                  onPressed:
-                      destinationLocation != null
-                          ? () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => RoutePreviewPage(
-                                      pickUp: LatLng(selectedPickUpLat!, selectedPickUpLon!),
-                                      dropOff: LatLng(selectedLat!, selectedLon!),
-                                      destinationName: destinationLocation!,
-                                    ),
+                  onPressed: () async {
+                    destinationLocation = _controller.text;
+                    await _getCoordinatesFromAddress(_controller.text);
+                    setState(() {});
+                    if (selectedLat != null &&
+                        selectedLon != null &&
+                        selectedPickUpLat != null &&
+                        selectedPickUpLon != null &&
+                        destinationLocation != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => RoutePreviewPage(
+                                pickUp: LatLng(
+                                  selectedPickUpLat!,
+                                  selectedPickUpLon!,
+                                ),
+                                dropOff: LatLng(selectedLat!, selectedLon!),
+                                destinationName: destinationLocation!,
                               ),
-                            );
-                          }
-                          : null, 
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Please select a valid location"),
+                        ),
+                      );
+                    }
+                  },
+
                   child: Icon(LucideIcons.arrowRight),
                 ),
               ],
