@@ -1,3 +1,5 @@
+import 'package:carpooling/auth/login_page.dart';
+import 'package:carpooling/intro.dart';
 import 'package:carpooling/views/ride/pickUp_create.dart';
 
 import 'views/home/home_page.dart';
@@ -33,7 +35,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: lightTheme,
       debugShowCheckedModeBanner: false,
-      initialRoute: "/mainnav",
+      // initialRoute: "/mainnav",
       routes: {
         
         "/mainnav" : (context) => const MainNavigator(),
@@ -41,10 +43,11 @@ class MyApp extends StatelessWidget {
         "/settings": (context) => const SettingsPage(),
         "/createTest": (context) => const CreateRideMap(),
         "/chatgpt": (context) =>  LocationSearchPage(),
-        "/convList": (context) => ChatListPage()
+        "/convList": (context) => ChatListPage(),
+        "/auth": (context) => LoginPage(),
       },
       
-      home: MainNavigator(),
+      home: OnBoardingPage(),
     );
   }
 }

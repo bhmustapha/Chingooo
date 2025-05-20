@@ -264,7 +264,7 @@ class LocationSearchPageState extends State<LocationSearchPage> {
                       ),
                     );
                   },
-                  child: Icon(LucideIcons.arrowRight),
+                  child: Icon(Icons.arrow_back_ios_new),
                 ),
               ],
             ),

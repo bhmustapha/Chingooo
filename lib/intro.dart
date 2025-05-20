@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:introduction_screen/introduction_screen.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class OnBoardingPage extends StatelessWidget {
   @override
@@ -10,26 +11,26 @@ class OnBoardingPage extends StatelessWidget {
           title: "Welcome to Carpool",
           body: "Share rides easily and save money.",
           image: Center(
-            child: Image.asset('assets/images/welcome_carpool.png', height: 200),
+            child: SvgPicture.asset('assets/images/Carpool.svg', height: 200),
           ),
         ),
         PageViewModel(
           title: "Book a Ride",
           body: "Quickly find and book your carpool rides.",
           image: Center(
-            child: Image.asset('assets/images/book_ride.png', height: 200),
+            child: SvgPicture.asset('assets/images/Order_ride.svg', height: 200),
           ),
         ),
         PageViewModel(
           title: "Navigate Safely",
           body: "Get accurate routes and track your rides.",
           image: Center(
-            child: Image.asset('assets/images/navigate_route.png', height: 200),
+            child: SvgPicture.asset('assets/images/Navigation.svg', height: 200),
           ),
         ),
       ],
       onDone: () {
-        Navigator.of(context).pushReplacementNamed('/mainnav');
+        Navigator.of(context).pushReplacementNamed('/auth');
       },
       showSkipButton: true,
       skip: Text("Skip"),

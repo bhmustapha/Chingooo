@@ -202,7 +202,7 @@ class SecondSearchPageState extends State<SecondSearchPage> {
                       ),
                     );
                   },
-                  icon: Icon(LucideIcons.arrowLeft, color: Colors.blue),
+                  icon: Icon(Icons.arrow_back_ios_new, color: Colors.blue),
                 ),
                 Text(
                   'Drop-off location',

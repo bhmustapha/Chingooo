@@ -146,7 +146,7 @@ class HomePageState extends State<HomePage> {
                     child: TextButton(
                       style: TextButton.styleFrom(
                         fixedSize: Size(270, 55),
-                        backgroundColor: Colors.blue,
+                        backgroundColor: const Color.fromRGBO(33, 150, 243, 1),
                         foregroundColor: Colors.white
                       ),
                       onPressed: () {

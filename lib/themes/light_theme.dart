@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 // light theme
 final ThemeData lightTheme = ThemeData(
   useMaterial3: true,
+  //disable the splash
+  splashColor: Colors.transparent,
+  highlightColor: Colors.transparent,
+  splashFactory: NoSplash.splashFactory,
   // main color
   colorScheme: ColorScheme.fromSeed(
     seedColor: Colors.blue,
