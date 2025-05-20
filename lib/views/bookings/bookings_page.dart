@@ -1,3 +1,4 @@
+import 'package:carpooling/components/container.dart';
 import 'package:flutter/material.dart';
 
 class BookingsPage extends StatelessWidget {
@@ -48,107 +49,97 @@ class BookingsPage extends StatelessWidget {
                 itemCount: bookings.length,
                 itemBuilder: (context, index) {
                   final ride = bookings[index];
-                  return Container(
-                    margin: EdgeInsets.only(bottom: 16),
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 6,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          ride['destination'],
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text("Distance: ${ride['distance']} km"),
-                        Text("Date: ${ride['date']}"),
-                        Text("Time: ${ride['time']}"),
-                        SizedBox(height: 12),
-                        Row(
+                  return GreyContainer(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CircleAvatar(
-                              backgroundColor: Colors.blue[200],
-                              child: Text(
-                                ride['driver'][0],
-                                style: TextStyle(color: Colors.white),
+                            Text(
+                              ride['destination'],
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(width: 10),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            SizedBox(height: 8),
+                            Text("Distance: ${ride['distance']} km"),
+                            Text("Date: ${ride['date']}"),
+                            Text("Time: ${ride['time']}"),
+                            SizedBox(height: 12),
+                            Row(
                               children: [
-                                Text("Driver: ${ride['driver']}"),
-                                Row(
+                                CircleAvatar(
+                                  backgroundColor: Colors.blue[200],
+                                  child: Text(
+                                    ride['driver'][0],
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                                SizedBox(width: 10),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Icon(
-                                      Icons.star,
-                                      color: Colors.amber,
-                                      size: 16,
-                                    ),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      "${ride['rating']}",
-                                      style: TextStyle(fontSize: 14),
+                                    Text("Driver: ${ride['driver']}"),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.star,
+                                          color: Colors.amber,
+                                          size: 16,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          "${ride['rating']}",
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
                               ],
                             ),
+                            SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                TextButton(
+                                  onPressed: () {},
+                                  style: TextButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                  ),
+                                  child: Text("Message Driver"),
+                                ),
+                                SizedBox(width: 8),
+                                TextButton(
+                                  onPressed: () {
+                                    // TODO: Cancel booking (show dialog, update backend)
+                                  },
+                                  style: TextButton.styleFrom(
+                                    backgroundColor: Colors.red[300],
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                  ),
+                                  child: Text("Cancel"),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
-                        SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton(
-                              onPressed: () {},
-                              style: TextButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                              ),
-                              child: Text("Message Driver"),
-                            ),
-                            SizedBox(width: 8),
-                            TextButton(
-                              onPressed: () {
-                                // TODO: Cancel booking (show dialog, update backend)
-                              },
-                              style: TextButton.styleFrom(
-                                backgroundColor: Colors.red[300],
-                                foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                              ),
-                              child: Text("Cancel"),
-                            ),
-                          ],
-                        ),
-                      ],
                     ),
                   );
                 },

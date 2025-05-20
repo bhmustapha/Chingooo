@@ -7,12 +7,17 @@ class GreyContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get the current theme's colorScheme or colors for background
+    final theme = Theme.of(context);
+    final backgroundColor = theme.colorScheme.surfaceContainerHighest; 
+   
+
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 236, 236, 236),
+          color: backgroundColor,
           borderRadius: BorderRadius.circular(12),
         ),
         child: child,

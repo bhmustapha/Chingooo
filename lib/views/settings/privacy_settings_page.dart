@@ -14,7 +14,7 @@ class PrivacySecuritySettingsPage extends StatelessWidget {
             Expanded(
               child: Center(
                 child: Text('Edit your Privacy details here.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                  style: TextStyle(fontSize: 16),
                 ),
               ),
             ),

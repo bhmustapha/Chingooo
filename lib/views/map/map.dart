@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
@@ -8,14 +6,11 @@ import '../home/home_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-
-
-
 List<Map<String, dynamic>> _suggestions = [];
 
-
 class MapPage extends StatefulWidget {
-  final VoidCallback? onRouteDrawn; // to notify the home page that the route is created
+  final VoidCallback?
+  onRouteDrawn; // to notify the home page that the route is created
   const MapPage({super.key, this.onRouteDrawn});
 
   @override
@@ -23,7 +18,8 @@ class MapPage extends StatefulWidget {
 }
 
 class MapPageState extends State<MapPage> {
-
+  // loadingg
+  bool _isLoading = true;
   // getter for the _
   List<Map<String, dynamic>> get currentSuggestions => _suggestions;
 
@@ -60,16 +56,14 @@ class MapPageState extends State<MapPage> {
     LatLng location = LatLng(lat, lon); // get the location
 
     //_mapController.move(location, 15.0);
-    
+
     try {
       // Call getRoute to draw the route from current location to suggestion
       final route = await getRoute(_currentLocation!, location);
 
       setState(() {
-       
         // Set the route points to draw the polyline
         routePoints = route;
-
 
         markers.clear(); // Clear previous markers
         // Add new marker for the selected suggestion
@@ -97,7 +91,6 @@ class MapPageState extends State<MapPage> {
       );
       _mapController.move(bounds.center, 11.5);
     } catch (e) {
-      
       // Handle error (ex: no route found)
       ScaffoldMessenger.of(
         context,
@@ -140,10 +133,12 @@ class MapPageState extends State<MapPage> {
   }
 
   Future<void> _getCurrentLocation() async {
+    setState(() => _isLoading = true); // loading before getting permission
     LocationPermission permission =
         await Geolocator.requestPermission(); // user's permission to use the location
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
+      setState(() => _isLoading = false); // Stop loading on fail
       return;
     }
 
@@ -156,6 +151,7 @@ class MapPageState extends State<MapPage> {
 
     setState(() {
       _currentLocation = userLocation; // set the current location
+      _isLoading = false; // Stop loading when done
     });
 
     _mapController.move(userLocation, 15.0); // move the map there
@@ -210,16 +206,12 @@ class MapPageState extends State<MapPage> {
         // Add a new marker for search result
         markers.add(
           Marker(
-            rotate: false,
+            rotate: true,
             point: location,
             width: 60,
             height: 60,
             child: IgnorePointer(
-              child: Icon(
-                Icons.location_pin,
-                color: Colors.blue,
-                size: 45,
-              ),
+              child: Icon(Icons.location_pin, color: Colors.blue, size: 45),
             ),
           ),
         );
@@ -236,8 +228,6 @@ class MapPageState extends State<MapPage> {
       ); // shwo small error message in the bottom
     }
   }
-
-
 
   Future<void> fetchSuggestions(String query) async {
     if (query.isEmpty) {
@@ -275,42 +265,63 @@ class MapPageState extends State<MapPage> {
 
   @override
   Widget build(BuildContext context) {
-    return FlutterMap(
-      mapController: _mapController,
-      options: MapOptions(
-        initialCenter: _currentLocation ?? LatLng(0, 0),
-        initialZoom: 20.0,
-      ),
-      children: [
-        TileLayer(
-          urlTemplate:
-              "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=e80bab52-948d-4148-9f15-f56591cca16a",
-          userAgentPackageName: 'com.example.carpooling',
-        ),
-        PolylineLayer(
-          polylines: [
-            if (routePoints.isNotEmpty)
-              Polyline(
-                points: routePoints,
-                color: Colors.blue,
-                strokeWidth: 4.0,
-              ),
-          ],
-        ),
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    // Select the tile layer URL based on the theme
+    final tileLayerUrl =
+        isDark
+            ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png?api_key=e80bab52-948d-4148-9f15-f56591cca16a'
+            : 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=e80bab52-948d-4148-9f15-f56591cca16a'; // get the current theme
 
-        MarkerLayer(
-          markers: [
-            Marker(
-              point: _currentLocation ?? LatLng(0, 0),
-              width: 60,
-              height: 60,
-              child: IgnorePointer(
-                // invisible to all actions like tap or drag...
-                child: Icon(Icons.location_on, color: Colors.blue, size: 45),
-              ),
+    return Stack(
+      children: [
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            initialCenter: _currentLocation ?? LatLng(0, 0),
+            initialZoom: 20.0,
+          ),
+          children: [
+            TileLayer(
+              urlTemplate: tileLayerUrl,
+              userAgentPackageName: 'com.example.carpooling',
             ),
-            ...markers,
+            PolylineLayer(
+              polylines: [
+                if (routePoints.isNotEmpty)
+                  Polyline(
+                    points: routePoints,
+                    color: Colors.blue,
+                    strokeWidth: 4.0,
+                  ),
+              ],
+            ),
+            if (!_isLoading)
+            MarkerLayer(
+              markers: [
+                Marker(
+                  rotate: true,
+                  point: _currentLocation ?? LatLng(0, 0),
+                  width: 60,
+                  height: 60,
+                  child: IgnorePointer(
+                    // invisible to all actions like tap or drag...
+                    child: Icon(
+                      Icons.location_on,
+                      color: Colors.blue,
+                      size: 45,
+                    ),
+                  ),
+                ),
+                ...markers,
+              ],
+            ),
           ],
+        ),
+        if (_isLoading) // Show loader
+        Center(
+          child: CircularProgressIndicator(
+            color: Colors.blue
+          ),
         ),
       ],
     );

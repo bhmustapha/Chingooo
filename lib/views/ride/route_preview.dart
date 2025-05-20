@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../components/container.dart';
 
 class RoutePreviewPage extends StatefulWidget {
   final LatLng pickUp;
@@ -22,6 +23,8 @@ class RoutePreviewPage extends StatefulWidget {
 }
 
 class _RoutePreviewPageState extends State<RoutePreviewPage> {
+  // loadingg
+  bool _showLoading = true;
   final MapController _mapController = MapController();
   List<LatLng> routePoints = [];
   double? distanceKm;
@@ -32,6 +35,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
   final String apiKey = 'e80bab52-948d-4148-9f15-f56591cca16a';
   final String routeApiKey =
       '5b3ce3597851110001cf62489839c0fa729b43278c806b8b3197872e';
+
   @override
   void initState() {
     super.initState();
@@ -44,21 +48,6 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2030),
-      builder:  (context, child) {
-      return Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: ColorScheme.light(
-            primary: Colors.blue,        // selected day circle + header bg
-            onPrimary: Colors.white,     // text inside selected day circle
-            onSurface: Colors.black,     // default day text
-          ),
-          textButtonTheme: TextButtonThemeData(
-            style: TextButton.styleFrom(foregroundColor: Colors.blue), // OK / Cancel buttons
-          ),
-        ),
-        child: child!,
-      );
-    },
     );
     if (picked != null) setState(() => selectedDate = picked);
   }
@@ -67,27 +56,6 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
-      builder: (context, child) {
-      return Theme(
-        data: Theme.of(context).copyWith(
-          timePickerTheme: const TimePickerThemeData(
-            backgroundColor: Colors.white,
-            hourMinuteTextColor: Colors.white,
-            hourMinuteColor: Colors.blue,
-            dayPeriodTextColor: Colors.white,
-            dayPeriodColor: Colors.blue,
-            dialHandColor: Colors.blue,
-            dialBackgroundColor: Colors.blueAccent,
-            dialTextColor: Colors.white,
-            entryModeIconColor: Colors.blue,
-          ),
-          textButtonTheme: TextButtonThemeData(
-            style: TextButton.styleFrom(foregroundColor: Colors.blue), // OK/CANCEL buttons
-          ),
-        ),
-        child: child!,
-      );
-      }
     );
     if (picked != null) setState(() => selectedTime = picked);
   }
@@ -126,6 +94,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
             end, // End location
           );
           _mapController.move(bounds.center, 11.5);
+          _showLoading = false; //  Hide loading once route is ready
         });
       } else {
         print('Failed to fetch route data.');
@@ -137,6 +106,11 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final tileLayerUrl =
+        isDark
+            ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png?api_key=$apiKey'
+            : 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=$apiKey';
     return Scaffold(
       body: Stack(
         children: [
@@ -148,10 +122,10 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
             ),
             children: [
               TileLayer(
-                urlTemplate:
-                    'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=$apiKey',
+                urlTemplate: tileLayerUrl,
                 userAgentPackageName: 'com.example.app',
               ),
+              if(!_showLoading)
               MarkerLayer(
                 markers: [
                   Marker(
@@ -180,6 +154,11 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                 ),
             ],
           ),
+          if (_showLoading)  // Show loader on top
+            const Center(child: CircularProgressIndicator(
+              color: Colors.blue
+            )),
+
           Positioned(
             top: 20,
             left: 10,
@@ -195,103 +174,118 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
             bottom: 10,
             left: 10,
             right: 10,
-            child: Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [BoxShadow(blurRadius: 6, color: Colors.black26)],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.destinationName,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 8),
-                  if (distanceKm != null)
+            child: GreyContainer(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      'Distance: ${distanceKm!.toStringAsFixed(2)} km',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                      widget.destinationName,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: _pickDate,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              vertical: 12,
-                              horizontal: 16,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: Text(
-                              selectedDate != null
-                                  ? '${selectedDate!.toLocal()}'.split(' ')[0]
-                                  : 'Select Date',
-                              style: TextStyle(fontSize: 14),
+                    SizedBox(height: 8),
+                    if (distanceKm != null)
+                      Text(
+                        'Distance: ${distanceKm!.toStringAsFixed(2)} km',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: _pickDate,
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 16,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: Text(
+                                selectedDate != null
+                                    ? '${selectedDate!.toLocal()}'.split(' ')[0]
+                                    : 'Select Date',
+                                style: TextStyle(fontSize: 14),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: _pickTime,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              vertical: 12,
-                              horizontal: 16,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: Text(
-                              selectedTime != null
-                                  ? selectedTime!.format(context)
-                                  : 'Select Time',
-                              style: TextStyle(fontSize: 14),
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: _pickTime,
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 16,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: Text(
+                                selectedTime != null
+                                    ? selectedTime!.format(context)
+                                    : 'Select Time',
+                                style: TextStyle(fontSize: 14),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // TODO: Add confirmation logic
-                        print(
-                          'Confirm Ride: $selectedDate at ${selectedTime?.format(context)}',
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (selectedDate == null || selectedTime == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Please select both date and time before confirming.',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+
+                                backgroundColor: Colors.red,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                            return;
+                          }
+
+                          // Proceed with confirmation logic
+                          print(
+                            'Confirm Ride: $selectedDate at ${selectedTime!.format(context)}',
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        'Confirm Ride',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                        child: Text(
+                          'Confirm Ride',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

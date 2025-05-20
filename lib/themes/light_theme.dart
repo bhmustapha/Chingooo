@@ -76,7 +76,7 @@ final ThemeData lightTheme = ThemeData(
     bodyMedium: TextStyle(
       fontSize: 12,
       fontWeight: FontWeight.w500,
-      color: const Color.fromARGB(255, 8, 36, 59),
+      color: Colors.black,
     ),
     headlineMedium: TextStyle(
       fontSize: 16,
@@ -129,4 +129,18 @@ final ThemeData lightTheme = ThemeData(
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(foregroundColor: Colors.blue), // Button color
       ),
+       // outlined buttons
+  outlinedButtonTheme: OutlinedButtonThemeData(
+    style: OutlinedButton.styleFrom(
+      foregroundColor: const Color.fromRGBO(97, 97, 97, 1),
+      side: BorderSide(
+        color: const Color.fromRGBO(97, 97, 97, 1),
+        width: 1
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(30),
+      ),
+      padding: EdgeInsets.symmetric(vertical: 14),
+    )
+  )
 );

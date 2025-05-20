@@ -1,6 +1,9 @@
+import 'package:carpooling/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart'; // for the menu
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+//  var to track the dark mode
+
 
 class ToggleMenu extends StatefulWidget {
   const ToggleMenu({super.key});
@@ -16,8 +19,6 @@ class _ToggleMenuState extends State<ToggleMenu> {
       direction: SpeedDialDirection.down,
       animatedIcon: AnimatedIcons.menu_close,
       buttonSize: Size(50, 50),
-      backgroundColor: Colors.white,
-      foregroundColor: Colors.blue[600],
       children: [
         SpeedDialChild(
           child: Icon(LucideIcons.settings),
@@ -34,6 +35,13 @@ class _ToggleMenuState extends State<ToggleMenu> {
           },
           shape: CircleBorder(),
           foregroundColor: Colors.blue[600],
+        ),
+        SpeedDialChild(
+          child:  Icon(Icons.light_mode_rounded),
+          onTap: () {
+            themeNotifier.value =
+      themeNotifier.value == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+          },
         ),
         SpeedDialChild(
           child: Icon(LucideIcons.info),

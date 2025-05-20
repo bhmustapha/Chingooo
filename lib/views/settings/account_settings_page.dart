@@ -15,7 +15,7 @@ class AccountSettingsPage extends StatelessWidget {
               child: Center(
                 child: Text(
                   'Account related settings go here.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                  style: TextStyle(fontSize: 16),
                 ),
               ),
             ),

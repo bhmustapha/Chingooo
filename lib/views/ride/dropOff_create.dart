@@ -326,8 +326,6 @@ class SecondSearchPageState extends State<SecondSearchPage> {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade300),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: ListView.builder(

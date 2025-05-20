@@ -1,3 +1,4 @@
+import 'package:carpooling/components/container.dart';
 import 'package:flutter/material.dart';
 // all individual setting pages
 import 'account_settings_page.dart';
@@ -24,7 +25,6 @@ class SettingsPage extends StatelessWidget {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back_ios_new),
-                    color: Colors.blue,
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   const SizedBox(width: 8),
@@ -33,7 +33,6 @@ class SettingsPage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
                     ),
                   ),
                 ],
@@ -42,12 +41,7 @@ class SettingsPage extends StatelessWidget {
               const SizedBox(height: 24),
 
               SectionTitle(title: 'Account'),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 8),
+              GreyContainer(
                 child: Column(
                   children: [
                     SettingsTile(
@@ -79,12 +73,7 @@ class SettingsPage extends StatelessWidget {
               const SizedBox(height: 24),
 
               SectionTitle(title: 'Notifications'),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 8),
+              GreyContainer(
                 child: SettingsTile(
                   icon: Icons.notifications,
                   text: 'Notification Preferences',
@@ -101,12 +90,7 @@ class SettingsPage extends StatelessWidget {
               const SizedBox(height: 24),
 
               SectionTitle(title: 'Payment'),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 8),
+              GreyContainer(
                 child: SettingsTile(
                   icon: Icons.payment,
                   text: 'Payment Methods',
@@ -123,12 +107,7 @@ class SettingsPage extends StatelessWidget {
               const SizedBox(height: 24),
 
               SectionTitle(title: 'Ride Preferences'),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 8),
+              GreyContainer(
                 child: Column(
                   children: [
                     SettingsTile(
@@ -177,7 +156,6 @@ class SectionTitle extends StatelessWidget {
         style: const TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w600,
-          color: Colors.grey,
         ),
       ),
     );
@@ -199,12 +177,12 @@ class SettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: Colors.grey[800]),
+      leading: Icon(icon),
       title: Text(
         text,
-        style: const TextStyle(fontSize: 16, color: Colors.black87),
+        style: const TextStyle(fontSize: 16),
       ),
-      trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[600]),
+      trailing: Icon(Icons.arrow_forward_ios, size: 16),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
     );

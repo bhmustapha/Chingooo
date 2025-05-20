@@ -15,7 +15,7 @@ class RidePreferencesPage extends StatelessWidget {
               child: Center(
                 child: Text(
                   'Set your ride preferences here.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                  style: TextStyle(fontSize: 16),
                 ),
               ),
             ),

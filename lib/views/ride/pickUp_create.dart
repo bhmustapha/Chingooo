@@ -264,7 +264,7 @@ class LocationSearchPageState extends State<LocationSearchPage> {
                       ),
                     );
                   },
-                  child: Icon(Icons.arrow_back_ios_new),
+                  child: Icon(Icons.arrow_forward_ios_outlined),
                 ),
               ],
             ),
@@ -273,9 +273,7 @@ class LocationSearchPageState extends State<LocationSearchPage> {
             if (_suggestions.isNotEmpty)
               Expanded(
                 child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade300),
+                  decoration: BoxDecoration( 
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: ListView.builder(

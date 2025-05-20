@@ -1,5 +1,6 @@
 import 'package:carpooling/views/profile/edit_profile.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../components/container.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -14,7 +15,6 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Container(
-        color: Colors.grey.shade100, // subtle background color
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.start,
@@ -22,17 +22,13 @@ class _ProfilePageState extends State<ProfilePage> {
             SizedBox(height: 24),
             Text(
               'Profile',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+              // use theme for title
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
             SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12.0),
               child: GreyContainer(
-                
                 child: Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: Row(
@@ -47,7 +43,6 @@ class _ProfilePageState extends State<ProfilePage> {
                           'Mustapha Himoun',
                           style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black87,
                               ),
                         ),
                       ),
@@ -60,16 +55,15 @@ class _ProfilePageState extends State<ProfilePage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12.0),
               child: GreyContainer(
-                
                 child: Padding(
                   padding: const EdgeInsets.all(15.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildInfoRow('Date de naissance', 'dd/mm/yyyy'),
-                      Divider(color: Colors.grey.shade300),
+                      const Divider(),
                       _buildInfoRow('Email', 'exemple@gmail.com'),
-                      Divider(color: Colors.grey.shade300),
+                      const Divider(),
                       _buildInfoRow('Numero de téléphone', 'xxxx xxx xxx'),
                     ],
                   ),
@@ -85,16 +79,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: OutlinedButton.icon(
                       onPressed: () {},
                       label: Text('History'),
-                      icon: Icon(Icons.history),
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black87,
-                        side: BorderSide(color: Colors.grey.shade300),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: EdgeInsets.symmetric(vertical: 14),
-                      ),
+                      icon: Icon(LucideIcons.history,),
                     ),
                   ),
                   SizedBox(width: 15),
@@ -109,16 +94,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         );
                       },
                       label: Text('Edit'),
-                      icon: Icon(Icons.edit),
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black87,
-                        side: BorderSide(color: Colors.grey.shade300),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: EdgeInsets.symmetric(vertical: 14),
-                      ),
+                      icon: Icon(Icons.edit,),
                     ),
                   ),
                 ],
@@ -141,21 +117,15 @@ class _ProfilePageState extends State<ProfilePage> {
             title,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: Colors.black87,
                 ),
           ),
           SizedBox(height: 6),
           Text(
             value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w300,
-              color: Colors.grey.shade700,
-            ),
+            style: Theme.of(context).textTheme.titleLarge,
           ),
         ],
       ),
     );
   }
 }
-
