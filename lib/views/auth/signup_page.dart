@@ -1,3 +1,4 @@
+import 'package:carpooling/themes/costum_reusable.dart';
 import 'package:carpooling/widgets/main_navigator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -25,7 +26,7 @@ class SignUpPage extends StatelessWidget {
                   'assets/images/signup.svg',
                   width: 80,
                   height: 80,
-                  ),
+                ),
                 const SizedBox(height: 20),
                 const Text(
                   'Create Account',
@@ -34,31 +35,61 @@ class SignUpPage extends StatelessWidget {
                 const SizedBox(height: 24),
                 TextField(
                   controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Full Name'),
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                    labelText: 'Full Name',
+                    border: roundedInputBorder(14.0),
+                    enabledBorder: roundedInputBorder(14.0),
+                    focusedBorder: roundedInputBorder(14.0),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: phoneController,
                   keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(labelText: 'Phone Number'),
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                    labelText: 'Phone Number',
+                    border: roundedInputBorder(14.0),
+                    enabledBorder: roundedInputBorder(14.0),
+                    focusedBorder: roundedInputBorder(14.0),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'Email Address'),
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                    labelText: 'Email Address',
+                    border: roundedInputBorder(14.0),
+                    enabledBorder: roundedInputBorder(14.0),
+                    focusedBorder: roundedInputBorder(14.0),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: passwordController,
                   obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Password'),
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                    labelText: 'Password',
+                    border: roundedInputBorder(14.0),
+                    enabledBorder: roundedInputBorder(14.0),
+                    focusedBorder: roundedInputBorder(14.0),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: confirmPasswordController,
                   obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Confirm Password'),
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                    labelText: 'Confirm Password',
+                    border: roundedInputBorder(14.0),
+                    enabledBorder: roundedInputBorder(14.0),
+                    focusedBorder: roundedInputBorder(14.0),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
@@ -66,13 +97,13 @@ class SignUpPage extends StatelessWidget {
                     // TODO: Add sign-up logic
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) =>  MainNavigator()),
+                      MaterialPageRoute(builder: (_) => MainNavigator()),
                     );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 48),
+                    minimumSize: Size(double.infinity, 48),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

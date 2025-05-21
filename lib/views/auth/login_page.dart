@@ -1,3 +1,4 @@
+import 'package:carpooling/themes/costum_reusable.dart';
 import 'package:flutter/material.dart';
 import 'signup_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -22,7 +23,7 @@ class LoginPage extends StatelessWidget {
                   'assets/images/login.svg',
                   width: 80,
                   height: 80,
-                  ) ,
+                ),
                 const SizedBox(height: 20),
                 const Text(
                   'Welcome Back!',
@@ -34,13 +35,25 @@ class LoginPage extends StatelessWidget {
                 TextField(
                   controller: phoneController,
                   keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(labelText: 'Phone Number'),
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                    labelText: 'Phone Number',
+                    border: roundedInputBorder(14.0),
+                    enabledBorder: roundedInputBorder(14.0),
+                    focusedBorder: roundedInputBorder(14.0),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: passwordController,
                   obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Password'),
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                    labelText: 'Password',
+                    border: roundedInputBorder(14.0),
+                    enabledBorder: roundedInputBorder(14.0),
+                    focusedBorder: roundedInputBorder(14.0),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
@@ -62,7 +75,7 @@ class LoginPage extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) =>  SignUpPage()),
+                      MaterialPageRoute(builder: (_) => SignUpPage()),
                     );
                   },
                   child: const Text("Don't have an account? Sign Up"),

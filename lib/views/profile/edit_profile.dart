@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'dart:io';
+import '../../themes/costum_reusable.dart'; // Assuming roundedInputBorder is here
 
 class EditProfilePage extends StatefulWidget {
   @override
@@ -27,11 +29,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
         setState(() {
           _imageFile = File(pickedFile.path);
         });
-      } else {
-        print("User canceled image picking.");
       }
     } catch (e) {
-      print("Image picking error: $e");
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Failed to pick image.")));
@@ -53,7 +52,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   void _saveProfile() {
     if (_formKey.currentState!.validate()) {
-      // TODO: add logic after 
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Profile updated!')));
@@ -64,88 +62,157 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Edit Profile'),
-        actions: [IconButton(icon: Icon(Icons.check), onPressed: _saveProfile)],
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              // Profile Picture
-              GestureDetector(
-                onTap: _pickImage,
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundImage:
-                      _imageFile != null ? FileImage(_imageFile!) : null,
-                  child:
-                      _imageFile == null
-                          ? Icon(Icons.camera_alt, size: 40)
-                          : null,
-                ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.arrow_back),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Edit Profile',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+                  ),
+                ],
               ),
-              SizedBox(height: 20),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundImage:
+                              _imageFile != null
+                                  ? FileImage(_imageFile!)
+                                  : null,
+                          child:
+                              _imageFile == null
+                                  ? Icon(LucideIcons.camera, size: 40)
+                                  : null,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
 
-              // Name
-              TextFormField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  labelText: 'Name',
-                  border: OutlineInputBorder(),
-                ),
-                validator:
-                    (value) => value!.isEmpty ? 'Please enter your name' : null,
-              ),
-              SizedBox(height: 16),
+                      // Name
+                      TextFormField(
+                        controller: nameController,
+                        decoration: InputDecoration(
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 15,
+                            horizontal: 10,
+                          ),
+                          labelText: 'Name',
+                          border: roundedInputBorder(30.0),
+                          enabledBorder: roundedInputBorder(30.0),
+                          focusedBorder: roundedInputBorder(30.0),
+                        ),
+                        validator:
+                            (value) =>
+                                value!.isEmpty
+                                    ? 'Please enter your name'
+                                    : null,
+                      ),
+                      const SizedBox(height: 16),
 
-              // Date of Birth
-              TextFormField(
-                controller: dobController,
-                readOnly: true,
-                decoration: InputDecoration(
-                  labelText: 'Date of Birth',
-                  border: OutlineInputBorder(),
-                ),
-                onTap: _selectDateOfBirth,
-                validator:
-                    (value) =>
-                        value!.isEmpty
-                            ? 'Please select your date of birth'
-                            : null,
-              ),
-              SizedBox(height: 16),
+                      // Date of Birth
+                      TextFormField(
+                        controller: dobController,
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 15,
+                            horizontal: 10,
+                          ),
+                          labelText: 'Date of Birth',
+                          border: roundedInputBorder(30.0),
+                          enabledBorder: roundedInputBorder(30.0),
+                          focusedBorder: roundedInputBorder(30.0),
+                        ),
+                        onTap: _selectDateOfBirth,
+                        validator:
+                            (value) =>
+                                value!.isEmpty
+                                    ? 'Please select your date of birth'
+                                    : null,
+                      ),
+                      const SizedBox(height: 16),
 
-              // Email
-              TextFormField(
-                controller: emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                ),
-                validator:
-                    (value) =>
-                        value!.isEmpty ? 'Please enter your email' : null,
-              ),
-              SizedBox(height: 16),
+                      // Email
+                      TextFormField(
+                        controller: emailController,
+                        decoration: InputDecoration(
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 15,
+                            horizontal: 10,
+                          ),
+                          labelText: 'Email',
+                          border: roundedInputBorder(30.0),
+                          enabledBorder: roundedInputBorder(30.0),
+                          focusedBorder: roundedInputBorder(30.0),
+                        ),
+                        validator:
+                            (value) =>
+                                value!.isEmpty
+                                    ? 'Please enter your email'
+                                    : null,
+                      ),
+                      const SizedBox(height: 16),
 
-              // Phone
-              TextFormField(
-                controller: phoneController,
-                decoration: InputDecoration(
-                  labelText: 'Phone Number',
-                  border: OutlineInputBorder(),
+                      // Phone
+                      TextFormField(
+                        controller: phoneController,
+                        decoration: InputDecoration(
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 15,
+                            horizontal: 10,
+                          ),
+                          labelText: 'Phone Number',
+                          border: roundedInputBorder(30.0),
+                          enabledBorder: roundedInputBorder(30.0),
+                          focusedBorder: roundedInputBorder(30.0),
+                        ),
+                        validator:
+                            (value) =>
+                                value!.isEmpty
+                                    ? 'Please enter your phone number'
+                                    : null,
+                      ),
+                      const SizedBox(height: 32,),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          
+                          onPressed: _saveProfile,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: Text('Save Changes'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                validator:
-                    (value) =>
-                        value!.isEmpty
-                            ? 'Please enter your phone number'
-                            : null,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -1,4 +1,4 @@
-import 'package:carpooling/auth/login_page.dart';
+import 'package:carpooling/views/auth/login_page.dart';
 import 'package:carpooling/intro.dart';
 import 'package:carpooling/themes/dark_theme.dart';
 import 'package:carpooling/views/ride/pickUp_create.dart';
