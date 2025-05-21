@@ -318,9 +318,13 @@ class MapPageState extends State<MapPage> {
           ],
         ),
         if (_isLoading) // Show loader
-        Center(
-          child: CircularProgressIndicator(
-            color: Colors.blue
+        Positioned.fill(
+          child: Container(
+            child: Center(
+              child: CircularProgressIndicator(
+                color: Colors.blue
+              ),
+            ),
           ),
         ),
       ],

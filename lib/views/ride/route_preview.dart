@@ -1,3 +1,5 @@
+import 'package:carpooling/main.dart';
+import 'package:carpooling/widgets/main_navigator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -40,6 +42,20 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
   void initState() {
     super.initState();
     _fetchRoute();
+  }
+
+  //! confirm ride function with mocked data (ill replace with backend later)
+  Future<bool> confirmRide() async {
+    try {
+      // TODO: Replace this with actual API call
+      await Future.delayed(Duration(seconds: 2)); // Simulate network delay
+
+      // ! fake success
+      return true;
+    } catch (e) {
+      print('Error confirming ride: $e');
+      return false;
+    }
   }
 
   Future<void> _pickDate() async {
@@ -125,23 +141,23 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                 urlTemplate: tileLayerUrl,
                 userAgentPackageName: 'com.example.app',
               ),
-              if(!_showLoading)
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    point: widget.pickUp,
-                    width: 40,
-                    height: 40,
-                    child: Icon(Icons.location_on, color: Colors.blue),
-                  ),
-                  Marker(
-                    point: widget.dropOff,
-                    width: 40,
-                    height: 40,
-                    child: Icon(Icons.location_on, color: Colors.red),
-                  ),
-                ],
-              ),
+              if (!_showLoading)
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: widget.pickUp,
+                      width: 40,
+                      height: 40,
+                      child: Icon(Icons.location_on, color: Colors.blue),
+                    ),
+                    Marker(
+                      point: widget.dropOff,
+                      width: 40,
+                      height: 40,
+                      child: Icon(Icons.location_on, color: Colors.red),
+                    ),
+                  ],
+                ),
               if (routePoints.isNotEmpty)
                 PolylineLayer(
                   polylines: [
@@ -154,10 +170,8 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                 ),
             ],
           ),
-          if (_showLoading)  // Show loader on top
-            const Center(child: CircularProgressIndicator(
-              color: Colors.blue
-            )),
+          if (_showLoading) // Show loader on top
+            const Center(child: CircularProgressIndicator(color: Colors.blue)),
 
           Positioned(
             top: 20,
@@ -174,7 +188,12 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
             bottom: 10,
             left: 10,
             right: 10,
-            child: GreyContainer(
+            child: Container(
+              decoration: BoxDecoration(
+                color:  themeNotifier.value == ThemeMode.light? Colors.white : Colors.grey[900],
+                borderRadius: BorderRadius.circular(14)
+              ),
+              
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                 child: Column(
@@ -246,7 +265,8 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
+                          //! async to wait the server later
                           if (selectedDate == null || selectedTime == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -260,6 +280,52 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                               ),
                             );
                             return;
+                          }
+                          //! show loading
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder:
+                                (_) => Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                          );
+                          //! a var to take the result ( fake now)
+                          bool success = await confirmRide();
+
+                          //! Dismiss the loading dialog
+                          Navigator.of(context).pop();
+
+                          if (success) {
+                            // !Pop all pages and show a snackbar on home page
+                            Navigator.push(context, MaterialPageRoute(
+                              builder: (context) => MainNavigator(),
+                            ));
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Ride confirmed successfully!',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                backgroundColor: Colors.green,
+                                
+                              ),
+                            );
+                          } else {
+                            //! Stay on the same page and show error
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Failed to confirm ride. Please try again.',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                backgroundColor: Colors.red,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
                           }
 
                           // Proceed with confirmation logic

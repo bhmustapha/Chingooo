@@ -2,7 +2,19 @@ import 'package:carpooling/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart'; // for the menu
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-//  var to track the dark mode
+import 'package:shared_preferences/shared_preferences.dart';
+
+// function to change the theme in shared preferences
+Future<void> toggleTheme() async {
+  final prefs = await SharedPreferences.getInstance();
+  if (themeNotifier.value == ThemeMode.light) {
+    themeNotifier.value = ThemeMode.dark;
+    await prefs.setBool('isDarkTheme', true);
+  } else {
+    themeNotifier.value = ThemeMode.light;
+    await prefs.setBool('isDarkTheme', false);
+  }
+}
 
 
 class ToggleMenu extends StatefulWidget {
@@ -31,17 +43,22 @@ class _ToggleMenuState extends State<ToggleMenu> {
         SpeedDialChild(
           child: Icon(LucideIcons.carTaxiFront),
           onTap: () {
-            Navigator.pushNamed(context, '/chatgpt');
+            Navigator.pushNamed(context, '/pickup');
           },
           shape: CircleBorder(),
           foregroundColor: Colors.blue[600],
         ),
         SpeedDialChild(
-          child:  Icon(Icons.light_mode_rounded),
+          child:
+              themeNotifier.value == ThemeMode.light
+                  ? Icon(Icons.dark_mode)
+                  : Icon(Icons.light_mode),
           onTap: () {
-            themeNotifier.value =
-      themeNotifier.value == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+           toggleTheme();
+            setState(() {});
+            
           },
+          foregroundColor: Colors.blue[600],
         ),
         SpeedDialChild(
           child: Icon(LucideIcons.info),

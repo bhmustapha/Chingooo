@@ -18,13 +18,15 @@ class SecondSearchPage extends StatefulWidget {
 class SecondSearchPageState extends State<SecondSearchPage> {
   final TextEditingController _controller = TextEditingController();
   List<Map<String, dynamic>> _suggestions = [];
-  final String _apiKey =
-      'e80bab52-948d-4148-9f15-f56591cca16a'; // Replace with your Stadia Maps API key
+  final String _apiKey = 'e80bab52-948d-4148-9f15-f56591cca16a';
 
   String? destinationLocation; // to save the selected location
   double? selectedLat; // save the selected Latitude
   double? selectedLon; // save the selected Longitude
   final FocusNode _focusNode = FocusNode();
+
+  // to show loading till get the response from get Coordinate
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -222,8 +224,8 @@ class SecondSearchPageState extends State<SecondSearchPage> {
                     controller: _controller,
                     focusNode: _focusNode,
                     decoration: InputDecoration(
-                      hintText: 'Drop-off',
-                      labelText: 'Enter location',
+                      labelText: 'Enter drop-off location',
+                      labelStyle: TextStyle( fontSize: 14),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
                         borderSide: BorderSide.none,
@@ -244,10 +246,16 @@ class SecondSearchPageState extends State<SecondSearchPage> {
 
                     onChanged: onTextChanged,
                     onSubmitted: (value) async {
+                      setState(() {
+                        _isLoading = true;
+                      });
                       destinationLocation = value;
                       await _getCoordinatesFromAddress(
                         value,
                       ); // Wait for coordinates to be fetched
+                      setState(() {
+                        _isLoading = false;
+                      });
 
                       if (selectedLat != null &&
                           selectedLon != null &&
@@ -269,10 +277,14 @@ class SecondSearchPageState extends State<SecondSearchPage> {
                           ),
                         );
                       } else {
-                        // Optionally show an error to the user
+                        // show an error to the user
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text("Please select a valid location"),
+                            content: Text(
+                              "Please enter a valid location",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            backgroundColor: Colors.red,
                           ),
                         );
                       }
@@ -280,45 +292,62 @@ class SecondSearchPageState extends State<SecondSearchPage> {
                   ),
                 ),
                 SizedBox(width: 10),
-                FloatingActionButton(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-
-                  onPressed: () async {
-                    destinationLocation = _controller.text;
-                    await _getCoordinatesFromAddress(_controller.text);
-                    setState(() {});
-                    if (selectedLat != null &&
-                        selectedLon != null &&
-                        selectedPickUpLat != null &&
-                        selectedPickUpLon != null &&
-                        destinationLocation != null) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => RoutePreviewPage(
-                                pickUp: LatLng(
-                                  selectedPickUpLat!,
-                                  selectedPickUpLon!,
-                                ),
-                                dropOff: LatLng(selectedLat!, selectedLon!),
-                                destinationName: destinationLocation!,
+                _isLoading
+                    ? CircularProgressIndicator(
+                      color: Colors.blue,
+                    ) // if loading show this
+                    : FloatingActionButton(
+                      // if not show this
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      onPressed: () async {
+                        setState(() {
+                          _isLoading =
+                              true; // when we press then loading is true till getting the response
+                        });
+                        destinationLocation = _controller.text;
+                        await _getCoordinatesFromAddress(_controller.text);
+                        //after getting the response
+                        setState(() {
+                          // trun loading to false
+                          _isLoading = false;
+                        });
+                        setState(() {});
+                        if (selectedLat != null &&
+                            selectedLon != null &&
+                            selectedPickUpLat != null &&
+                            selectedPickUpLon != null &&
+                            destinationLocation != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => RoutePreviewPage(
+                                    pickUp: LatLng(
+                                      selectedPickUpLat!,
+                                      selectedPickUpLon!,
+                                    ),
+                                    dropOff: LatLng(selectedLat!, selectedLon!),
+                                    destinationName: destinationLocation!,
+                                  ),
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "Please enter a valid location",
+                                style: TextStyle(color: Colors.white),
                               ),
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Please select a valid location"),
-                        ),
-                      );
-                    }
-                  },
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
 
-                  child: Icon(LucideIcons.arrowRight),
-                ),
+                      child: Icon(Icons.arrow_forward_ios_outlined),
+                    ),
               ],
             ),
             const SizedBox(height: 10),
@@ -335,8 +364,8 @@ class SecondSearchPageState extends State<SecondSearchPage> {
                       return ListTile(
                         leading:
                             suggestion['isCurrentLocation'] == true
-                                ? Icon(LucideIcons.locate)
-                                : Icon(LucideIcons.mapPin),
+                                ? Icon(Icons.my_location)
+                                : Icon(Icons.location_on),
                         title: Text(suggestion['label']),
                         onTap: () => _onSuggestionTapped(suggestion),
                       );

@@ -222,7 +222,8 @@ class LocationSearchPageState extends State<LocationSearchPage> {
                     focusNode: _focusNode,
                     controller: _controller,
                     decoration: InputDecoration(
-                      hintText: 'Pick-up',
+                      labelText: 'Enter pick-up location',
+                      labelStyle: TextStyle( fontSize: 14),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
                         borderSide: BorderSide.none,
@@ -255,14 +256,26 @@ class LocationSearchPageState extends State<LocationSearchPage> {
                   elevation: 0,
 
                   onPressed: () {
-                    pickUpLocation = _controller.text;
-                    _getCoordinatesFromAddress(_controller.text);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SecondSearchPage(),
-                      ),
-                    );
+                    if (_controller.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Please enter a valid location',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    } else {
+                      pickUpLocation = _controller.text;
+                      _getCoordinatesFromAddress(_controller.text);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SecondSearchPage(),
+                        ),
+                      );
+                    }
                   },
                   child: Icon(Icons.arrow_forward_ios_outlined),
                 ),
@@ -273,7 +286,7 @@ class LocationSearchPageState extends State<LocationSearchPage> {
             if (_suggestions.isNotEmpty)
               Expanded(
                 child: Container(
-                  decoration: BoxDecoration( 
+                  decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: ListView.builder(
