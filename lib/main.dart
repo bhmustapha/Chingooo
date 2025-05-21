@@ -11,6 +11,7 @@ import 'widgets/main_navigator.dart';
 import 'package:flutter/material.dart';
 import 'themes/light_theme.dart';
 import 'package:flutter/services.dart'; // to hide the state bar
+import 'about/about_app.dart';
 // for the theme
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 // load selcted theme from the storage
@@ -55,6 +56,7 @@ class MyApp extends StatelessWidget {
             "/convList": (context) => ChatListPage(),
             "/auth": (context) => LoginPage(),
             "/reqrides": (context) => RequestedRidesPage(),
+            "/aboutapp": (context) => AboutAppPage()
           },
           home: OnBoardingPage(),
         );

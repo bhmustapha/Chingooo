@@ -54,6 +54,8 @@ dependencies:
   flutter_svg: ^2.1.0
   # to save theme value
   shared_preferences: ^2.5.3
+  # to open urls and other apps
+  url_launcher: ^6.3.1
   
 
 dev_dependencies:

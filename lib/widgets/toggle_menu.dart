@@ -33,14 +33,6 @@ class _ToggleMenuState extends State<ToggleMenu> {
       buttonSize: Size(50, 50),
       children: [
         SpeedDialChild(
-          child: Icon(LucideIcons.settings),
-          onTap: () {
-            Navigator.pushNamed(context, '/settings');
-          },
-          shape: CircleBorder(),
-          foregroundColor: Colors.blue[600],
-        ),
-        SpeedDialChild(
           child: Icon(LucideIcons.calendarPlus),
           onTap: () {
             Navigator.pushNamed(context, '/pickup');
@@ -69,9 +61,20 @@ class _ToggleMenuState extends State<ToggleMenu> {
           foregroundColor: Colors.blue[600],
         ),
         SpeedDialChild(
+          child: Icon(LucideIcons.settings),
+          onTap: () {
+            Navigator.pushNamed(context, '/settings');
+          },
+          shape: CircleBorder(),
+          foregroundColor: Colors.blue[600],
+        ),
+        SpeedDialChild(
           child: Icon(LucideIcons.info),
           shape: CircleBorder(),
           foregroundColor: Colors.blue[600],
+          onTap: () {
+            Navigator.pushNamed(context, '/aboutapp');
+          },
         ),
       ],
     );
