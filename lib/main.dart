@@ -2,6 +2,7 @@ import 'package:carpooling/views/auth/login_page.dart';
 import 'package:carpooling/intro.dart';
 import 'package:carpooling/themes/dark_theme.dart';
 import 'package:carpooling/views/ride/pickUp_create.dart';
+import 'package:carpooling/views/ride/requested_rides.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // used in the theme
 import 'views/home/home_page.dart';
 import 'views/messages/conversations_list.dart';
@@ -53,6 +54,7 @@ class MyApp extends StatelessWidget {
             "/pickup": (context) => LocationSearchPage(),
             "/convList": (context) => ChatListPage(),
             "/auth": (context) => LoginPage(),
+            "/reqrides": (context) => RequestedRidesPage(),
           },
           home: OnBoardingPage(),
         );

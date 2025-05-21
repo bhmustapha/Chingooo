@@ -71,7 +71,7 @@ class HomePageState extends State<HomePage> {
                             )
                             : null // so show 'x' only when there is text
                             ,
-                          hintText: 'Votre destination ?',
+                          hintText: 'Where are you going ?',
                           prefixIcon: Icon(LucideIcons.search),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),

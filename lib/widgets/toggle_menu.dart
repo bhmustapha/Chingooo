@@ -41,9 +41,17 @@ class _ToggleMenuState extends State<ToggleMenu> {
           foregroundColor: Colors.blue[600],
         ),
         SpeedDialChild(
-          child: Icon(LucideIcons.carTaxiFront),
+          child: Icon(LucideIcons.calendarPlus),
           onTap: () {
             Navigator.pushNamed(context, '/pickup');
+          },
+          shape: CircleBorder(),
+          foregroundColor: Colors.blue[600],
+        ),
+        SpeedDialChild(
+          child: Icon(LucideIcons.calendarSearch),
+          onTap: () {
+            Navigator.pushNamed(context, '/reqrides');
           },
           shape: CircleBorder(),
           foregroundColor: Colors.blue[600],

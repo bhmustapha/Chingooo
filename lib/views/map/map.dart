@@ -49,6 +49,7 @@ class MapPageState extends State<MapPage> {
   }
 
   void onSuggestionTap(Map<String, dynamic> suggestion) async {
+    setState(() => _isLoading = true); // Start loading
     final lat = suggestion['lat'];
     final lon = suggestion['lon'];
     final name = suggestion['name']; // set the suggestion map
@@ -95,6 +96,8 @@ class MapPageState extends State<MapPage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Failed to get route: $e')));
+    } finally {
+      setState(() => _isLoading = false); // Stop loading
     }
 
     setState(() {
@@ -190,7 +193,8 @@ class MapPageState extends State<MapPage> {
   // Function to search and navigate to searched place
   void searchAndNavigate() async {
     final query = searchController.text;
-    if (query.isEmpty) return; // if both r empty then return
+    if (query.isEmpty) return; 
+    setState(() => _isLoading = true); // Start loading
 
     final LatLng? location = await _getCoordinatesFromAddress(
       query,
@@ -227,6 +231,7 @@ class MapPageState extends State<MapPage> {
         SnackBar(content: Text('Location not found!')),
       ); // shwo small error message in the bottom
     }
+    setState(() => _isLoading = false); // Stop loading
   }
 
   Future<void> fetchSuggestions(String query) async {
@@ -320,6 +325,7 @@ class MapPageState extends State<MapPage> {
         if (_isLoading) // Show loader
         Positioned.fill(
           child: Container(
+            color: Theme.of(context).colorScheme.surface,
             child: Center(
               child: CircularProgressIndicator(
                 color: Colors.blue
