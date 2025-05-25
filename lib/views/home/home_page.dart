@@ -1,3 +1,4 @@
+import 'package:carpooling/main.dart';
 import 'package:carpooling/views/ride/see_rides.dart';
 import 'package:carpooling/widgets/toggle_menu.dart';  // menu
 import 'package:flutter/material.dart';
@@ -105,10 +106,11 @@ class HomePageState extends State<HomePage> {
                 return Container(); // invisible container ( if empty )
               }
               return Container(
+                
                 decoration: BoxDecoration(
-                  color: Colors.white,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 5)],
+                  color: themeNotifier.value == ThemeMode.light? Colors.white : Colors.grey[900],
                 ),
                 child: ListView.builder(
                   shrinkWrap: true, // take space only to fit it content
@@ -151,9 +153,17 @@ class HomePageState extends State<HomePage> {
                       ),
                       onPressed: () {
                         Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SeeRidesPage()));
+  context,
+  MaterialPageRoute(
+    builder: (context) => SeeRidesPage(
+      destinationLocation: searchController.text,
+      initialPickupLocation: _mapKey.currentState?.currentLocation,
+      fetchSuggestionsCallback: (input) => _mapKey.currentState!.fetchSuggestions(input),
+    ),
+  ),
+);
+
+
                       },
                       child: Text('See rides')
                       ),

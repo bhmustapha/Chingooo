@@ -1,5 +1,4 @@
 import 'package:carpooling/views/ride/pickUp_create.dart'; // to use lat lng
-import 'package:carpooling/views/map/map.dart';
 import 'package:carpooling/views/ride/route_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -7,8 +6,6 @@ import 'dart:convert';
 import 'package:geocoding/geocoding.dart'; // place mark function
 import 'package:geolocator/geolocator.dart'; // get user's current location
 import 'package:latlong2/latlong.dart';
-
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class SecondSearchPage extends StatefulWidget {
   @override

@@ -20,8 +20,14 @@ class MapPage extends StatefulWidget {
 class MapPageState extends State<MapPage> {
   // loadingg
   bool _isLoading = true;
-  // getter for the _
+  // getter for the _suggestoions
   List<Map<String, dynamic>> get currentSuggestions => _suggestions;
+  //getter for the destination point
+  LatLng? get selectedDestination =>
+    markers.isNotEmpty ? markers.first.point : null;
+  // getter for the _currentLocation
+  LatLng? get currentLocation => _currentLocation;
+
 
   final MapController _mapController = MapController();
   LatLng? _currentLocation; // user current location (latlng is the type)
@@ -234,39 +240,45 @@ class MapPageState extends State<MapPage> {
     setState(() => _isLoading = false); // Stop loading
   }
 
-  Future<void> fetchSuggestions(String query) async {
-    if (query.isEmpty) {
-      setState(() {
-        _suggestions = [];
-      });
-      return;
-    }
-    final url = Uri.parse(
-      'https://api.stadiamaps.com/geocoding/v1/search?text=${Uri.encodeComponent(query)}' // get the locations that match the query
-      '&api_key=e80bab52-948d-4148-9f15-f56591cca16a'
-      '&boundary.rect.min_lat=35.6645'
-      '&boundary.rect.min_lon=-0.6974'
-      '&boundary.rect.max_lat=35.7527'
-      '&boundary.rect.max_lon=-0.5419' // limit the search in oran city only
-      '&autocomplete=true',
-    );
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-
-      setState(() {
-        _suggestions =
-            data['features'].map<Map<String, dynamic>>((feature) {
-              final coords = feature['geometry']['coordinates'];
-              return {
-                'name': feature['properties']['label'],
-                'lat': coords[1],
-                'lon': coords[0],
-              };
-            }).toList(); // convert it into a list
-      });
-    }
+  Future<List<Map<String, dynamic>>> fetchSuggestions(String query) async {
+  if (query.isEmpty) {
+    setState(() {
+      _suggestions = [];
+    });
+    return []; // return empty list instead of void
   }
+  final url = Uri.parse(
+    'https://api.stadiamaps.com/geocoding/v1/search?text=${Uri.encodeComponent(query)}' // get the locations that match the query
+    '&api_key=e80bab52-948d-4148-9f15-f56591cca16a'
+    '&boundary.rect.min_lat=35.6645'
+    '&boundary.rect.min_lon=-0.6974'
+    '&boundary.rect.max_lat=35.7527'
+    '&boundary.rect.max_lon=-0.5419' // limit the search in oran city only
+    '&autocomplete=true',
+  );
+  final response = await http.get(url);
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+
+    final suggestionsList = data['features'].map<Map<String, dynamic>>((feature) {
+      final coords = feature['geometry']['coordinates'];
+      return {
+        'name': feature['properties']['label'],
+        'lat': coords[1],
+        'lon': coords[0],
+      };
+    }).toList();
+
+    setState(() {
+      _suggestions = suggestionsList;
+    });
+
+    return suggestionsList;  // Return the suggestions list here
+  }
+
+  return []; // return empty list if request fails
+}
+
 
   @override
   Widget build(BuildContext context) {

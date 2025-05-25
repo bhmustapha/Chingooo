@@ -7,7 +7,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import '../../components/container.dart';
 
 class RoutePreviewPage extends StatefulWidget {
   final LatLng pickUp;

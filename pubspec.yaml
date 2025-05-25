@@ -56,6 +56,11 @@ dependencies:
   shared_preferences: ^2.5.3
   # to open urls and other apps
   url_launcher: ^6.3.1
+  #local notifications 
+  
+
+  #firebase
+  firebase_core: ^3.13.1
   
 
 dev_dependencies:
