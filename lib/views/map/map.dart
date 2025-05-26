@@ -1,3 +1,4 @@
+import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
@@ -9,8 +10,7 @@ import 'dart:convert';
 List<Map<String, dynamic>> _suggestions = [];
 
 class MapPage extends StatefulWidget {
-  final VoidCallback?
-  onRouteDrawn; // to notify the home page that the route is created
+  final VoidCallback? onRouteDrawn; // to notify the home page that the route is created
   const MapPage({super.key, this.onRouteDrawn});
 
   @override
@@ -22,16 +22,12 @@ class MapPageState extends State<MapPage> {
   bool _isLoading = true;
   // getter for the _suggestoions
   List<Map<String, dynamic>> get currentSuggestions => _suggestions;
-  //getter for the destination point
-  LatLng? get selectedDestination =>
-    markers.isNotEmpty ? markers.first.point : null;
   // getter for the _currentLocation
   LatLng? get currentLocation => _currentLocation;
-
-
+  // map controller
   final MapController _mapController = MapController();
-  LatLng? _currentLocation; // user current location (latlng is the type)
 
+  LatLng? _currentLocation; // user current location (latlng is the type)
   List<Marker> markers = []; // list of markers (current + destination)
   List<LatLng> routePoints = []; // to draw the polyline in the map
 
@@ -62,8 +58,6 @@ class MapPageState extends State<MapPage> {
 
     LatLng location = LatLng(lat, lon); // get the location
 
-    //_mapController.move(location, 15.0);
-
     try {
       // Call getRoute to draw the route from current location to suggestion
       final route = await getRoute(_currentLocation!, location);
@@ -82,26 +76,24 @@ class MapPageState extends State<MapPage> {
             child: IgnorePointer(
               child: Icon(
                 Icons.location_pin,
-                color: Colors.blue[700],
+                color: Colors.blue,
                 size: 45,
               ),
             ),
           ),
         );
       });
-      widget.onRouteDrawn?.call();
-      _suggestions = [];
+      widget.onRouteDrawn?.call(); // tell that the route is drawn
+      _suggestions = []; // clear the suggestion after drawing the route
       // Calculate the bounds of the route (from current location to destination)
       final bounds = LatLngBounds(
         _currentLocation!, // Start location
         location, // End location
       );
-      _mapController.move(bounds.center, 11.5);
+      _mapController.move(bounds.center, 11.5); // ti show the full route to the user
     } catch (e) {
       // Handle error (ex: no route found)
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to get route: $e')));
+      showErrorSnackbar(context, 'Failed to get route: $e');
     } finally {
       setState(() => _isLoading = false); // Stop loading
     }
@@ -129,12 +121,11 @@ class MapPageState extends State<MapPage> {
     if (response.statusCode == 200) {
       // no errors
       final data = jsonDecode(response.body);
-      final List<dynamic> coordinates =
-          data['features'][0]['geometry']['coordinates'];
+      final List<dynamic> coordinates = data['features'][0]['geometry']['coordinates'];
 
       // Convert coordinates to LatLng
       return coordinates
-          .map<LatLng>((coord) => LatLng(coord[1], coord[0]))
+          .map<LatLng>((coord) => LatLng(coord[1], coord[0])) //! switched between lat nd lon to match the flutter map after
           .toList();
     } else {
       throw Exception('Failed to load route');
@@ -147,11 +138,11 @@ class MapPageState extends State<MapPage> {
         await Geolocator.requestPermission(); // user's permission to use the location
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
+        showErrorSnackbar(context, 'Permission denied');
       setState(() => _isLoading = false); // Stop loading on fail
       return;
     }
-
-    Position position = await Geolocator.getCurrentPosition();
+    Position position = await Geolocator.getCurrentPosition(); // get the current location from the geolocator package
 
     LatLng userLocation = LatLng(
       position.latitude,
@@ -233,9 +224,7 @@ class MapPageState extends State<MapPage> {
         _mapController.move(bounds.center, 11.5);
       });
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Location not found!')),
-      ); // shwo small error message in the bottom
+      showErrorSnackbar(context, 'Location not found!'); // shwo small error message in the bottom
     }
     setState(() => _isLoading = false); // Stop loading
   }
@@ -245,7 +234,7 @@ class MapPageState extends State<MapPage> {
     setState(() {
       _suggestions = [];
     });
-    return []; // return empty list instead of void
+    return []; 
   }
   final url = Uri.parse(
     'https://api.stadiamaps.com/geocoding/v1/search?text=${Uri.encodeComponent(query)}' // get the locations that match the query
