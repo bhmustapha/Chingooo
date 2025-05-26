@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'themes/light_theme.dart';
 import 'package:flutter/services.dart'; // to hide the state bar
 import 'about/about_app.dart';
+
 // for the theme
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 // load selcted theme from the storage

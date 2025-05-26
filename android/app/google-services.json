@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "103323551308",
+    "project_id": "sarii-app-pfe-2025",
+    "storage_bucket": "sarii-app-pfe-2025.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:103323551308:android:e46eb88e9892e3f68656e9",
+        "android_client_info": {
+          "package_name": "com.example.carpooling"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2dCJdMJBPwW7yFs9t_Q1N8xHW_j8P638"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
