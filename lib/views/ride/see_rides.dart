@@ -2,6 +2,7 @@ import 'package:carpooling/themes/costum_reusable.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SeeRidesPage extends StatefulWidget {
   final String destinationLocation;
@@ -269,45 +270,223 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
     );
   }
 
+  Color? _getStatusColor(String? status) {
+    switch (status) {
+      case 'pending':
+        return Colors.orange;
+      case 'confirmed':
+        return Colors.green;
+      case 'rejected':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Center(child: Text('no available rides!')),
-          Positioned(
-            top: 30,
-            left: 14,
-            child: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: Icon(LucideIcons.arrowLeft),
-            ),
-          ),
-          Positioned(
-            bottom: 15,
-            right: 0,
-            left: 0,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: Expanded(
-                child: TextButton(
-                  style: TextButton.styleFrom(
-                    fixedSize: Size(270, 55),
-                    backgroundColor: const Color.fromRGBO(33, 150, 243, 1),
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: showRequestRideBottomSheet,
-                  child: Text(
-                    'Post a ride request',
-                    style: TextStyle(color: Colors.white),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Row(
+              children: [
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: Icon(LucideIcons.arrowLeft),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Available Rides',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
+              ],
+            ),
+
+            // Expanded list of rides
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream:
+                    FirebaseFirestore.instance
+                        .collection('rides')
+                        .orderBy('date', descending: false)
+                        .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (!snapshot.hasData) {
+                    return Center(child: Text('No available rides!'));
+                  }
+
+                  final destinationFilter =
+                      widget.destinationLocation.trim().toLowerCase();
+                  final filteredRides =
+                      snapshot.data!.docs.where((doc) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        final rideDestination =
+                            (data['destinationName'] ?? '')
+                                .toString()
+                                .trim()
+                                .toLowerCase();
+                        return rideDestination.contains(destinationFilter);
+                      }).toList();
+
+                  if (filteredRides.isEmpty) {
+                    return Center(
+                      child: Text('No rides to $destinationFilter'),
+                    );
+                  }
+
+                  return ListView.builder(
+                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                    itemCount: filteredRides.length,
+                    itemBuilder: (context, index) {
+                      final ride = filteredRides[index];
+                      final data = ride.data() as Map<String, dynamic>;
+
+                      final pickupName = data['pickUpName'] ?? 'Unknown pickup';
+                      final destinationName =
+                          data['destinationName'] ?? 'Unknown destination';
+                      final timestamp = data['date'] as Timestamp?;
+                      final dateTime = timestamp?.toDate() ?? DateTime.now();
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            color: Theme.of(context).cardColor,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Published by ${data['publisher'] ?? 'Unknown'}',
+                                style: Theme.of(context).textTheme.labelLarge,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '$pickupName → $destinationName',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Date: ${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}',
+                              ),
+                              Text(
+                                'Time: ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}',
+                              ),
+                              if (data['distanceKm'] != null)
+                                Text(
+                                  'Distance: ${data['distanceKm'].toStringAsFixed(2)} km',
+                                ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  const Text(
+                                    'Status: ',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    data['status'] ?? 'unknown',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: _getStatusColor(data['status']),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        // Your "Take this Ride" logic
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        elevation: 0,
+                                        backgroundColor: Colors.blue,
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            18,
+                                          ),
+                                        ),
+                                      ),
+                                      child: const Text('Take this Ride'),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  OutlinedButton(
+                                    onPressed: () {
+                                      // Your "Message Publisher" logic
+                                    },
+                                    style: OutlinedButton.styleFrom(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 15,
+                                        horizontal: 8,
+                                      ),
+                                      foregroundColor: Colors.blue,
+                                      side: const BorderSide(
+                                        color: Colors.blue,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(18),
+                                      ),
+                                    ),
+                                    child: const Text('Message Publisher'),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
-          ),
-        ],
+
+            TextButton(
+              style: TextButton.styleFrom(
+                fixedSize: Size(310, 55),
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              onPressed: showRequestRideBottomSheet,
+              child: const Text(
+                'Post a ride request',
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

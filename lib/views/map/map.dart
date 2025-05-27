@@ -251,8 +251,13 @@ class MapPageState extends State<MapPage> {
 
     final suggestionsList = data['features'].map<Map<String, dynamic>>((feature) {
       final coords = feature['geometry']['coordinates'];
+      String name = feature['properties']['label'];
+      
+      // Remove ", Oran, Algeria" or ", Algeria" if it exists
+      name = name.replaceAll(', Oran, Algeria', '');
+      name = name.replaceAll(', Algeria', '');
       return {
-        'name': feature['properties']['label'],
+        'name':name.trim(),
         'lat': coords[1],
         'lon': coords[0],
       };

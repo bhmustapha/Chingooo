@@ -1,5 +1,6 @@
 import 'package:carpooling/views/ride/pickUp_create.dart'; // to use lat lng
 import 'package:carpooling/views/ride/route_preview.dart';
+import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -34,6 +35,13 @@ class SecondSearchPageState extends State<SecondSearchPage> {
       }
     });
   }
+
+String _cleanLabel(String label) {
+  return label
+      .replaceAll(', Oran, Algeria', '')
+      .replaceAll(', Algeria', '')
+      .trim();
+}
 
   Future<void> _showCurrentLocationOnly() async {
     final currentLocation = await _getCurrentLocationSuggestion();
@@ -73,7 +81,7 @@ class SecondSearchPageState extends State<SecondSearchPage> {
               final props = f['properties'];
               final coords = f['geometry']['coordinates'];
               return {
-                'label': props['label'],
+                'label': _cleanLabel(props['label']),
                 'lat': coords[1],
                 'lon': coords[0],
               };
@@ -166,10 +174,10 @@ class SecondSearchPageState extends State<SecondSearchPage> {
 
       if (placemarks.isNotEmpty) {
         final place = placemarks.first;
-        final address = "${place.name}, ${place.locality}, ${place.country}";
+        final address = _cleanLabel("${place.name}, ${place.locality}, ${place.country}");
 
         return {
-          'label': 'Use current location',
+          'label': address,
           'lat': position.latitude,
           'lon': position.longitude,
           'isCurrentLocation': true,
@@ -269,21 +277,14 @@ class SecondSearchPageState extends State<SecondSearchPage> {
                                     selectedPickUpLon!,
                                   ),
                                   dropOff: LatLng(selectedLat!, selectedLon!),
+                                  pickUpName: pickUpLocation!,
                                   destinationName: destinationLocation!,
                                 ),
                           ),
                         );
                       } else {
                         // show an error to the user
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              "Please enter a valid location",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
+                        showErrorSnackbar(context, "Please enter a valid location");
                       }
                     },
                   ),
@@ -326,6 +327,7 @@ class SecondSearchPageState extends State<SecondSearchPage> {
                                       selectedPickUpLon!,
                                     ),
                                     dropOff: LatLng(selectedLat!, selectedLon!),
+                                    pickUpName: pickUpLocation!,
                                     destinationName: destinationLocation!,
                                   ),
                             ),
@@ -363,6 +365,9 @@ class SecondSearchPageState extends State<SecondSearchPage> {
                             suggestion['isCurrentLocation'] == true
                                 ? Icon(Icons.my_location)
                                 : Icon(Icons.location_on),
+                        subtitle: suggestion['isCurrentLocation'] == true
+                                ? Text('Current location')
+                                :null,       
                         title: Text(suggestion['label']),
                         onTap: () => _onSuggestionTapped(suggestion),
                       );

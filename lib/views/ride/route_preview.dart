@@ -1,22 +1,28 @@
 import 'package:carpooling/main.dart';
 import 'package:carpooling/widgets/main_navigator.dart';
+import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class RoutePreviewPage extends StatefulWidget {
+
   final LatLng pickUp;
   final LatLng dropOff;
   final String destinationName;
+  final String pickUpName;
 
   RoutePreviewPage({
     required this.pickUp,
     required this.dropOff,
     required this.destinationName,
+    required this.pickUpName,
   });
 
   @override
@@ -24,6 +30,7 @@ class RoutePreviewPage extends StatefulWidget {
 }
 
 class _RoutePreviewPageState extends State<RoutePreviewPage> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   // loadingg
   bool _showLoading = true;
   final MapController _mapController = MapController();
@@ -43,19 +50,37 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     _fetchRoute();
   }
 
-  //! confirm ride function with mocked data (ill replace with backend later)
+  //! confirm ride function 
   Future<bool> confirmRide() async {
-    try {
-      // TODO: Replace this with actual API call
-      await Future.delayed(Duration(seconds: 2)); // Simulate network delay
+  try {
+    // Save ride details to Firestore
+    await _firestore.collection('rides').add({
+      'pickUp': {
+        'latitude': widget.pickUp.latitude,
+        'longitude': widget.pickUp.longitude,
+      },
+      'dropOff': {
+        'latitude': widget.dropOff.latitude,
+        'longitude': widget.dropOff.longitude,
+      },
+      'pickUpName':widget.pickUpName,
+      'destinationName': widget.destinationName,
+      'distanceKm': distanceKm,
+      'date': selectedDate,
+      'time': selectedTime != null
+          ? '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}'
+          : null,
+      'timestamp': FieldValue.serverTimestamp(),
+      'status': 'pending', 
+    });
 
-      // ! fake success
-      return true;
-    } catch (e) {
-      print('Error confirming ride: $e');
-      return false;
-    }
+    return true;
+  } catch (e) {
+    print('Error confirming ride: $e');
+    return false;
   }
+}
+
 
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
@@ -200,7 +225,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.destinationName,
+                      '${widget.pickUpName} → ${widget.destinationName}',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -267,17 +292,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                         onPressed: () async {
                           //! async to wait the server later
                           if (selectedDate == null || selectedTime == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Please select both date and time before confirming.',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-
-                                backgroundColor: Colors.red,
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
+                            showErrorSnackbar(context, 'Please select both date and time before confirming.');
                             return;
                           }
                           //! show loading
@@ -291,40 +306,21 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                                   ),
                                 ),
                           );
-                          //! a var to take the result ( fake now)
+                          //a var to take the result
                           bool success = await confirmRide();
 
-                          //! Dismiss the loading dialog
+                          //Dismiss the loading dialog
                           Navigator.of(context).pop();
 
                           if (success) {
-                            // !Pop all pages and show a snackbar on home page
+                            //Pop all pages and show a snackbar on home page
                             Navigator.push(context, MaterialPageRoute(
                               builder: (context) => MainNavigator(),
                             ));
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Ride confirmed successfully!',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                backgroundColor: Colors.green,
-                                
-                              ),
-                            );
+                            showSuccessSnackbar(context, 'Ride confirmed successfully!');
                           } else {
-                            //! Stay on the same page and show error
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Failed to confirm ride. Please try again.',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                backgroundColor: Colors.red,
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
+                            //Stay on the same page and show error
+                            showErrorSnackbar(context, 'Failed to confirm ride. Please try again.');
                           }
 
                           // Proceed with confirmation logic

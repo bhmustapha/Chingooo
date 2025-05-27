@@ -1,4 +1,5 @@
 import 'package:carpooling/components/container.dart';
+import 'package:carpooling/views/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 // all individual setting pages
 import 'account_settings_page.dart';
@@ -37,7 +38,6 @@ class SettingsPage extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
-                  
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SectionTitle(title: 'Account'),
@@ -62,17 +62,34 @@ class SettingsPage extends StatelessWidget {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder:
-                                      (_) => const PrivacySecuritySettingsPage(),
+                                      (_) =>
+                                          const PrivacySecuritySettingsPage(),
                                 ),
                               );
                             },
                           ),
+                          TextButton(
+                            onPressed: () async {
+                              try {
+                                await AuthService.signOut();
+                                Navigator.pushReplacementNamed(
+                                  context,
+                                  '/auth',
+                                );
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Logout failed: $e')),
+                                );
+                              }
+                            },
+                            child: Text('logout'),
+                          ),
                         ],
                       ),
                     ),
-                
+
                     const SizedBox(height: 24),
-                
+
                     SectionTitle(title: 'Notifications'),
                     GreyContainer(
                       child: SettingsTile(
@@ -87,9 +104,9 @@ class SettingsPage extends StatelessWidget {
                         },
                       ),
                     ),
-                
+
                     const SizedBox(height: 24),
-                
+
                     SectionTitle(title: 'Payment'),
                     GreyContainer(
                       child: SettingsTile(
@@ -104,9 +121,9 @@ class SettingsPage extends StatelessWidget {
                         },
                       ),
                     ),
-                
+
                     const SizedBox(height: 24),
-                
+
                     SectionTitle(title: 'Ride Preferences'),
                     GreyContainer(
                       child: Column(
@@ -129,7 +146,8 @@ class SettingsPage extends StatelessWidget {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder:
-                                      (_) => const MusicPreferencesSettingsPage(),
+                                      (_) =>
+                                          const MusicPreferencesSettingsPage(),
                                 ),
                               );
                             },

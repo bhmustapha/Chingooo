@@ -1,8 +1,8 @@
 import 'package:carpooling/views/auth/login_page.dart';
-import 'package:carpooling/intro.dart';
 import 'package:carpooling/themes/dark_theme.dart';
 import 'package:carpooling/views/ride/pickUp_create.dart';
 import 'package:carpooling/views/ride/requested_rides.dart';
+import 'package:carpooling/views/splash/splash_page.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // used in the theme
 import 'views/home/home_page.dart';
 import 'views/messages/conversations_list.dart';
@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'themes/light_theme.dart';
 import 'package:flutter/services.dart'; // to hide the state bar
 import 'about/about_app.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 // for the theme
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
@@ -32,7 +33,7 @@ void main() async{
       statusBarColor: Colors.transparent, // barre transparente
     )
   );
-  
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -59,7 +60,7 @@ class MyApp extends StatelessWidget {
             "/reqrides": (context) => RequestedRidesPage(),
             "/aboutapp": (context) => AboutAppPage()
           },
-          home: OnBoardingPage(),
+          home: SplashPage(),
         );
       },
     );

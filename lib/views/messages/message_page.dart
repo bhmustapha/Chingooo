@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MessagePage extends StatefulWidget {
   final String conversationId;
@@ -16,24 +17,41 @@ class MessagePage extends StatefulWidget {
 }
 
 class _MessagePageState extends State<MessagePage> {
-  final List<Map<String, dynamic>> messages =
-      []; // Placeholder for message list
+  late final Stream<QuerySnapshot> _messagesStream; //! learn
+
+  @override
+  void initState() {
+    super.initState();
+    _messagesStream =
+        FirebaseFirestore.instance
+            .collection('conversations')
+            .doc(widget.conversationId)
+            .collection('messages')
+            .orderBy('timestamp', descending: true)
+            .snapshots(); //! to learn
+  }
+
   final TextEditingController _controller = TextEditingController();
 
-  void _sendMessage() {
-    final text = _controller.text.trim();
+  void _sendMessage() async{
+    final text = _controller.text.trim(); //! whats trim
     if (text.isNotEmpty) {
-      // Simulate adding message (you'll call your backend here)
-      setState(() {
-        messages.add({
-          'text': text,
-          'sender': 'me',
-          'timestamp': DateTime.now().toString(),
-        });
-      });
-      _controller.clear();
+      
+      await FirebaseFirestore.instance //! to learn
+    .collection('conversations')
+    .doc(widget.conversationId)
+    .collection('messages')
+    .add({
+      'text': text,
+      'sender': 'me', // You can use userId or email
+      'timestamp': Timestamp.now(),
+    });
 
-      //! TODO: send message to backend
+_controller.clear(); 
+
+      
+
+      
     }
   }
 
@@ -56,12 +74,13 @@ class _MessagePageState extends State<MessagePage> {
             bottomRight: Radius.circular(isMe ? 0 : 12),
           ),
         ),
-        child: Text(message['text'],
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 14,
-          fontWeight: FontWeight.w200
-        ),
+        child: Text(
+          message['text'],
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w200,
+          ),
         ),
       ),
     );
@@ -74,12 +93,30 @@ class _MessagePageState extends State<MessagePage> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              reverse: true,
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                final message = messages[messages.length - 1 - index];
-                return _buildMessageBubble(message);
+            child: StreamBuilder<QuerySnapshot>( //! to learn
+              stream: _messagesStream,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Center(child: Text('No messages yet'));
+                }
+
+                final docs = snapshot.data!.docs;
+                return ListView.builder(
+                  reverse: true,
+                  itemCount: docs.length,
+                  itemBuilder: (context, index) {
+                    final doc = docs[index];
+                    final message = {
+                      'text': doc['text'],
+                      'sender': doc['sender'],
+                      'timestamp': doc['timestamp'],
+                    };
+                    return _buildMessageBubble(message);
+                  },
+                );
               },
             ),
           ),
@@ -96,11 +133,17 @@ class _MessagePageState extends State<MessagePage> {
                       hintText: 'Type a message...',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide(color: const Color.fromARGB(255, 241, 241, 241), width: 2),
+                        borderSide: BorderSide(
+                          color: const Color.fromARGB(255, 241, 241, 241),
+                          width: 2,
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide(color: const Color.fromARGB(255, 241, 241, 241), width: 2),
+                        borderSide: BorderSide(
+                          color: const Color.fromARGB(255, 241, 241, 241),
+                          width: 2,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),

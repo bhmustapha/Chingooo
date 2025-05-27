@@ -1,5 +1,6 @@
 import 'package:carpooling/views/ride/dropOff_create.dart';
 import 'package:carpooling/widgets/main_navigator.dart';
+import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart'; // place mark function
 import 'package:geolocator/geolocator.dart'; // get user's current location
@@ -35,6 +36,14 @@ class LocationSearchPageState extends State<LocationSearchPage> {
       }
     });
   }
+
+String _cleanLabel(String label) {
+  return label
+      .replaceAll(', Oran, Algeria', '')
+      .replaceAll(', Algeria', '')
+      .trim();
+}
+
 
   Future<void> _showCurrentLocationOnly() async {
     final currentLocation = await _getCurrentLocationSuggestion();
@@ -74,7 +83,7 @@ class LocationSearchPageState extends State<LocationSearchPage> {
               final props = f['properties'];
               final coords = f['geometry']['coordinates'];
               return {
-                'label': props['label'],
+                'label': _cleanLabel(props['label']),
                 'lat': coords[1],
                 'lon': coords[0],
               };
@@ -104,7 +113,7 @@ class LocationSearchPageState extends State<LocationSearchPage> {
   }
 
   // fonction to call geocoding api
-  Future<void> _getCoordinatesFromAddress(String address) async {
+  Future<bool> _getCoordinatesFromAddress(String address) async {
     final url = Uri.parse(
       'https://api.stadiamaps.com/geocoding/v1/search?text=${Uri.encodeComponent(address)}'
       '&api_key=e80bab52-948d-4148-9f15-f56591cca16a' // api key
@@ -131,9 +140,12 @@ class LocationSearchPageState extends State<LocationSearchPage> {
         selectedPickUpLat = lat;
         selectedPickUpLon = lon;
         // but the latlng takes lat first then lon
-        setState(() {});
+        return true;
+        
       }
-    }
+    } 
+      return false;
+    
   }
 
   void _onSuggestionTapped(Map<String, dynamic> suggestion) {
@@ -169,10 +181,11 @@ class LocationSearchPageState extends State<LocationSearchPage> {
 
       if (placemarks.isNotEmpty) {
         final place = placemarks.first;
-        final address = "${place.name}, ${place.locality}, ${place.country}";
+        final address = _cleanLabel("${place.name}, ${place.locality}, ${place.country}");
+
 
         return {
-          'label': 'Current Location: $address',
+          'label': address,
           'lat': position.latitude,
           'lon': position.longitude,
           'isCurrentLocation': true,
@@ -223,7 +236,7 @@ class LocationSearchPageState extends State<LocationSearchPage> {
                     controller: _controller,
                     decoration: InputDecoration(
                       labelText: 'Enter pick-up location',
-                      labelStyle: TextStyle( fontSize: 14),
+                      labelStyle: TextStyle(fontSize: 14),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
                         borderSide: BorderSide.none,
@@ -255,26 +268,22 @@ class LocationSearchPageState extends State<LocationSearchPage> {
                   foregroundColor: Colors.white,
                   elevation: 0,
 
-                  onPressed: () {
+                  onPressed: () async{
                     if (_controller.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Please enter a valid location',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
+                      showErrorSnackbar(context, 'Please enter a valid location');
                     } else {
                       pickUpLocation = _controller.text;
-                      _getCoordinatesFromAddress(_controller.text);
-                      Navigator.push(
+                      bool found = await _getCoordinatesFromAddress(_controller.text);
+                      if (found) {
+                        Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => SecondSearchPage(),
                         ),
                       );
+                      } else {
+                        showErrorSnackbar(context, 'Please enter a valid location');
+                      }
                     }
                   },
                   child: Icon(Icons.arrow_forward_ios_outlined),
@@ -298,6 +307,9 @@ class LocationSearchPageState extends State<LocationSearchPage> {
                             suggestion['isCurrentLocation'] == true
                                 ? Icon(Icons.my_location)
                                 : Icon(Icons.location_on),
+                        subtitle: suggestion['isCurrentLocation'] == true
+                                ?Text('Current location')
+                                :null,
                         title: Text(suggestion['label']),
                         onTap: () => _onSuggestionTapped(suggestion),
                       );

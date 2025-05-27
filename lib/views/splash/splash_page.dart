@@ -1,59 +1,49 @@
-// import 'package:animated_text_kit/animated_text_kit.dart';
-// import 'package:flutter/material.dart';
-// import 'dart:async';
+import 'package:carpooling/intro.dart';
+import 'package:carpooling/widgets/main_navigator.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-// class SplashPage extends StatefulWidget {
-//   const SplashPage({Key? key}) : super(key: key);
 
-//   @override
-//   State<SplashPage> createState() => _SplashPageState();
-// }
+class SplashPage extends StatefulWidget {
+  const SplashPage({super.key});
 
-// class _SplashPageState extends State<SplashPage> {
-//   @override
-//   void initState() {
-//     super.initState();
+  @override
+  State<SplashPage> createState() => _SplashPageState();
+}
 
-//     // Delay for 3 seconds then navigate to the next screen
-//     Timer(const Duration(seconds: 3), () {
-//       Navigator.of(context).pushReplacementNamed('/mainnav'); // or another route
-//     });
-//   }
+class _SplashPageState extends State<SplashPage> {
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
 
-//   @override
-// Widget build(BuildContext context) {
-//   return Scaffold(
-//     backgroundColor: Colors.white,
-//     body: Center(
-//       child: Column(
-//         mainAxisAlignment: MainAxisAlignment.center,
-//         children: [
-//           // Animated Text
-//           AnimatedTextKit(
-//             animatedTexts: [
-//               TypewriterAnimatedText(
-//                 'Chingooo',
-//                 textStyle: const TextStyle(
-//                   fontSize: 24.0,
-//                   fontWeight: FontWeight.bold,
-//                   fontFamily: 'Poppins'
-//                 ),
-//                 speed: const Duration(milliseconds: 100),
-//               ),
-//             ],
-//             totalRepeatCount: 1,
-//             pause: const Duration(milliseconds: 1000),
-//             displayFullTextOnTap: true,
-//             stopPauseOnTap: true,
-//           ),
+  void _checkLoginStatus() async {
+    await Future.delayed(const Duration(seconds: 2)); // delay for splash effect
 
-//           const SizedBox(height: 20),
-//           const CircularProgressIndicator(),
-//         ],
-//       ),
-//     ),
-//   );
-// }
+    final user = FirebaseAuth.instance.currentUser;
 
-// }
+    if (user != null) {
+      // User is signed in — go to home
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) =>  MainNavigator()),
+      );
+    } else {
+      // Not signed in — go to intro or login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) =>  OnBoardingPage()), // or LoginPage()
+      );
+    }
+  }
 
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(), // or your logo
+      ),
+    );
+  }
+}
