@@ -42,16 +42,16 @@ class BookingsPage extends StatelessWidget {
       });
     }
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder:
-            (context) => MessagePage(
-              conversationId: conversationId,
-              friendName: driverName,
-            ),
-      ),
-    );
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder:
+    //         (context) => MessagePage(
+    //           chatId: conversationId,
+    //           otherUserId: driverName, //! come later
+    //         ),
+    //   ),
+    // );
   }
 
   final List<Map<String, dynamic>> bookings = [

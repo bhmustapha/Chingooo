@@ -1,6 +1,7 @@
 import 'package:carpooling/main.dart';
 import 'package:carpooling/widgets/main_navigator.dart';
 import 'package:carpooling/widgets/snackbar_utils.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -8,11 +9,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class RoutePreviewPage extends StatefulWidget {
-
   final LatLng pickUp;
   final LatLng dropOff;
   final String destinationName;
@@ -50,37 +49,51 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     _fetchRoute();
   }
 
-  //! confirm ride function 
+  //! confirm ride function
   Future<bool> confirmRide() async {
-  try {
-    // Save ride details to Firestore
-    await _firestore.collection('rides').add({
-      'pickUp': {
-        'latitude': widget.pickUp.latitude,
-        'longitude': widget.pickUp.longitude,
-      },
-      'dropOff': {
-        'latitude': widget.dropOff.latitude,
-        'longitude': widget.dropOff.longitude,
-      },
-      'pickUpName':widget.pickUpName,
-      'destinationName': widget.destinationName,
-      'distanceKm': distanceKm,
-      'date': selectedDate,
-      'time': selectedTime != null
-          ? '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}'
-          : null,
-      'timestamp': FieldValue.serverTimestamp(),
-      'status': 'pending', 
-    });
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      // creator infos
+      final userDoc =
+          await _firestore.collection('users').doc(currentUser!.uid).get();
+      final userData = userDoc.data();
 
-    return true;
-  } catch (e) {
-    print('Error confirming ride: $e');
-    return false;
+      // Save ride details to Firestore
+      // Generate a new doc reference to get the ID
+      final newRideRef = _firestore.collection('rides').doc();
+      final rideId = newRideRef.id;
+
+      // Save ride details with ID inside
+      await newRideRef.set({
+        'ride_id': rideId, // Store the ID inside the document
+        'userId': currentUser.uid,
+        'userName': userData?['name'] ?? 'unknown',
+        'pickUp': {
+          'latitude': widget.pickUp.latitude,
+          'longitude': widget.pickUp.longitude,
+        },
+        'dropOff': {
+          'latitude': widget.dropOff.latitude,
+          'longitude': widget.dropOff.longitude,
+        },
+        'pickUpName': widget.pickUpName,
+        'destinationName': widget.destinationName,
+        'distanceKm': distanceKm,
+        'date': selectedDate,
+        'time':
+            selectedTime != null
+                ? '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}'
+                : null,
+        'timestamp': FieldValue.serverTimestamp(),
+        'status': 'pending',
+      });
+
+      return true;
+    } catch (e) {
+      print('Error confirming ride: $e');
+      return false;
+    }
   }
-}
-
 
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
@@ -214,10 +227,13 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
             right: 10,
             child: Container(
               decoration: BoxDecoration(
-                color:  themeNotifier.value == ThemeMode.light? Colors.white : Colors.grey[900],
-                borderRadius: BorderRadius.circular(14)
+                color:
+                    themeNotifier.value == ThemeMode.light
+                        ? Colors.white
+                        : Colors.grey[900],
+                borderRadius: BorderRadius.circular(14),
               ),
-              
+
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                 child: Column(
@@ -292,7 +308,10 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                         onPressed: () async {
                           //! async to wait the server later
                           if (selectedDate == null || selectedTime == null) {
-                            showErrorSnackbar(context, 'Please select both date and time before confirming.');
+                            showErrorSnackbar(
+                              context,
+                              'Please select both date and time before confirming.',
+                            );
                             return;
                           }
                           //! show loading
@@ -314,13 +333,22 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
 
                           if (success) {
                             //Pop all pages and show a snackbar on home page
-                            Navigator.push(context, MaterialPageRoute(
-                              builder: (context) => MainNavigator(),
-                            ));
-                            showSuccessSnackbar(context, 'Ride confirmed successfully!');
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MainNavigator(),
+                              ),
+                            );
+                            showSuccessSnackbar(
+                              context,
+                              'Ride confirmed successfully!',
+                            );
                           } else {
                             //Stay on the same page and show error
-                            showErrorSnackbar(context, 'Failed to confirm ride. Please try again.');
+                            showErrorSnackbar(
+                              context,
+                              'Failed to confirm ride. Please try again.',
+                            );
                           }
 
                           // Proceed with confirmation logic

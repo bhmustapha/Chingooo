@@ -1,8 +1,11 @@
 import 'package:carpooling/themes/costum_reusable.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../messages/chat_services.dart';
+import '../messages/message_page.dart';
 
 class SeeRidesPage extends StatefulWidget {
   final String destinationLocation;
@@ -375,7 +378,7 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Published by ${data['publisher'] ?? 'Unknown'}',
+                                'Published by ${data['userName'] ?? 'Unknown'}',
                                 style: Theme.of(context).textTheme.labelLarge,
                               ),
                               const SizedBox(height: 8),
@@ -440,8 +443,35 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                                   ),
                                   const SizedBox(width: 5),
                                   OutlinedButton(
-                                    onPressed: () {
-                                      // Your "Message Publisher" logic
+                                    onPressed: () async {
+                                      // get the current user id
+                                      final currentUserId =
+                                          FirebaseAuth
+                                              .instance
+                                              .currentUser!
+                                              .uid;
+                                      final driverId = data['userId'];
+                                      final rideId = ride.id;
+
+                                      //create or get chat for this ride
+                                      final chatDocRef =
+                                          await ChatService.createOrGetChat(
+                                            rideId: rideId,
+                                            driverId: driverId,
+                                            passengerId: currentUserId,
+                                          );
+
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) => MessagePage(
+                                                chatId: chatDocRef.id,
+                                                rideId: rideId,
+                                                otherUserId: driverId,
+                                              ),
+                                        ),
+                                      );
                                     },
                                     style: OutlinedButton.styleFrom(
                                       padding: EdgeInsets.symmetric(

@@ -1,14 +1,19 @@
+import 'package:carpooling/main.dart';
+import 'package:carpooling/views/messages/chat_services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MessagePage extends StatefulWidget {
-  final String conversationId;
-  final String friendName;
+  final String chatId;
+  final String rideId;
+  final String otherUserId;
 
   const MessagePage({
-    required this.conversationId,
-    required this.friendName,
+    required this.chatId,
+    required this.rideId,
+    required this.otherUserId,
     super.key,
   });
 
@@ -18,6 +23,11 @@ class MessagePage extends StatefulWidget {
 
 class _MessagePageState extends State<MessagePage> {
   late final Stream<QuerySnapshot> _messagesStream; //! learn
+  late final Stream<DocumentSnapshot> _userStream;
+
+  String? _otherUserName;
+  final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+  final TextEditingController _controller = TextEditingController();
 
   @override
   void initState() {
@@ -25,38 +35,40 @@ class _MessagePageState extends State<MessagePage> {
     _messagesStream =
         FirebaseFirestore.instance
             .collection('conversations')
-            .doc(widget.conversationId)
+            .doc(widget.chatId)
             .collection('messages')
-            .orderBy('timestamp', descending: true)
+            .orderBy('timestamp', descending: true) //!!!!!!!!!!!!!!!!!!
             .snapshots(); //! to learn
+
+    _userStream =
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(widget.otherUserId)
+            .snapshots();
   }
 
-  final TextEditingController _controller = TextEditingController();
-
-  void _sendMessage() async{
-    final text = _controller.text.trim(); //! whats trim
+  void _sendMessage() async {
+    final text =
+        _controller.text.trim(); // .trim removes whitespace from both ends
     if (text.isNotEmpty) {
-      
-      await FirebaseFirestore.instance //! to learn
-    .collection('conversations')
-    .doc(widget.conversationId)
-    .collection('messages')
-    .add({
-      'text': text,
-      'sender': 'me', // You can use userId or email
-      'timestamp': Timestamp.now(),
-    });
+      final currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
-_controller.clear(); 
+      await FirebaseFirestore.instance
+          .collection('conversations')
+          .doc(widget.chatId)
+          .collection('messages')
+          .add({
+            'text': text,
+            'sender_id': currentUserId,
+            'timestamp': Timestamp.now(),
+          });
 
-      
-
-      
+      _controller.clear();
     }
   }
 
   Widget _buildMessageBubble(Map<String, dynamic> message) {
-    bool isMe = message['sender'] == 'me';
+    bool isMe = message['sender_id'] == currentUserId;
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -66,7 +78,7 @@ _controller.clear();
           maxWidth: MediaQuery.of(context).size.width * 1,
         ),
         decoration: BoxDecoration(
-          color: isMe ? Colors.blue : Colors.grey[300],
+          color: isMe ? Colors.blue : themeNotifier.value == ThemeMode.light? Colors.grey : Colors.grey[900],
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(12),
             topRight: Radius.circular(12),
@@ -77,7 +89,7 @@ _controller.clear();
         child: Text(
           message['text'],
           style: TextStyle(
-            color: Colors.white,
+            color: themeNotifier.value == ThemeMode.light ? Colors.black : Colors.white,
             fontSize: 14,
             fontWeight: FontWeight.w200,
           ),
@@ -89,11 +101,29 @@ _controller.clear();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.friendName), elevation: 0),
+      appBar: AppBar(
+        title: StreamBuilder<DocumentSnapshot>(
+          stream: _userStream,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return Text('Loading...');
+            }
+            if (snapshot.hasError) {
+              return Text('Error loading name');
+            }
+
+            final data = snapshot.data!;
+            final name = data['name'] ?? 'User';
+            return Text(name);
+          },
+        ),
+        elevation: 0,
+      ),
       body: Column(
         children: [
           Expanded(
-            child: StreamBuilder<QuerySnapshot>( //! to learn
+            child: StreamBuilder<QuerySnapshot>(
+              //! to learn
               stream: _messagesStream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -105,13 +135,13 @@ _controller.clear();
 
                 final docs = snapshot.data!.docs;
                 return ListView.builder(
-                  reverse: true,
+                  reverse: true, //!!!!!!!!!!!!!!!!!!
                   itemCount: docs.length,
                   itemBuilder: (context, index) {
                     final doc = docs[index];
                     final message = {
                       'text': doc['text'],
-                      'sender': doc['sender'],
+                      'sender_id': doc['sender_id'],
                       'timestamp': doc['timestamp'],
                     };
                     return _buildMessageBubble(message);
@@ -150,12 +180,27 @@ _controller.clear();
                         borderSide: BorderSide(color: Colors.blue, width: 2),
                       ),
                     ),
-                    onSubmitted: (_) => _sendMessage(),
+                    onSubmitted: (value) {
+                      ChatService.sendMessage(
+                        chatId: widget.chatId,
+                        senderId: currentUserId,
+                        text: value,
+                      );
+                      _controller.clear();
+                    },
                   ),
                 ),
                 IconButton(
                   icon: Icon(LucideIcons.send, color: Colors.blue),
-                  onPressed: _sendMessage,
+                  onPressed: () {
+                    final text = _controller.text.trim();
+                    ChatService.sendMessage(
+                      chatId: widget.chatId,
+                      senderId: currentUserId,
+                      text: text,
+                    );
+                    _controller.clear();
+                  },
                 ),
               ],
             ),

@@ -1,28 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart'; 
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; 
 import 'message_page.dart';
 
 class ChatListPage extends StatelessWidget {
-  //! simulated list ( bdlha bl backend)
-  final List<Map<String, dynamic>> chatList = [
-    {
-      'conversationId': '1',
-      'friendName': 'Abdellah Bns',
-      'lastMessage': 'Win rak wasel??',
-      'timestamp': '10:24 AM',
-    },
-    {
-      'conversationId': '2',
-      'friendName': 'Hamid Djilali',
-      'lastMessage': 'Chhal souma talia khouya?',
-      'timestamp': 'Yesterday',
-    },
-    {
-      'conversationId': '3',
-      'friendName': 'Fatima Ben',
-      'lastMessage': 'Ma nrkbch mea rjel khouya',
-      'timestamp': 'Mon', 
-    },
-  ];
+  final currentUserId = FirebaseAuth.instance.currentUser!.uid; 
 
   @override
   Widget build(BuildContext context) {
@@ -38,30 +20,74 @@ class ChatListPage extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-        
+
+           
             Expanded(
-              child: ListView.builder(
-                itemCount: chatList.length,
-                itemBuilder: (context, index) {
-                  final chat = chatList[index];
-                  return ListTile(
-                    leading: CircleAvatar(child: Text(chat['friendName'][0])),
-                    title: Text(chat['friendName']),
-                    subtitle: Text(chat['lastMessage']),
-                    trailing: Text(
-                      chat['timestamp'],
-                      style: TextStyle(fontSize: 12),
-                    ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => MessagePage(
-                                conversationId: chat['conversationId'],
-                                friendName: chat['friendName'],
-                              ),
-                        ),
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('conversations')
+                    .where('participants', arrayContains: currentUserId) 
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return Center(child: Text("No conversations yet."));
+                  }
+
+                  final chatDocs = snapshot.data!.docs;
+
+                  return ListView.builder(
+                    itemCount: chatDocs.length,
+                    itemBuilder: (context, index) {
+                      final doc = chatDocs[index];
+                      final data = doc.data() as Map<String, dynamic>;
+                      final chatId = doc.id; 
+                      final isDriver = data['driver_id'] == currentUserId; 
+                      final otherUserId = isDriver
+                          ? data['passenger_id']
+                          : data['driver_id']; 
+
+                      return FutureBuilder<DocumentSnapshot>(
+                        future: FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(otherUserId)
+                            .get(),
+                        builder: (context, userSnapshot) {
+                          if (!userSnapshot.hasData) {
+                            return ListTile(
+                              title: Text("Loading..."),
+                              subtitle: Text(data['last_message'] ?? ''),
+                            );
+                          }
+
+                          final userData = userSnapshot.data!.data() as Map<String, dynamic>?;
+                          final friendName = userData?['name'] ?? 'User'; 
+
+                          return ListTile(
+                            leading: CircleAvatar(child: Text(friendName[0])), 
+                            title: Text(friendName), 
+                            subtitle: Text(data['last_message'] ?? ''), 
+                            trailing: Text(
+                              _formatTimestamp(data['last_timestamp']), 
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MessagePage(
+                                    chatId: chatId, 
+                                    rideId: data['ride_id'],
+                                    otherUserId: otherUserId, 
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
                       );
                     },
                   );
@@ -72,5 +98,21 @@ class ChatListPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+ // helper function for timestamp
+  String _formatTimestamp(Timestamp? timestamp) {
+    if (timestamp == null) return '';
+    final date = timestamp.toDate();
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      return "${date.hour}:${date.minute.toString().padLeft(2, '0')}";
+    } else if (difference.inDays == 1) {
+      return "Yesterday";
+    } else {
+      return "${date.day}/${date.month}/${date.year}";
+    }
   }
 }
