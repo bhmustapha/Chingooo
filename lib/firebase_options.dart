@@ -65,4 +65,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'sarii-app-pfe-2025.firebasestorage.app',
     iosBundleId: 'com.example.carpooling',
   );
+
 }

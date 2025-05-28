@@ -1,8 +1,13 @@
+import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'dart:io';
 import '../../themes/costum_reusable.dart'; // Assuming roundedInputBorder is here
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+
 
 class EditProfilePage extends StatefulWidget {
   @override
@@ -17,7 +22,30 @@ class _EditProfilePageState extends State<EditProfilePage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
 
+  final uid = FirebaseAuth.instance.currentUser!.uid;
+
   File? _imageFile;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData(); 
+  }
+
+   Future<void> _loadUserData() async {
+    try {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (doc.exists) {
+        final data = doc.data()!;
+        nameController.text = data['name'] ?? '';
+        dobController.text = data['birthdate'] ?? '';
+        emailController.text = data['email'] ?? '';
+        phoneController.text = data['phone'] ?? '';
+      }
+    } catch (e) {
+      print("Error loading profile data: $e");
+    }
+  }
 
   Future<void> _pickImage() async {
     try {
@@ -29,11 +57,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
         setState(() {
           _imageFile = File(pickedFile.path);
         });
-      }
+      
+      // Upload to Firebase Storage
+      final user = FirebaseAuth.instance.currentUser;
+      final storageRef = FirebaseStorage.instance.ref().child('profile_images/${user!.uid}.jpg');
+
+      await storageRef.putFile(_imageFile!);
+      final downloadURL = await storageRef.getDownloadURL();
+
+       // Save URL to Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({'imageUrl': downloadURL});
+    }    
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Failed to pick image.")));
+      showErrorSnackbar(context, "Failed to pick image.");
     }
   }
 
@@ -50,12 +89,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  void _saveProfile() {
+  Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Profile updated!')));
-      Navigator.pop(context);
+      try {
+        await FirebaseFirestore.instance.collection('users').doc(uid).update({
+          'name': nameController.text,
+          'birthdate': dobController.text,
+          'email': emailController.text,
+          'phone': phoneController.text,
+          
+        });
+
+        showSuccessSnackbar(context, 'Profile updated!');
+        Navigator.pop(context, true);
+      } catch (e) {
+        showErrorSnackbar(context,'Failed to update profile.');
+      }
     }
   }
 

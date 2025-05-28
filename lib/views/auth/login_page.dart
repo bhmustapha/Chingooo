@@ -44,7 +44,6 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 32),
                 TextField(
                   controller: emailController,
-                  keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
                     contentPadding: EdgeInsets.symmetric(
                       vertical: 15,
