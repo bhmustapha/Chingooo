@@ -8,6 +8,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'utils/ride_utils.dart';
 
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -35,6 +36,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
   final MapController _mapController = MapController();
   List<LatLng> routePoints = [];
   double? distanceKm;
+  double? currentPrice;
 
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
@@ -79,6 +81,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
         'pickUpName': widget.pickUpName,
         'destinationName': widget.destinationName,
         'distanceKm': distanceKm,
+        'price': currentPrice,
         'date': selectedDate,
         'time':
             selectedTime != null
@@ -142,6 +145,10 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                   .map<LatLng>((point) => LatLng(point[1], point[0]))
                   .toList();
           distanceKm = distance / 1000;
+
+          double rawPrice = RideUtils.calculateRidePrice(distanceKm);
+          currentPrice =
+              (rawPrice / 10).round() * 10; // Round to nearest 10 DZD
           final bounds = LatLngBounds(
             start, // Start location
             end, // End location
@@ -155,6 +162,85 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     } catch (e) {
       print('Error fetching route: $e');
     }
+  }
+
+  // show the adjustment sheet
+  void showPriceAdjustmentSheet(BuildContext context) {
+    final range = RideUtils.getNegotiablePriceRange(
+      distanceKm,
+      marginPercent: 20,
+    );
+
+    // Round values to nearest 10 (10 dzd hia sghira)
+    int base = (range['base']! / 10).round() * 10;
+    int min = (range['min']! / 10).floor() * 10;
+    int max = (range['max']! / 10).ceil() * 10;
+
+    int tempPrice = base;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Adjust Ride Price (DZD)',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    '$tempPrice DZD',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 30),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Slider(
+                          min: min.toDouble(),
+                          max: max.toDouble(),
+                          divisions: ((max - min) ~/ 10),
+                          value: tempPrice.toDouble(),
+                          onChanged: (value) {
+                            setModalState(() {
+                              tempPrice = value.round();
+                            });
+                          },
+                          label: '$tempPrice DZD',
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            currentPrice = tempPrice.toDouble();
+                          });
+                          Navigator.pop(context);
+                        },
+                        icon: Icon(Icons.check),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -252,6 +338,36 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                       Text(
                         'Distance: ${distanceKm!.toStringAsFixed(2)} km',
                         style: TextStyle(fontSize: 16),
+                      ),
+                    SizedBox(height: 16),
+                    if (currentPrice != null)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.attach_money,
+                                color: Colors.blue,
+                                size: 20,
+                              ),
+                              Text(
+                                'Price: ${currentPrice!.toInt()} DZD',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                            ],
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              showPriceAdjustmentSheet(context);
+                            },
+                            child: Text('Adjust Price'),
+                          ),
+                        ],
                       ),
                     SizedBox(height: 16),
                     Row(

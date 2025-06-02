@@ -1,5 +1,6 @@
 import 'package:carpooling/main.dart';
 import 'package:carpooling/views/messages/chat_services.dart';
+import 'package:carpooling/views/ride/utils/ride_utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -24,10 +25,15 @@ class MessagePage extends StatefulWidget {
 class _MessagePageState extends State<MessagePage> {
   late final Stream<QuerySnapshot> _messagesStream; //! learn
   late final Stream<DocumentSnapshot> _userStream;
+  late final Stream<DocumentSnapshot> _rideStream;
+  bool isDriver = false;
 
   String? _otherUserName;
   final currentUserId = FirebaseAuth.instance.currentUser!.uid;
   final TextEditingController _controller = TextEditingController();
+
+  double distanceInKm = 0;
+  double price = 0;
 
   @override
   void initState() {
@@ -44,6 +50,11 @@ class _MessagePageState extends State<MessagePage> {
         FirebaseFirestore.instance
             .collection('users')
             .doc(widget.otherUserId)
+            .snapshots();
+    _rideStream =
+        FirebaseFirestore.instance
+            .collection('rides')
+            .doc(widget.rideId)
             .snapshots();
   }
 
@@ -78,7 +89,12 @@ class _MessagePageState extends State<MessagePage> {
           maxWidth: MediaQuery.of(context).size.width * 1,
         ),
         decoration: BoxDecoration(
-          color: isMe ? Colors.blue : themeNotifier.value == ThemeMode.light? Colors.grey : Colors.grey[900],
+          color:
+              isMe
+                  ? Colors.blue
+                  : themeNotifier.value == ThemeMode.light
+                  ? Colors.grey[300]
+                  : Colors.grey[900],
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(12),
             topRight: Radius.circular(12),
@@ -89,12 +105,99 @@ class _MessagePageState extends State<MessagePage> {
         child: Text(
           message['text'],
           style: TextStyle(
-            color: themeNotifier.value == ThemeMode.light ? Colors.black : Colors.white,
+            color:
+                themeNotifier.value == ThemeMode.light
+                    ? isMe
+                        ? Colors.white
+                        : Colors.black
+                    : Colors.white,
             fontSize: 14,
-            fontWeight: FontWeight.w200,
+            fontWeight: FontWeight.w300,
+            fontFamily: 'Lato',
           ),
         ),
       ),
+    );
+  }
+
+  void showPriceAdjustmentSheet(BuildContext context) {
+    final range = RideUtils.getNegotiablePriceRange(
+      distanceInKm,
+      marginPercent: 20,
+    );
+
+    int base = (range['base']! / 10).round() * 10;
+    int min = (range['min']! / 10).floor() * 10;
+    int max = (range['max']! / 10).ceil() * 10;
+
+    int tempPrice = base;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Adjust Ride Price (DZD)',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    '$tempPrice DZD',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 30),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Slider(
+                          min: min.toDouble(),
+                          max: max.toDouble(),
+                          divisions: ((max - min) ~/ 10),
+                          value: tempPrice.toDouble(),
+                          onChanged: (value) {
+                            setModalState(() {
+                              tempPrice = value.round();
+                            });
+                          },
+                          label: '$tempPrice DZD',
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () async {
+                          await FirebaseFirestore.instance
+                              .collection('rides')
+                              .doc(widget.rideId)
+                              .update({'price': tempPrice});
+                          setState(() {
+                            price = tempPrice.toDouble();
+                          });
+                          Navigator.pop(context);
+                        },
+                        icon: Icon(Icons.check),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -102,21 +205,82 @@ class _MessagePageState extends State<MessagePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          if (isDriver) IconButton(icon: Icon(Icons.money), onPressed: () {showPriceAdjustmentSheet(context); print(distanceInKm);}),
+        ],
+
         title: StreamBuilder<DocumentSnapshot>(
           stream: _userStream,
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return Text('Loading...');
-            }
-            if (snapshot.hasError) {
-              return Text('Error loading name');
-            }
+          builder: (context, userSnapshot) {
+            return StreamBuilder<DocumentSnapshot>(
+              stream: _rideStream,
+              builder: (context, rideSnapshot) {
+                if (!userSnapshot.hasData || !rideSnapshot.hasData) {
+                  return Text('Loading...');
+                }
 
-            final data = snapshot.data!;
-            final name = data['name'] ?? 'User';
-            return Text(name);
+                final userDoc = userSnapshot.data!;
+                final rideDoc = rideSnapshot.data!;
+
+                final userData = userDoc.data() as Map<String, dynamic>?;
+                final rideData = rideDoc.data() as Map<String, dynamic>?;
+
+                if (userData == null) {
+                  return Text('User not found');
+                }
+
+                if (rideData == null) {
+                  return Text('Ride not found');
+                }
+                final fetchedDistance =
+                    (rideData['distanceKm'] ?? 0);
+                final fetchedPrice = (rideData['price'] ?? 0);
+
+                if (fetchedDistance != distanceInKm || fetchedPrice != price) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) { //! to learn 
+                    setState(() {
+                      distanceInKm = fetchedDistance; // 🌍 Updated from DB
+                      price = fetchedPrice; // 💰 Updated from DB
+                    });
+                  });
+                }
+
+                final name = userData['name'] ?? 'User';
+                final destination = rideData['destinationName'] ?? 'Unknown';
+                final driverId = rideData['userId'];
+                final currentPrice = rideData['price'];
+
+                final newIsDriver =
+                    (driverId == currentUserId); // 3lah: to avoid rebuild loops
+                if (newIsDriver != isDriver) {
+                  // ida kanou the same ma dir wlw wla tdkhol fi loop
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    setState(() {
+                      isDriver = newIsDriver;
+                    });
+                  });
+                }
+
+                final isOtherDriver = (driverId == widget.otherUserId);
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$name ${isOtherDriver ? "(Driver)" : ""}',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    Text(
+                      'To: $destination ($currentPrice DZD)',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                );
+              },
+            );
           },
         ),
+
         elevation: 0,
       ),
       body: Column(

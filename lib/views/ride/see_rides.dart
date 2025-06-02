@@ -292,6 +292,7 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
       body: SafeArea(
         child: Column(
           children: [
+            SizedBox(height: 10),
             Row(
               children: [
                 IconButton(
@@ -337,7 +338,15 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                         return rideDestination.contains(destinationFilter);
                       }).toList();
 
-                  if (filteredRides.isEmpty) {
+                  final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+
+                  final notUserRides =
+                      filteredRides.where((ride) {
+                        final data = ride.data() as Map<String, dynamic>;
+                        return data['userId'] != currentUserId;
+                      }).toList();
+
+                  if (notUserRides.isEmpty) {
                     return Center(
                       child: Text('No rides to $destinationFilter'),
                     );
@@ -345,9 +354,9 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
 
                   return ListView.builder(
                     padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                    itemCount: filteredRides.length,
+                    itemCount: notUserRides.length,
                     itemBuilder: (context, index) {
-                      final ride = filteredRides[index];
+                      final ride = notUserRides[index];
                       final data = ride.data() as Map<String, dynamic>;
 
                       final pickupName = data['pickUpName'] ?? 'Unknown pickup';
@@ -389,6 +398,15 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
+                              if (data['price'] != null)
+                                Text(
+                                  '${data['price']} DZD',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    color: Colors.green,
+                                  ),
+                                ),
                               const SizedBox(height: 8),
                               Text(
                                 'Date: ${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}',
@@ -400,6 +418,7 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                                 Text(
                                   'Distance: ${data['distanceKm'].toStringAsFixed(2)} km',
                                 ),
+
                               const SizedBox(height: 8),
                               Row(
                                 children: [

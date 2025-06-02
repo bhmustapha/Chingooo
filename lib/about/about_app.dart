@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher.dart'; //launch urlsor other apps
+// info page (toggeled menu)
 
 class AboutAppPage extends StatelessWidget {
   const AboutAppPage({Key? key}) : super(key: key);
@@ -33,11 +34,13 @@ class AboutAppPage extends StatelessWidget {
                 const SizedBox(height: 8),
 
                 const SizedBox(height: 24),
+                // the title
                 const Text(
                   "About Sarii",
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
+                // version
                 Text(
                   "Version 1.0.0",
                   style: TextStyle(fontSize: 16, color: Colors.grey),
@@ -65,6 +68,7 @@ class AboutAppPage extends StatelessWidget {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
+                // todo (privacy sittings)
                 GestureDetector(
                   onTap: () => _launchURL("https://example.com/privacy"),
                   child: const Text(
@@ -73,6 +77,7 @@ class AboutAppPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
+                // todo terms
                 GestureDetector(
                   onTap: () => _launchURL("https://example.com/terms"),
                   child: const Text(

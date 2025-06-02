@@ -68,22 +68,6 @@ class SettingsPage extends StatelessWidget {
                               );
                             },
                           ),
-                          TextButton(
-                            onPressed: () async {
-                              try {
-                                await AuthService.signOut();
-                                Navigator.pushReplacementNamed(
-                                  context,
-                                  '/auth',
-                                );
-                              } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Logout failed: $e')),
-                                );
-                              }
-                            },
-                            child: Text('logout'),
-                          ),
                         ],
                       ),
                     ),
@@ -155,6 +139,7 @@ class SettingsPage extends StatelessWidget {
                         ],
                       ),
                     ),
+                    
                   ],
                 ),
               ),

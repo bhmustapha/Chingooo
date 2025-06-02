@@ -3,6 +3,19 @@ import 'package:flutter/material.dart';
 // light theme
 final ThemeData lightTheme = ThemeData(
   useMaterial3: true,
+
+  //slider theme
+  sliderTheme: SliderThemeData(
+    activeTrackColor: Colors.blue,
+    inactiveTrackColor: Colors.blue[100],
+    thumbColor: Colors.blue,
+    overlayColor: Colors.blue.withAlpha(32),
+    trackHeight: 4.0,
+    thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10.0),
+    overlayShape: RoundSliderOverlayShape(overlayRadius: 20.0),
+    valueIndicatorTextStyle: TextStyle(color: Colors.white, fontSize: 14),
+  ),
+
   //disable the splash
   splashColor: Colors.transparent,
   highlightColor: Colors.transparent,
@@ -25,6 +38,7 @@ final ThemeData lightTheme = ThemeData(
     shadowColor: Colors.black,
     centerTitle: false,
     titleTextStyle: TextStyle(
+      fontFamily: 'Poppins',
       fontWeight: FontWeight.bold,
       fontSize: 20,
       color: Colors.black,
@@ -99,48 +113,41 @@ final ThemeData lightTheme = ThemeData(
     ),
   ),
 
-
   // Date Picker Theme
-      datePickerTheme: const DatePickerThemeData(
-        backgroundColor: Colors.white,
-        headerBackgroundColor: Colors.blue,         // Header background
-        headerForegroundColor: Colors.white,        // Text color in header
+  datePickerTheme: const DatePickerThemeData(
+    backgroundColor: Colors.white,
+    headerBackgroundColor: Colors.blue, // Header background
+    headerForegroundColor: Colors.white, // Text color in header
 
-         // Text inside selected day circle
+    // Text inside selected day circle
+    dayStyle: TextStyle(color: Colors.black), // Default day text color
+    // Today's text color
+  ),
 
-        dayStyle: TextStyle(color: Colors.black),    // Default day text color
-        // Today's text color
-      ),
+  // Time Picker Theme
+  timePickerTheme: const TimePickerThemeData(
+    backgroundColor: Colors.white,
+    hourMinuteTextColor: Colors.white,
+    hourMinuteColor: Colors.blue, // Hour/Minute box color
+    dayPeriodTextColor: Colors.white, // AM/PM text color
+    dayPeriodColor: Colors.blue, // AM/PM background color
+    dialHandColor: Colors.blue, // Dial hand color
+    dialBackgroundColor: Colors.blueAccent, // Dial background color
+    dialTextColor: Colors.white, // Dial text color
+    entryModeIconColor: Colors.blue, // Icon color for switching modes
+  ),
 
-      // Time Picker Theme
-      timePickerTheme: const TimePickerThemeData(
-        backgroundColor: Colors.white,
-        hourMinuteTextColor: Colors.white,
-        hourMinuteColor: Colors.blue,               // Hour/Minute box color
-        dayPeriodTextColor: Colors.white,           // AM/PM text color
-        dayPeriodColor: Colors.blue,                // AM/PM background color
-        dialHandColor: Colors.blue,                 // Dial hand color
-        dialBackgroundColor: Colors.blueAccent,    // Dial background color
-        dialTextColor: Colors.white,                // Dial text color
-        entryModeIconColor: Colors.blue,            // Icon color for switching modes
-      ),
-
-      // Buttons in Date/Time Pickers
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(foregroundColor: Colors.blue), // Button color
-      ),
-       // outlined buttons
+  // Buttons in Date/Time Pickers
+  textButtonTheme: TextButtonThemeData(
+    style: TextButton.styleFrom(foregroundColor: Colors.blue), // Button color
+  ),
+  // outlined buttons
   outlinedButtonTheme: OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(
       foregroundColor: const Color.fromRGBO(97, 97, 97, 1),
-      side: BorderSide(
-        color: const Color.fromRGBO(97, 97, 97, 1),
-        width: 1
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(30),
-      ),
+      side: BorderSide(color: const Color.fromRGBO(97, 97, 97, 1), width: 1),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       padding: EdgeInsets.symmetric(vertical: 14),
-    )
-  )
+    ),
+  ),
 );

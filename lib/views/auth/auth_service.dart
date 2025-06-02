@@ -9,7 +9,7 @@ class AuthService {
     required String name,
     required String email,
     required String password,
-    String? phone,
+    required String phone,
   }) async {
     try {
       UserCredential result = await _auth.createUserWithEmailAndPassword(
@@ -23,7 +23,7 @@ class AuthService {
           'uid': user.uid,
           'name': name,
           'email': email,
-          'phone': phone ?? '',
+          'phone': phone,
           'createdAt': Timestamp.now(),
         });
         return true;
@@ -43,7 +43,7 @@ class AuthService {
   try {
     await FirebaseAuth.instance.signInWithEmailAndPassword(
       email: email.trim(),
-      password: password.trim(),
+      password: password.trim(), // trim tgla3 l'espace m debut w la fin
     );
     return null; // success
   } on FirebaseAuthException catch (e) {

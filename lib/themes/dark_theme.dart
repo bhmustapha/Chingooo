@@ -3,6 +3,19 @@ import 'package:flutter/material.dart';
 // dark theme
 final ThemeData darkTheme = ThemeData(
   useMaterial3: true,
+
+  // slider
+  sliderTheme: SliderThemeData(
+    activeTrackColor: Colors.blue,
+    inactiveTrackColor: Colors.grey[700],
+    thumbColor: Colors.blue,
+    overlayColor: Colors.blue.withAlpha(32),
+    trackHeight: 4.0,
+    thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10.0),
+    overlayShape: RoundSliderOverlayShape(overlayRadius: 20.0),
+    valueIndicatorTextStyle: TextStyle(color: Colors.black, fontSize: 14),
+  ),
+
   // disable the splash
   splashColor: Colors.transparent,
   highlightColor: Colors.transparent,
@@ -31,6 +44,7 @@ final ThemeData darkTheme = ThemeData(
     shadowColor: Colors.white12,
     centerTitle: false,
     titleTextStyle: TextStyle(
+      fontFamily: 'Poppins',
       fontWeight: FontWeight.bold,
       fontSize: 20,
       color: Colors.white,
@@ -103,7 +117,8 @@ final ThemeData darkTheme = ThemeData(
     ),
     titleLarge: TextStyle(
       fontSize: 16,
-      color: Colors.white70, // Used for secondary white text (e.g., hint titles)
+      color:
+          Colors.white70, // Used for secondary white text (e.g., hint titles)
     ),
     bodySmall: TextStyle(
       fontSize: 10,
@@ -121,7 +136,7 @@ final ThemeData darkTheme = ThemeData(
   ),
 
   // Time Picker Theme
-  timePickerTheme:  TimePickerThemeData(
+  timePickerTheme: TimePickerThemeData(
     backgroundColor: Colors.grey[900],
     hourMinuteTextColor: Colors.white,
     hourMinuteColor: Colors.grey[800],
@@ -141,15 +156,9 @@ final ThemeData darkTheme = ThemeData(
   outlinedButtonTheme: OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(
       foregroundColor: Colors.grey,
-      side: BorderSide(
-        color: Colors.grey,
-        width: 1
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(30),
-      ),
+      side: BorderSide(color: Colors.grey, width: 1),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       padding: EdgeInsets.symmetric(vertical: 14),
-    )
+    ),
   ),
-  
 );

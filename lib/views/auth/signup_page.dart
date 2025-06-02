@@ -17,7 +17,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController();
     final phoneController = TextEditingController();
     final emailController = TextEditingController();
@@ -30,7 +30,7 @@ class _SignUpPageState extends State<SignUpPage> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Form(
-              key: _formKey,
+              key: formKey,
               child: Column(
                 children: [
                   const SizedBox(height: 40),
@@ -45,7 +45,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 24),
-                  TextField(
+                  TextField( 
                     controller: nameController,
                     decoration: InputDecoration(
                       contentPadding: EdgeInsets.symmetric(
@@ -121,7 +121,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: _isLoading ? null : () async {
-                      if (_formKey.currentState!.validate()) {
+                      if (formKey.currentState!.validate()) {
                         if (passwordController.text.trim() != confirmPasswordController.text.trim()) {
                           showErrorSnackbar(context, 'Password doesnt match');
                           return;
