@@ -220,7 +220,7 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Text(
-                                '${selectedDateTime.hour.toString().padLeft(2, '0')}:${selectedDateTime.minute.toString().padLeft(2, '0')}',
+                                '${selectedDateTime.hour.toString().padLeft(2, '0')}:${selectedDateTime.minute.toString().padLeft(2, '0')}', //! to learn
                               ),
                             ),
                           ),

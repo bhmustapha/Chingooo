@@ -126,9 +126,9 @@ class _MessagePageState extends State<MessagePage> {
       marginPercent: 20,
     );
 
-    int base = (range['base']! / 10).round() * 10;
-    int min = (range['min']! / 10).floor() * 10;
-    int max = (range['max']! / 10).ceil() * 10;
+    int base = (range['base']! / 10).round() * 10; //! round
+    int min = (range['min']! / 10).floor() * 10; //! floor
+    int max = (range['max']! / 10).ceil() * 10; //! ceil
 
     int tempPrice = base;
 
@@ -239,8 +239,8 @@ class _MessagePageState extends State<MessagePage> {
                 if (fetchedDistance != distanceInKm || fetchedPrice != price) {
                   WidgetsBinding.instance.addPostFrameCallback((_) { //! to learn 
                     setState(() {
-                      distanceInKm = fetchedDistance; // 🌍 Updated from DB
-                      price = fetchedPrice; // 💰 Updated from DB
+                      distanceInKm = fetchedDistance; 
+                      price = fetchedPrice; 
                     });
                   });
                 }

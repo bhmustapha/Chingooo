@@ -333,15 +333,7 @@ String _cleanLabel(String label) {
                             ),
                           );
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                "Please enter a valid location",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
+                          showErrorSnackbar(context, "Please enter a valid location");
                         }
                       },
 

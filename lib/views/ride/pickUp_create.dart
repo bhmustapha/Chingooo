@@ -113,7 +113,7 @@ String _cleanLabel(String label) {
   }
 
   // fonction to call geocoding api
-  Future<bool> _getCoordinatesFromAddress(String address) async {
+  Future<void> _getCoordinatesFromAddress(String address) async {
     final url = Uri.parse(
       'https://api.stadiamaps.com/geocoding/v1/search?text=${Uri.encodeComponent(address)}'
       '&api_key=e80bab52-948d-4148-9f15-f56591cca16a' // api key
@@ -139,13 +139,11 @@ String _cleanLabel(String label) {
 
         selectedPickUpLat = lat;
         selectedPickUpLon = lon;
-        // but the latlng takes lat first then lon
-        return true;
-        
-      }
-    } 
-      return false;
-    
+        setState(() {
+          
+        });
+      } 
+    }
   }
 
   void _onSuggestionTapped(Map<String, dynamic> suggestion) {
@@ -256,10 +254,34 @@ String _cleanLabel(String label) {
                     ),
 
                     onChanged: onTextChanged,
-                    onSubmitted: (value) {
+                    onSubmitted: (value) async{
+                    if (value.isEmpty) {
+                      showErrorSnackbar(context, 'Please enter a valid location');
+                    } else {
                       pickUpLocation = value;
-                      _getCoordinatesFromAddress(value);
-                    },
+                       await _getCoordinatesFromAddress(value);
+                      if (selectedPickUpLat != null &&
+                      selectedPickUpLon != null){
+                        Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SecondSearchPage(),
+                        ),
+                      );
+                      
+                      } else {
+                        showErrorSnackbar(context, 'invalid location');
+                      }
+                        
+                    }
+                  },
+                    
+                    
+                    
+                    // (value) {
+                    //   pickUpLocation = value;
+                    //   _getCoordinatesFromAddress(value);
+                    // },
                   ),
                 ),
                 SizedBox(width: 10),
@@ -273,17 +295,13 @@ String _cleanLabel(String label) {
                       showErrorSnackbar(context, 'Please enter a valid location');
                     } else {
                       pickUpLocation = _controller.text;
-                      bool found = await _getCoordinatesFromAddress(_controller.text);
-                      if (found) {
+                      await _getCoordinatesFromAddress(_controller.text);
                         Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => SecondSearchPage(),
                         ),
                       );
-                      } else {
-                        showErrorSnackbar(context, 'Please enter a valid location');
-                      }
                     }
                   },
                   child: Icon(Icons.arrow_forward_ios_outlined),
