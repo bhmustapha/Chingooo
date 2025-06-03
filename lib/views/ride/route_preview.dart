@@ -41,6 +41,8 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
 
+  int placeCount = 0;
+
   final String apiKey = 'e80bab52-948d-4148-9f15-f56591cca16a';
   final String routeApiKey =
       '5b3ce3597851110001cf62489839c0fa729b43278c806b8b3197872e';
@@ -89,6 +91,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                 : null,
         'timestamp': FieldValue.serverTimestamp(),
         'status': 'pending',
+        'placeCount': placeCount,
       });
 
       return true;
@@ -178,7 +181,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
 
     int tempPrice = base;
 
-    showModalBottomSheet(
+    showModalBottomSheet( //! to learn 
       context: context,
       isScrollControlled: true,
       shape: RoundedRectangleBorder(
@@ -228,7 +231,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                         icon: Icon(Icons.check),
                         style: IconButton.styleFrom(
                           backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white
+                          foregroundColor: Colors.white,
                         ),
                       ),
                     ],
@@ -243,6 +246,105 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     );
   }
 
+  void _showEditPlacesSheet(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (BuildContext context) {
+      int tempPlaceCount = placeCount;
+
+      return StatefulBuilder(
+        builder: (BuildContext context, StateSetter setModalState) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Plus/Minus and count row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // - Button (icon only)
+                    IconButton(
+                      onPressed: tempPlaceCount > 0
+                          ? () => setModalState(() => tempPlaceCount--)
+                          : null,
+                      icon: Icon(
+                        Icons.remove_circle_outline,
+                        size: 50,
+                        color: tempPlaceCount > 0 ? Colors.blue : Colors.grey,
+                      ),
+                    ),
+
+                    // Count in the center
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        '$tempPlaceCount',
+                        style: TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+
+                    // + Button (icon only)
+                    IconButton(
+                      onPressed: tempPlaceCount < 8
+                          ? () => setModalState(() => tempPlaceCount++)
+                          : null,
+                      icon: Icon(
+                        Icons.add_circle_outline,
+                        size: 50,
+                        color: tempPlaceCount < 8 ? Colors.blue : Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 32),
+
+                // Confirm Button
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 80),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() => placeCount = tempPlaceCount);
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        backgroundColor: Colors.blue,
+                      ),
+                      child: Text(
+                        'Confirm',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+
+
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
@@ -256,7 +358,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              initialCenter: widget.pickUp,
+              initialCenter: widget.dropOff,
               initialZoom: 13.0,
             ),
             children: [
@@ -418,6 +520,27 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                       ],
                     ),
                     SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Places: $placeCount',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            _showEditPlacesSheet(context);
+                          },
+                          child: Text('Adjust Places'),
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: 20),
+
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -427,6 +550,12 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                             showErrorSnackbar(
                               context,
                               'Please select both date and time before confirming.',
+                            );
+                            return;
+                          } else if (placeCount == 0) {
+                            showErrorSnackbar(
+                              context,
+                              'please set place count',
                             );
                             return;
                           }
@@ -466,11 +595,6 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                               'Failed to confirm ride. Please try again.',
                             );
                           }
-
-                          // Proceed with confirmation logic
-                          print(
-                            'Confirm Ride: $selectedDate at ${selectedTime!.format(context)}',
-                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
