@@ -11,7 +11,8 @@ List<Map<String, dynamic>> _suggestions = [];
 
 class MapPage extends StatefulWidget {
   final VoidCallback? onRouteDrawn; // to notify the home page that the route is created
-  const MapPage({super.key, this.onRouteDrawn});
+  final ValueChanged<double>? onDistanceCalculated; 
+  const MapPage({super.key, this.onRouteDrawn, this.onDistanceCalculated});
 
   @override
   State<MapPage> createState() => MapPageState();
@@ -31,7 +32,20 @@ class MapPageState extends State<MapPage> {
   List<Marker> markers = []; // list of markers (current + destination)
   List<LatLng> routePoints = []; // to draw the polyline in the map
 
+double calculateRouteDistance() {
+  final Distance distance = Distance();
+  double totalDistance = 0;
+
+  for (int i = 0; i < routePoints.length - 1; i++) {
+    totalDistance += distance(routePoints[i], routePoints[i + 1]);
+  }
+
+  return totalDistance; // in meters
+}
   @override
+
+  
+
   void initState() {
     super.initState();
     _getCurrentLocation(); // initial state of the map is the current loc
@@ -84,6 +98,7 @@ class MapPageState extends State<MapPage> {
         );
       });
       widget.onRouteDrawn?.call(); // tell that the route is drawn
+      widget.onDistanceCalculated?.call(calculateRouteDistance());
       _suggestions = []; // clear the suggestion after drawing the route
       // Calculate the bounds of the route (from current location to destination)
       final bounds = LatLngBounds(
@@ -202,6 +217,7 @@ class MapPageState extends State<MapPage> {
       setState(() {
         //set route points to draw the line
         routePoints = route;
+
         //clear the old markers
         markers.clear();
         // Add a new marker for search result
@@ -217,6 +233,7 @@ class MapPageState extends State<MapPage> {
           ),
         );
         widget.onRouteDrawn?.call();
+        widget.onDistanceCalculated?.call(calculateRouteDistance());
         final bounds = LatLngBounds(
           _currentLocation!, // Start location
           location, // End location

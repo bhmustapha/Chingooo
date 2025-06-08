@@ -1,6 +1,11 @@
 import 'package:carpooling/themes/costum_reusable.dart';
+import 'package:carpooling/views/ride/utils/ride_utils.dart';
+import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -12,11 +17,13 @@ class SeeRidesPage extends StatefulWidget {
   final LatLng? initialPickupLocation;
   final Future<List<Map<String, dynamic>>> Function(String)
   fetchSuggestionsCallback;
+  final double distanceInKm;
 
   SeeRidesPage({
     required this.destinationLocation,
     required this.fetchSuggestionsCallback,
     this.initialPickupLocation,
+    required this.distanceInKm,
     super.key,
   });
 
@@ -28,6 +35,9 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
   late TextEditingController pickupController;
   List<Map<String, dynamic>> suggestions = [];
   LatLng? selectedPickupCoords;
+  String? pickupAddress;
+  bool isLoading = false;
+  bool isValidateLocation = false;
 
   @override
   void initState() {
@@ -66,7 +76,28 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
     FocusScope.of(context).unfocus();
   }
 
+  Future<bool> isValidLocation(String input) async {
+    // to check if the input is a correct location
+    try {
+      if (input.trim().isEmpty) return false;
+
+      List<Location> locations = await locationFromAddress(input);
+      return locations.isNotEmpty;
+    } catch (e) {
+      print('Invalid location: $e');
+      return false;
+    }
+  }
+
+int placeCount = 1; // Default number of places
   void showRequestRideBottomSheet() {
+    
+final priceRange = RideUtils.getNegotiablePriceRange(widget.distanceInKm);
+double? min = (priceRange['min']! / 10).floor() * 10;
+double? max = (priceRange['max']! / 10).ceil() * 10;
+int tempPrice = (priceRange['base']! / 10).round() * 10;
+
+
     DateTime selectedDateTime = DateTime.now();
 
     showModalBottomSheet(
@@ -116,6 +147,7 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                     TextField(
                       controller: pickupController,
                       decoration: InputDecoration(
+                        errorText: pickupController.text == 'Current Location' ? null : isValidateLocation? null : 'Invalid location',
                         hintText: 'Search pickup location',
                         contentPadding: EdgeInsets.symmetric(
                           vertical: 16,
@@ -125,9 +157,12 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                         enabledBorder: roundedInputBorder(14.0),
                         focusedBorder: roundedInputBorder(14.0),
                       ),
+                      
                       onChanged: (value) {
-                        onPickupChanged(value);
-                        setSheetState(() {});
+                        setSheetState(() async{
+                          onPickupChanged(value);
+                          isValidateLocation = await isValidLocation(value);
+                        });
                       },
                     ),
 
@@ -148,6 +183,38 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                         },
                       ),
                     SizedBox(height: 20),
+Text('Set Your Price:', style: TextStyle(fontWeight: FontWeight.w600)),
+Row(
+  children: [
+    Expanded(
+      child: Slider(
+        min: min!.toDouble(),
+        max: max!.toDouble(),
+        divisions: ((max - min) ~/ 100),
+        value: tempPrice.toDouble(),
+        onChanged: (value) {
+          setSheetState(() {
+            tempPrice = value.round();
+          });
+        },
+        label: '$tempPrice DZD',
+      ),
+    ),
+    IconButton(
+      onPressed: () {
+        setSheetState(() {
+          // Optional: persist tempPrice to another variable if needed
+        });
+      },
+      icon: Icon(Icons.check),
+      style: IconButton.styleFrom(
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+      ),
+    ),
+  ],
+),
+
                     Text('Date & Time:'),
                     SizedBox(height: 10),
                     Row(
@@ -227,7 +294,18 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 30),
+                    SizedBox(height: 20),
+Row(
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    Text('Number of Places: $placeCount', style: TextStyle(fontWeight: FontWeight.w600)),
+    TextButton(
+      onPressed: () => _showEditPlacesSheet(context, setSheetState),
+      child: Text('Edit'),
+    ),
+  ],
+),
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -243,22 +321,64 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                             backgroundColor: Colors.blue,
                             foregroundColor: Colors.white,
                           ),
-                          onPressed: () {
-                            String pickupName = pickupController.text;
-                            String destination = widget.destinationLocation;
-                            String datetimeStr =
-                                '${selectedDateTime.toLocal()}'.split('.')[0];
+                          onPressed: () async {
+                            final currentUser =
+                                FirebaseAuth.instance.currentUser;
 
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Ride requested:\nFrom: $pickupName\nTo: $destination\nAt: $datetimeStr',
+                            if (currentUser == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'You must be logged in to request a ride.',
+                                  ),
                                 ),
-                                duration: Duration(seconds: 4),
-                              ),
-                            );
+                              );
+                              return;
+                            }
+
+                            final pickupName = pickupController.text;
+                            final destination = widget.destinationLocation;
+                            final datetimeStr =
+                                '${selectedDateTime.toLocal()}'.split('.')[0];
+                            if (await isValidLocation(pickupName) ||
+                                pickupName == 'Current Location') {
+                              try {
+                                await FirebaseFirestore.instance
+                                    .collection('ride_requests')
+                                    .add({
+                                      'userId': currentUser.uid,
+                                      'pickupName':
+                                          pickupName == 'Current Location'
+                                              ? pickupAddress
+                                              : pickupName,
+
+                                      'pickupLat':
+                                          selectedPickupCoords?.latitude,
+                                      'pickupLon':
+                                          selectedPickupCoords?.longitude,
+                                      'destination': destination,
+                                      'timestamp': selectedDateTime,
+                                      'status': 'pending',
+                                      'createdAt': Timestamp.now(),
+                                    });
+
+                                Navigator.pop(context);
+
+                                showSuccessSnackbar(
+                                  context,
+                                  'Ride requested:\nFrom: $pickupName\nTo: $destination\nAt: $datetimeStr',
+                                );
+                              } catch (e) {
+                                showErrorSnackbar(
+                                  context,
+                                  'Error requesting ride: $e',
+                                );
+                              }
+                            } else {
+                              
+                            }
                           },
+
                           child: Text('Request'),
                         ),
                       ],
@@ -272,6 +392,87 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
       },
     );
   }
+  void _showEditPlacesSheet(BuildContext context, void Function(void Function()) setSheetState) { // TODO: //! tolearn
+  int tempPlaceCount = placeCount;
+
+  showModalBottomSheet(
+    context: context,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (BuildContext context, StateSetter setModalState) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      onPressed: tempPlaceCount > 1
+                          ? () => setModalState(() => tempPlaceCount--)
+                          : null,
+                      icon: Icon(
+                        Icons.remove_circle_outline,
+                        size: 50,
+                        color: tempPlaceCount > 1 ? Colors.blue : Colors.grey,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        '$tempPlaceCount',
+                        style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: tempPlaceCount < 8
+                          ? () => setModalState(() => tempPlaceCount++)
+                          : null,
+                      icon: Icon(
+                        Icons.add_circle_outline,
+                        size: 50,
+                        color: tempPlaceCount < 8 ? Colors.blue : Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 32),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 80),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setSheetState(() => placeCount = tempPlaceCount);
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        backgroundColor: Colors.blue,
+                      ),
+                      child: Text(
+                        'Confirm',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
 
   Color? _getStatusColor(String? status) {
     switch (status) {
@@ -528,11 +729,35 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              onPressed: showRequestRideBottomSheet,
-              child: const Text(
-                'Post a ride request',
-                style: TextStyle(fontSize: 16),
-              ),
+              onPressed: () async {
+                isLoading = true;
+                setState(() {});
+                Position position = await Geolocator.getCurrentPosition(
+                  desiredAccuracy: LocationAccuracy.high,
+                );
+                double lat = position.latitude;
+                double lng = position.longitude;
+
+                List<Placemark> placemarks = await placemarkFromCoordinates(
+                  lat,
+                  lng,
+                );
+                Placemark place = placemarks[0];
+
+                pickupAddress =
+                    "${place.street}, ${place.locality}, ${place.administrativeArea}, ${place.country}";
+                isLoading = false;
+                setState(() {});
+
+                showRequestRideBottomSheet();
+              },
+              child:
+                  isLoading
+                      ? CircularProgressIndicator(color: Colors.white,)
+                      : const Text(
+                        'Post a ride request',
+                        style: TextStyle(fontSize: 16),
+                      ),
             ),
           ],
         ),

@@ -17,13 +17,13 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
+  double? routeDistance;
   @override
   void initState() {
-    setState(() {
-      
-    });
+    setState(() {});
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -33,6 +33,11 @@ class HomePageState extends State<HomePage> {
             key: _mapKey,
             onRouteDrawn: () {
               setState(() {});
+            },
+            onDistanceCalculated: (distance) {
+              setState(() {
+                routeDistance = distance;
+              });
             },
           ),
         ), // the map
@@ -180,6 +185,7 @@ class HomePageState extends State<HomePage> {
                               fetchSuggestionsCallback:
                                   (input) => _mapKey.currentState!
                                       .fetchSuggestions(input),
+                              distanceInKm: routeDistance!/1000 ,
                             ),
                       ),
                     );

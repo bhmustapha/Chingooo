@@ -1,17 +1,27 @@
+import 'package:carpooling/views/messages/specific_ride_chat_list.dart';
+import 'package:carpooling/views/ride/utils/ride_utils.dart';
 import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class DriverRidesPage extends StatelessWidget {
-  const DriverRidesPage({super.key});
+class DriverRidesPage extends StatefulWidget {
+  DriverRidesPage({super.key});
+
+  @override
+  State<DriverRidesPage> createState() => _DriverRidesPageState();
+}
+
+class _DriverRidesPageState extends State<DriverRidesPage> {
+  double? currentPrice;
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     final currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Your Published Rides")),
+      appBar: AppBar(title: const Text("Your Published Rides"), elevation: 0,),
       body: StreamBuilder<QuerySnapshot>(
         stream:
             FirebaseFirestore.instance
@@ -52,9 +62,6 @@ class DriverRidesPage extends StatelessWidget {
                         .where('ride_id', isEqualTo: rideId)
                         .get(),
                 builder: (context, chatSnapshot) {
-                  final passengerCount =
-                      chatSnapshot.hasData ? chatSnapshot.data!.docs.length : 0;
-
                   return Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -104,7 +111,7 @@ class DriverRidesPage extends StatelessWidget {
                             Text(
                               'Distance: ${data['distanceKm'].toStringAsFixed(2)} km',
                             ),
-                          Text('Requests: $passengerCount'),
+                          Text('Requests: ${data['placeCount']}'),
                           const SizedBox(height: 8),
                           Row(
                             children: [
@@ -123,21 +130,21 @@ class DriverRidesPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 10),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              OutlinedButton.icon(
-                                icon: const Icon(Icons.edit),
-                                label: const Text('Edit'),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Colors.blue,
+                                ),
                                 onPressed:
                                     () => _showEditSheet(context, rideId, data),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.orange,
-                                  side: const BorderSide(color: Colors.orange),
-                                ),
                               ),
-                              OutlinedButton.icon(
-                                icon: const Icon(Icons.delete),
-                                label: const Text('Delete'),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.blue,
+                                ),
                                 onPressed: () async {
                                   final confirm = await showDialog<bool>(
                                     context: context,
@@ -156,10 +163,12 @@ class DriverRidesPage extends StatelessWidget {
                                                     false,
                                                   ),
                                             ),
-                                            ElevatedButton(
-                                              child: const Text("Delete"),
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: Colors.red,
+                                            TextButton(
+                                              child: const Text(
+                                                "Delete",
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                ),
                                               ),
                                               onPressed:
                                                   () => Navigator.pop(
@@ -183,22 +192,39 @@ class DriverRidesPage extends StatelessWidget {
                                     );
                                   }
                                 },
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.red,
-                                  side: const BorderSide(color: Colors.red),
-                                ),
                               ),
-                              OutlinedButton.icon(
-                                icon: const Icon(Icons.chat),
-                                label: const Text('Messages'),
-                                onPressed: () {
-                                  // Implement your chat viewer logic
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.blue,
-                                  side: const BorderSide(color: Colors.blue),
-                                ),
-                              ),
+                                OutlinedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                        vertical: 14,
+                                      ),
+                                      side: BorderSide(
+                                        color: Colors.transparent
+                                      )
+                                    ),
+                                 
+                                    child: Text('Messages'),
+                                    // icon: const Icon(
+                                    //   Icons.chat,
+                                    //   color: Colors.blue,
+                                    // ),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => RideConversationsPage(
+                                                rideId: ride.id,
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                               
+                              
                             ],
                           ),
                         ],
@@ -214,17 +240,100 @@ class DriverRidesPage extends StatelessWidget {
     );
   }
 
+ 
+  void showPriceAdjustmentSheet(
+    BuildContext context,
+    double distanceKm,
+    void Function(double) onPriceChanged, //!to learn
+  ) {
+    final range = RideUtils.getNegotiablePriceRange(
+      distanceKm,
+      marginPercent: 20,
+    );
+
+    // Round values to nearest 10 (10 dzd hia sghira)
+    int base = (range['base']! / 10).round() * 10;
+    int min = (range['min']! / 10).floor() * 10;
+    int max = (range['max']! / 10).ceil() * 10;
+
+    int tempPrice = base;
+
+    showModalBottomSheet(
+      //! to learn
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) { //! learn
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Adjust Ride Price (DZD)',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    '$tempPrice DZD',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Slider(
+                          min: min.toDouble(),
+                          max: max.toDouble(),
+                          divisions: ((max - min) ~/ 10),
+                          value: tempPrice.toDouble(),
+                          onChanged: (value) {
+                            setModalState(() {
+                              tempPrice = value.round();
+                            });
+                          },
+                          label: '$tempPrice DZD',
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          onPriceChanged(tempPrice.toDouble());
+                          Navigator.pop(context);
+                        },
+                        icon: Icon(Icons.check),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showEditSheet(
     BuildContext context,
     String rideId,
     Map<String, dynamic> rideData,
   ) {
-    final priceController = TextEditingController(
-      text: rideData['price']?.toString() ?? '',
-    );
-    final status = rideData['status'] ?? 'pending';
     DateTime selectedDateTime =
         (rideData['date'] as Timestamp?)?.toDate() ?? DateTime.now();
+
+    currentPrice = rideData['price'];
 
     showModalBottomSheet(
       context: context,
@@ -250,36 +359,34 @@ class DriverRidesPage extends StatelessWidget {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),
-                  TextField(
-                    controller: priceController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Price (DZD)'),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    value: status,
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'pending',
-                        child: Text('Pending'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'approved',
-                        child: Text('Approved'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'completed',
-                        child: Text('Completed'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'cancelled',
-                        child: Text('Cancelled'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) rideData['status'] = value;
-                    },
-                    decoration: const InputDecoration(labelText: 'Status'),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '$currentPrice',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () {
+                            showPriceAdjustmentSheet(
+                              context,
+                              rideData['distanceKm'],
+                              (newPrice) {
+                                setModalState(() {
+                                  currentPrice = newPrice;
+                                });
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 12),
                   ListTile(
@@ -329,20 +436,56 @@ class DriverRidesPage extends StatelessWidget {
                     },
                   ),
                   const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () async {
-                      await FirebaseFirestore.instance
-                          .collection('rides')
-                          .doc(rideId)
-                          .update({
-                            'price': double.tryParse(priceController.text),
-                            'status': rideData['status'],
-                            'date': Timestamp.fromDate(selectedDateTime),
-                          });
-                      Navigator.pop(context);
-                      showSuccessSnackbar(context, 'Ride updated');
-                    },
-                    child: const Text('Save Changes'),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 14,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      onPressed: () async {
+                        setState(() {
+                          isLoading = true;
+                        });
+                        // Final time of day
+                        final rideTime = TimeOfDay.fromDateTime(
+                          selectedDateTime,
+                        );
+
+                        await FirebaseFirestore.instance
+                            .collection('rides')
+                            .doc(rideId)
+                            .update({
+                              'price': currentPrice ?? rideData['price'],
+                              'date': Timestamp.fromDate(selectedDateTime),
+                              'time':
+                                  '${rideTime.hour.toString().padLeft(2, '0')}:${rideTime.minute.toString().padLeft(2, '0')}',
+                            });
+                        setState(() {
+                          isLoading = false;
+                        });
+                        Navigator.pop(context);
+                        showSuccessSnackbar(context, 'Ride updated');
+                        setState(() {}); // To refresh card with new price
+                      },
+                      child:
+                          isLoading
+                              ? CircularProgressIndicator(color: Colors.white)
+                              : const Text(
+                                'Save Changes',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                    ),
                   ),
                 ],
               );
