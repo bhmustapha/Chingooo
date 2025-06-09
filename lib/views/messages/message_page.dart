@@ -44,7 +44,7 @@ class _MessagePageState extends State<MessagePage> {
             .collection('conversations')
             .doc(widget.chatId)
             .collection('messages')
-            .orderBy('timestamp', descending: true) 
+            .orderBy('timestamp', descending: true)
             .snapshots(); //! to learn
 
     _userStream =
@@ -315,15 +315,24 @@ class _MessagePageState extends State<MessagePage> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          if ((widget.isRideRequest && !isDriver) ||
-              (!widget.isRideRequest && isDriver))
-            IconButton(
-              icon: Icon(Icons.money),
-              onPressed: () {
-                showPriceAdjustmentSheet(context);
-                print(distanceInKm);
-              },
-            ),
+          StreamBuilder<DocumentSnapshot>(
+            stream: _rideStream,
+            builder: (context, rideSnapshot) {
+              if (!rideSnapshot.hasData || !rideSnapshot.data!.exists)
+                return SizedBox();
+              final rideData =
+                  rideSnapshot.data!.data() as Map<String, dynamic>;
+              final ownerId = rideData['userId']; // take the owner id to show the adjust button for him
+              if (ownerId != currentUserId) return SizedBox(); // if the current user is not the owner
+
+              return IconButton(
+                icon: Icon(Icons.money),
+                onPressed: () {
+                  showPriceAdjustmentSheet(context);
+                },
+              );
+            },
+          ),
           IconButton(
             icon: Icon(Icons.info_outline),
             onPressed: () {
@@ -371,7 +380,8 @@ class _MessagePageState extends State<MessagePage> {
 
                 final name = userData['name'] ?? 'User';
                 final destination = rideData['destinationName'] ?? 'Unknown';
-                final driverId = rideData['userId'];
+                final driverId =
+                    rideData['isRequested'] == true ? '' : rideData['userId'];
                 final currentPrice = rideData['price'];
 
                 final newIsDriver =
@@ -379,6 +389,7 @@ class _MessagePageState extends State<MessagePage> {
                 if (newIsDriver != isDriver) {
                   // ida kanou the same ma dir wlw wla tdkhol fi loop
                   WidgetsBinding.instance.addPostFrameCallback((_) {
+                    // !to learn
                     setState(() {
                       isDriver = newIsDriver;
                     });

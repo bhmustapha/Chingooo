@@ -5,14 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class DriverRideRequestsPage extends StatefulWidget {
-  DriverRideRequestsPage({super.key});
+class RideRequestsPage extends StatefulWidget {
+  RideRequestsPage({super.key});
 
   @override
-  State<DriverRideRequestsPage> createState() => _DriverRideRequestsPageState();
+  State<RideRequestsPage> createState() => _DriverRideRequestsPageState();
 }
 
-class _DriverRideRequestsPageState extends State<DriverRideRequestsPage> {
+class _DriverRideRequestsPageState extends State<RideRequestsPage> {
   double? currentPrice;
   bool isLoading = false;
 
@@ -21,7 +21,7 @@ class _DriverRideRequestsPageState extends State<DriverRideRequestsPage> {
     final currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Your Published Ride Requests"), elevation: 0),
+      appBar: AppBar(title: const Text("Your Ride Requests"), elevation: 0),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('ride_requests')

@@ -1,10 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart'; 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'message_page.dart';
 
 class ChatListPage extends StatelessWidget {
-  final currentUserId = FirebaseAuth.instance.currentUser!.uid; 
+  final currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
   @override
   Widget build(BuildContext context) {
@@ -15,19 +15,16 @@ class ChatListPage extends StatelessWidget {
             SizedBox(height: 24),
             Text(
               'Messages',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w700,
-              ),
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
             ),
-
-           
+            SizedBox(height: 15,),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('conversations')
-                    .where('participants', arrayContains: currentUserId) 
-                    .snapshots(),
+                stream:
+                    FirebaseFirestore.instance
+                        .collection('conversations')
+                        .where('participants', arrayContains: currentUserId)
+                        .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
@@ -44,84 +41,109 @@ class ChatListPage extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final doc = chatDocs[index];
                       final data = doc.data() as Map<String, dynamic>;
-                      final chatId = doc.id; 
-                      final isDriver = data['driver_id'] == currentUserId; 
-                      final otherUserId = isDriver
-                          ? data['passenger_id']
-                          : data['driver_id']; 
+                      final chatId = doc.id;
+                      final isDriver = data['driver_id'] == currentUserId;
+                      final otherUserId =
+                          isDriver ? data['passenger_id'] : data['driver_id'];
 
                       return FutureBuilder<DocumentSnapshot>(
-  future: FirebaseFirestore.instance.collection('users').doc(otherUserId).get(),
-  builder: (context, userSnapshot) {
-    if (!userSnapshot.hasData) {
-      return ListTile(
-        title: Text("Loading..."),
-        subtitle: Text(data['last_message'] ?? ''),
-      );
-    }
+                        future:
+                            FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(otherUserId)
+                                .get(),
+                        builder: (context, userSnapshot) {
+                          if (!userSnapshot.hasData) {
+                            return ListTile(
+                              title: Text("Loading..."),
+                            );
+                          }
 
-    final userData = userSnapshot.data!.data() as Map<String, dynamic>?;
-    final friendName = userData?['name'] ?? 'User';
+                          final userData =
+                              userSnapshot.data!.data()
+                                  as Map<String, dynamic>?;
+                          final friendName = userData?['name'] ?? 'User';
 
-    return FutureBuilder<DocumentSnapshot>(
-      //  fetch the ride or ride_request document to get destination
-      future: FirebaseFirestore.instance
-          .collection(data['is_ride_request'] == true ? 'ride_requests' : 'rides')
-          .doc(data['ride_id'])
-          .get(),
-      builder: (context, rideSnapshot) {
-        //  extract destination from fetched ride document
-        final destination = rideSnapshot.hasData
-            ? (rideSnapshot.data?.get('destinationName') ?? '')
-            : '';
+                          return FutureBuilder<DocumentSnapshot>(
+                            //  fetch the ride or ride_request document to get destination
+                            future:
+                                FirebaseFirestore.instance
+                                    .collection(
+                                      data['is_ride_request'] == true
+                                          ? 'ride_requests'
+                                          : 'rides',
+                                    )
+                                    .doc(data['ride_id'])
+                                    .get(),
+                            builder: (context, rideSnapshot) {
+                              //  extract destination from fetched ride document
+                              final destination =
+                                  rideSnapshot.hasData
+                                      ? (rideSnapshot.data?.get(
+                                            'destinationName',
+                                          ) ??
+                                          '')
+                                      : '';
 
-        return ListTile(
-          leading: CircleAvatar(child: Text(friendName[0])),
-          title: Text(friendName),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (destination.isNotEmpty)
-                Text(
-                  '($destination)',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              Text(
-                data['last_message'] ?? '',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              
-              
-            ],
+                              return  ListTile(
+  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+  leading: CircleAvatar(
+    radius: 28,
+    child: Text(
+      friendName[0].toUpperCase(),
+      style: TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+  ),
+  title: Text(
+    friendName,
+    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+  ),
+  subtitle: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      if (destination.isNotEmpty)
+        Padding(
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Text(
+            'Ride to: $destination',
+            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
           ),
-          trailing: Text(
-            _formatTimestamp(data['last_timestamp']),
-            style: TextStyle(fontSize: 12),
-          ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MessagePage(
-                  chatId: chatId,
-                  rideId: data['ride_id'],
-                  otherUserId: otherUserId,
-                  isRideRequest: data['is_ride_request'] == true,
-                ),
-              ),
-            );
-          },
-        );
-      },
+        ),
+      SizedBox(height: 4),
+      Text(
+        data['last_message'] ?? '',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    ],
+  ),
+  trailing: Text(
+    _formatTimestamp(data['last_timestamp']),
+    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+  ),
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MessagePage(
+          chatId: chatId,
+          rideId: data['ride_id'],
+          otherUserId: otherUserId,
+          isRideRequest: data['is_ride_request'] == true,
+        ),
+      ),
     );
   },
 );
 
+
+                            },
+                          );
+                        },
+                      );
                     },
                   );
                 },
@@ -133,7 +155,7 @@ class ChatListPage extends StatelessWidget {
     );
   }
 
- // helper function for timestamp
+  // helper function for timestamp
   String _formatTimestamp(Timestamp? timestamp) {
     if (timestamp == null) return '';
     final date = timestamp.toDate();

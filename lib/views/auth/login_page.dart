@@ -108,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
                               strokeWidth: 2,
                             ),
                           )
-                        : const Text('Sign Up'),
+                        : const Text('Login'),
                 ),
                 const SizedBox(height: 16),
                 TextButton(

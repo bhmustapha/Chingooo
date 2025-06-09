@@ -656,9 +656,9 @@ Row(
                                 children: [
                                   Expanded(
                                     child: ElevatedButton(
-                                      onPressed: () {
-                                        // Your "Take this Ride" logic
-                                      },
+                                       onPressed: ()  {
+    
+  },
                                       style: ElevatedButton.styleFrom(
                                         elevation: 0,
                                         backgroundColor: Colors.blue,

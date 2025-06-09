@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'message_page.dart'; 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'message_page.dart';
 
 class RideConversationsPage extends StatelessWidget {
   final String rideId;
@@ -15,10 +16,11 @@ class RideConversationsPage extends StatelessWidget {
         backgroundColor: Colors.blue,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('conversations')
-            .where('ride_id', isEqualTo: rideId)
-            .snapshots(),
+        stream:
+            FirebaseFirestore.instance
+                .collection('conversations')
+                .where('ride_id', isEqualTo: rideId)
+                .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(child: Text('Something went wrong.'));
@@ -40,28 +42,30 @@ class RideConversationsPage extends StatelessWidget {
               final doc = conversations[index];
               final data = doc.data() as Map<String, dynamic>;
               final conversationId = doc.id;
+              final currentUserId = FirebaseAuth.instance.currentUser?.uid;
               final passengerId = doc['passenger_id'];
+              final driverId = doc['driver_id']; 
               final lastMessage = doc['last_message'] ?? '';
 
+              final otherUserId =  currentUserId == passengerId ? driverId : passengerId;
+
               return FutureBuilder<DocumentSnapshot>(
-                future: FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(passengerId)
-                    .get(),
+                future:
+                    FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(otherUserId)
+                        .get(),
                 builder: (context, userSnapshot) {
                   if (userSnapshot.connectionState == ConnectionState.waiting) {
-                    return const ListTile(
-                      title: Text('Loading user...'),
-                    );
+                    return const ListTile(title: Text('Loading user...'));
                   }
 
                   if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
-                    return const ListTile(
-                      title: Text('Unknown User'),
-                    );
+                    return const ListTile(title: Text('Unknown User'));
                   }
 
-                  final userData = userSnapshot.data!.data() as Map<String, dynamic>;
+                  final userData =
+                      userSnapshot.data!.data() as Map<String, dynamic>;
                   final userName = userData['name'] ?? 'Unnamed User';
 
                   return ListTile(
@@ -72,12 +76,13 @@ class RideConversationsPage extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => MessagePage(
-                            chatId: conversationId,
-                            rideId: rideId,
-                            otherUserId: passengerId,
-                            isRideRequest: data['is_ride_request'] == true,
-                          ),
+                          builder:
+                              (context) => MessagePage(
+                                chatId: conversationId,
+                                rideId: rideId,
+                                otherUserId: otherUserId,
+                                isRideRequest: data['is_ride_request'] == true,
+                              ),
                         ),
                       );
                     },

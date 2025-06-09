@@ -1,4 +1,6 @@
 import 'package:carpooling/views/profile/edit_profile.dart';
+import 'package:carpooling/views/ride/my_requested_rides.dart';
+import 'package:carpooling/views/ride/my_rides.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -78,24 +80,25 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: Row(
                             children: [
                               CircleAvatar(
-  radius: 35,
+  radius: 25,
   backgroundColor: _getColorFromName(userData!['name']),
   child: Text(
     userData!['name'][0].toUpperCase(),
     style: TextStyle(
-      fontSize: 36,
-      color: Colors.white,
+      fontSize: 30,
+      color: Colors.white70,
       fontWeight: FontWeight.bold,
     ),
   ),
 ),
 
-                              SizedBox(width: 25),
+                              SizedBox(width: 15),
                               Expanded(
                                 child: Text(
                                   userData!['name'] ?? 'Unknown',
-                                  style: Theme.of(context).textTheme.bodyMedium!
-                                      .copyWith(fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                  ),
                                 ),
                               ),
                             ],
@@ -132,6 +135,42 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                     SizedBox(height: 30),
+                    Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 20),
+  child: Column(
+    children: [
+      SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          icon: Icon(Icons.drive_eta, color: Colors.blue),
+          label: Text("My Rides "),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => DriverRidesPage()),
+            );
+          },
+        ),
+      ),
+      SizedBox(height: 10),
+      SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          icon: Icon(Icons.hail, color: Colors.green),
+          label: Text("My Ride Requests"),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => RideRequestsPage()),
+            );
+          },
+        ),
+      ),
+    ],
+  ),
+),
+SizedBox(height: 20),
+
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Row(

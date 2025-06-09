@@ -59,27 +59,6 @@ class BookingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body:  Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => DriverRidesPage()),
-                );
-              },
-              child: Center(child: Text('My rides')),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => DriverRideRequestsPage()),
-                );
-              },
-              child: Center(child: Text('My requested rides')),
-            ),
-          ],
         ),
       
     );
