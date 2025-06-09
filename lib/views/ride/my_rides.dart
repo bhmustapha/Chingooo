@@ -21,7 +21,7 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
     final currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Your Published Rides"), elevation: 0,),
+      appBar: AppBar(title: const Text("Your Published Rides"), elevation: 0),
       body: StreamBuilder<QuerySnapshot>(
         stream:
             FirebaseFirestore.instance
@@ -181,50 +181,68 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                                   );
 
                                   if (confirm == true) {
-                                    await FirebaseFirestore.instance
+                                    // Delete conversations related to this ride
+                                    final conversationsSnapshot =
+                                        await FirebaseFirestore
+                                            .instance //! to learn
+                                            .collection('conversations')
+                                            .where('ride_id', isEqualTo: rideId)
+                                            .get();
+
+                                    final batch =
+                                        FirebaseFirestore.instance.batch();
+
+                                    for (final doc
+                                        in conversationsSnapshot.docs) {
+                                      batch.delete(doc.reference);
+                                    }
+
+                                    // Delete the ride document
+                                    final rideRef = FirebaseFirestore.instance
                                         .collection('rides')
-                                        .doc(rideId)
-                                        .delete();
+                                        .doc(rideId);
+                                    batch.delete(rideRef);
+
+                                    await batch.commit();
+
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content: Text("Ride deleted"),
+                                        content: Text(
+                                          "Ride and related conversations deleted",
+                                        ),
                                       ),
                                     );
                                   }
                                 },
                               ),
-                                OutlinedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.blue,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 24,
-                                        vertical: 14,
-                                      ),
-                                      side: BorderSide(
-                                        color: Colors.transparent
-                                      )
-                                    ),
-                                 
-                                    child: Text('Messages'),
-                                    // icon: const Icon(
-                                    //   Icons.chat,
-                                    //   color: Colors.blue,
-                                    // ),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (context) => RideConversationsPage(
-                                                rideId: ride.id,
-                                              ),
-                                        ),
-                                      );
-                                    },
+                              OutlinedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 14,
                                   ),
-                               
-                              
+                                  side: BorderSide(color: Colors.transparent),
+                                ),
+
+                                child: Text('Messages'),
+                                // icon: const Icon(
+                                //   Icons.chat,
+                                //   color: Colors.blue,
+                                // ),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => RideConversationsPage(
+                                            rideId: ride.id,
+                                          ),
+                                    ),
+                                  );
+                                },
+                              ),
                             ],
                           ),
                         ],
@@ -240,7 +258,6 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
     );
   }
 
- 
   void showPriceAdjustmentSheet(
     BuildContext context,
     double distanceKm,
@@ -267,7 +284,8 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
       ),
       builder: (context) {
         return StatefulBuilder(
-          builder: (context, setModalState) { //! learn
+          builder: (context, setModalState) {
+            //! learn
             return Padding(
               padding: const EdgeInsets.all(20),
               child: Column(

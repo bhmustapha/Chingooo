@@ -1,4 +1,5 @@
 import 'package:carpooling/components/container.dart';
+import 'package:carpooling/views/ride/my_requested_rides.dart';
 import 'package:carpooling/views/ride/my_rides.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -57,15 +58,30 @@ class BookingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: TextButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => DriverRidesPage()),
-          );
-        },
-        child: Center(child: Text('My rides')),
-      ),
+      body:  Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => DriverRidesPage()),
+                );
+              },
+              child: Center(child: Text('My rides')),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => DriverRideRequestsPage()),
+                );
+              },
+              child: Center(child: Text('My requested rides')),
+            ),
+          ],
+        ),
+      
     );
   }
 }

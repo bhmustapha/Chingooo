@@ -38,6 +38,7 @@ class RideConversationsPage extends StatelessWidget {
             itemCount: conversations.length,
             itemBuilder: (context, index) {
               final doc = conversations[index];
+              final data = doc.data() as Map<String, dynamic>;
               final conversationId = doc.id;
               final passengerId = doc['passenger_id'];
               final lastMessage = doc['last_message'] ?? '';
@@ -75,6 +76,7 @@ class RideConversationsPage extends StatelessWidget {
                             chatId: conversationId,
                             rideId: rideId,
                             otherUserId: passengerId,
+                            isRideRequest: data['is_ride_request'] == true,
                           ),
                         ),
                       );

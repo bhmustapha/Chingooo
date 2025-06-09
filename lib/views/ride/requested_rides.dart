@@ -1,36 +1,15 @@
+import 'package:carpooling/views/messages/chat_services.dart';
+import 'package:carpooling/views/messages/message_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RequestedRidesPage extends StatelessWidget {
   const RequestedRidesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, String>> requestedRides = [
-      {
-        'publisher': 'John Doe',
-        'pickup': 'Maraval',
-        'dropoff': 'Ain Turk',
-        'date': '2025-05-23',
-        'time': '14:30',
-        'status': 'Pending',
-      },
-      {
-        'publisher': 'Alice Smith',
-        'pickup': 'Université Belgaid',
-        'dropoff': 'La gare',
-        'date': '2025-05-24',
-        'time': '09:00',
-        'status': 'Confirmed',
-      },
-      {
-        'publisher': 'Carlos Vega',
-        'pickup': 'Akid lotfi',
-        'dropoff': 'Gambetta',
-        'date': '2025-05-25',
-        'time': '08:15',
-        'status': 'Rejected',
-      },
-    ];
+    final ridesRef = FirebaseFirestore.instance.collection('ride_requests');
 
     return Scaffold(
       body: SafeArea(
@@ -43,7 +22,7 @@ class RequestedRidesPage extends StatelessWidget {
               Row(
                 children: [
                   IconButton(
-                    icon: Icon(Icons.arrow_back),
+                    icon: const Icon(Icons.arrow_back),
                     onPressed: () => Navigator.pop(context),
                   ),
                   const SizedBox(width: 8),
@@ -56,104 +35,189 @@ class RequestedRidesPage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              // Ride List
+              // Ride List from Firestore
               Expanded(
-                child: ListView.separated(
-                  itemCount: requestedRides.length,
-                  separatorBuilder: (_, __) => SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final ride = requestedRides[index];
-                    return Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        color: Theme.of(context).cardColor,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Publisher
-                          Text(
-                            'Published by ${ride['publisher']}',
-                            style: Theme.of(context).textTheme.labelLarge,
-                          ),
-                          const SizedBox(height: 8),
-                          // Route
-                          Text(
-                            '${ride['pickup']} → ${ride['dropoff']}',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: ridesRef.snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return const Center(
+                        child: Text("No requested rides found."),
+                      );
+                    }
+
+                    final currentUserId =
+                        FirebaseAuth.instance.currentUser!.uid;
+                    final requestedRides =
+                        snapshot.data!.docs
+                            .where(
+                              (doc) =>
+                                  (doc.data()
+                                      as Map<String, dynamic>)['userId'] !=
+                                  currentUserId,
                             )
-                          ),
-                          const SizedBox(height: 8),
-                          Text('Date: ${ride['date']}'),
-                          Text('Time: ${ride['time']}'),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Text(
-                                'Status: ',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                ride['status']!,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: _getStatusColor(ride['status']),
-                                ),
+                            .toList();
+                    if (requestedRides.isEmpty) {
+                      return const Center(
+                        child: Text("No requested rides available for you."),
+                      );
+                    }
+
+                    return ListView.separated(
+                      itemCount: requestedRides.length,
+                      separatorBuilder:
+                          (_, __) => const SizedBox(height: 12), //! learn
+                      itemBuilder: (context, index) {
+                        final ride = requestedRides[index];
+                        final data = ride.data() as Map<String, dynamic>;
+                        final timestamp = data['timestamp'] as Timestamp?;
+                        final dateTime = timestamp?.toDate() ?? DateTime.now();
+
+                        return Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            color: Theme.of(context).cardColor,
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
-                          
-                          // Buttons: Take Ride + Message Publisher
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    // TODO: Implement take ride logic
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    elevation: 0,
-                                    backgroundColor: Colors.blue,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(18),
+                              Text(
+                                'Published by ${data['userName']}',
+                                style: Theme.of(context).textTheme.labelLarge,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '${data['pickupName']} → ${data['destinationName']}',
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+
+                              // Ride Price
+                              Text(
+                                '${data['price'].toString()} DZD',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.green,
+                                ),
+                              ),
+
+                              const SizedBox(height: 8),
+                              Text('Date: ${_formatDate(dateTime)}'),
+                              Text('Time: ${_formatTime(dateTime)}'),
+                              const SizedBox(height: 8),
+
+                              // Status
+                              Row(
+                                children: [
+                                  const Text(
+                                    'Status: ',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  child: const Text("Take this Ride"),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              OutlinedButton(
-                                onPressed: () {
-                                  // TODO: Implement message publisher logic
-                                  // e.g., Navigate to a chat page with ride['publisher']
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  padding: EdgeInsets.symmetric(vertical: 15, horizontal: 8),
-                                  foregroundColor: Colors.blue,
-                                  side: const BorderSide(color: Colors.blue),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(18),
+                                  Text(
+                                    data['status'],
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: _getStatusColor(data['status']),
+                                    ),
                                   ),
-                                ),
-                                child: const Text("Message Publisher"),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Buttons
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        // TODO: Implement take ride logic
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        elevation: 0,
+                                        backgroundColor: Colors.blue,
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            18,
+                                          ),
+                                        ),
+                                      ),
+                                      child: const Text("Take this Ride"),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  OutlinedButton(
+                                    onPressed: () async {
+                                      final currentUserId =
+                                          FirebaseAuth
+                                              .instance
+                                              .currentUser!
+                                              .uid;
+                                      final driverId = currentUserId;
+                                      final rideId = ride.id;
+
+                                      final chatDocRef =
+                                          await ChatService.createOrGetChat(
+                                            rideId: rideId,
+                                            driverId: driverId,
+                                            passengerId: data['userId'],
+                                            isRideRequest: true,
+                                          );
+
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) => MessagePage(
+                                                chatId: chatDocRef.id,
+                                                rideId: rideId,
+                                                otherUserId: data['userId'],
+                                                isRideRequest: true,
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 15,
+                                        horizontal: 8,
+                                      ),
+                                      foregroundColor: Colors.blue,
+                                      side: const BorderSide(
+                                        color: Colors.blue,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(18),
+                                      ),
+                                    ),
+                                    child: const Text("Message Publisher"),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
-                      ),
+                        );
+                      },
                     );
                   },
                 ),
@@ -165,16 +229,22 @@ class RequestedRidesPage extends StatelessWidget {
     );
   }
 
-  Color? _getStatusColor(String? status) {
+  static Color? _getStatusColor(String? status) {
     switch (status) {
-      case 'Pending':
+      case 'pending':
         return Colors.orange;
-      case 'Confirmed':
+      case 'confirmed':
         return Colors.green;
-      case 'Rejected':
+      case 'rejected':
         return Colors.red;
       default:
         return null;
     }
   }
+
+  String _formatDate(DateTime date) =>
+      '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+  String _formatTime(DateTime date) =>
+      '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}'; // ! move into seperate file nd make it reusable
 }

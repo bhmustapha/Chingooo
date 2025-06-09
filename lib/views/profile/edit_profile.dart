@@ -1,12 +1,9 @@
 import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'dart:io';
 import '../../themes/costum_reusable.dart'; // Assuming roundedInputBorder is here
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 
 
 class EditProfilePage extends StatefulWidget {
@@ -23,8 +20,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   TextEditingController phoneController = TextEditingController();
 
   final uid = FirebaseAuth.instance.currentUser!.uid;
-
-  File? _imageFile;
 
   @override
   void initState() {
@@ -47,34 +42,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  Future<void> _pickImage() async {
-    try {
-      final pickedFile = await ImagePicker().pickImage(
-        source: ImageSource.gallery,
-      );
-
-      if (pickedFile != null) {
-        setState(() {
-          _imageFile = File(pickedFile.path);
-        });
-      
-      // Upload to Firebase Storage
-      final user = FirebaseAuth.instance.currentUser;
-      final storageRef = FirebaseStorage.instance.ref().child('profile_images/${user!.uid}.jpg');
-
-      await storageRef.putFile(_imageFile!);
-      final downloadURL = await storageRef.getDownloadURL();
-
-       // Save URL to Firestore
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .update({'imageUrl': downloadURL});
-    }    
-    } catch (e) {
-      showErrorSnackbar(context, "Failed to pick image.");
-    }
-  }
+ 
 
   Future<void> _selectDateOfBirth() async {
     DateTime? pickedDate = await showDatePicker(
@@ -138,20 +106,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   child: Column(
                     children: [
                       const SizedBox(height: 20),
-                      GestureDetector(
-                        onTap: _pickImage,
-                        child: CircleAvatar(
-                          radius: 50,
-                          backgroundImage:
-                              _imageFile != null
-                                  ? FileImage(_imageFile!)
-                                  : null,
-                          child:
-                              _imageFile == null
-                                  ? Icon(LucideIcons.camera, size: 40)
-                                  : null,
-                        ),
-                      ),
+                     
                       const SizedBox(height: 32),
 
                       // Name

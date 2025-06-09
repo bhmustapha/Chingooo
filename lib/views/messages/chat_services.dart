@@ -8,6 +8,7 @@ class ChatService {
     required String rideId,
     required String driverId,
     required String passengerId,
+    bool isRideRequest = false,
   }) async {
     // check if a chat for this ride already exists
     final querySnapshot =
@@ -31,7 +32,8 @@ class ChatService {
       'passenger_id': passengerId,
       'last_message': '',
       'last_timestamp': FieldValue.serverTimestamp(),
-      'participants': [driverId, passengerId], // Optional but useful
+      'participants': [driverId, passengerId], 
+      'is_ride_request': isRideRequest,
     });
 
     return newChatRef;

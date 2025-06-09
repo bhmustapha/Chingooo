@@ -51,44 +51,77 @@ class ChatListPage extends StatelessWidget {
                           : data['driver_id']; 
 
                       return FutureBuilder<DocumentSnapshot>(
-                        future: FirebaseFirestore.instance
-                            .collection('users')
-                            .doc(otherUserId)
-                            .get(),
-                        builder: (context, userSnapshot) {
-                          if (!userSnapshot.hasData) {
-                            return ListTile(
-                              title: Text("Loading..."),
-                              subtitle: Text(data['last_message'] ?? ''),
-                            );
-                          }
+  future: FirebaseFirestore.instance.collection('users').doc(otherUserId).get(),
+  builder: (context, userSnapshot) {
+    if (!userSnapshot.hasData) {
+      return ListTile(
+        title: Text("Loading..."),
+        subtitle: Text(data['last_message'] ?? ''),
+      );
+    }
 
-                          final userData = userSnapshot.data!.data() as Map<String, dynamic>?;
-                          final friendName = userData?['name'] ?? 'User'; 
+    final userData = userSnapshot.data!.data() as Map<String, dynamic>?;
+    final friendName = userData?['name'] ?? 'User';
 
-                          return ListTile(
-                            leading: CircleAvatar(child: Text(friendName[0])), 
-                            title: Text(friendName), 
-                            subtitle: Text(data['last_message'] ?? ''), 
-                            trailing: Text(
-                              _formatTimestamp(data['last_timestamp']), 
-                              style: TextStyle(fontSize: 12),
-                            ),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MessagePage(
-                                    chatId: chatId, 
-                                    rideId: data['ride_id'],
-                                    otherUserId: otherUserId, 
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      );
+    return FutureBuilder<DocumentSnapshot>(
+      //  fetch the ride or ride_request document to get destination
+      future: FirebaseFirestore.instance
+          .collection(data['is_ride_request'] == true ? 'ride_requests' : 'rides')
+          .doc(data['ride_id'])
+          .get(),
+      builder: (context, rideSnapshot) {
+        //  extract destination from fetched ride document
+        final destination = rideSnapshot.hasData
+            ? (rideSnapshot.data?.get('destinationName') ?? '')
+            : '';
+
+        return ListTile(
+          leading: CircleAvatar(child: Text(friendName[0])),
+          title: Text(friendName),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (destination.isNotEmpty)
+                Text(
+                  '($destination)',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              Text(
+                data['last_message'] ?? '',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              
+              
+            ],
+          ),
+          trailing: Text(
+            _formatTimestamp(data['last_timestamp']),
+            style: TextStyle(fontSize: 12),
+          ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MessagePage(
+                  chatId: chatId,
+                  rideId: data['ride_id'],
+                  otherUserId: otherUserId,
+                  isRideRequest: data['is_ride_request'] == true,
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  },
+);
+
                     },
                   );
                 },

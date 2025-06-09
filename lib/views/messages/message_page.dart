@@ -10,11 +10,13 @@ class MessagePage extends StatefulWidget {
   final String chatId;
   final String rideId;
   final String otherUserId;
+  final bool isRideRequest;
 
   const MessagePage({
     required this.chatId,
     required this.rideId,
     required this.otherUserId,
+    this.isRideRequest = false,
     super.key,
   });
 
@@ -28,7 +30,6 @@ class _MessagePageState extends State<MessagePage> {
   late final Stream<DocumentSnapshot> _rideStream;
   bool isDriver = false;
 
-  String? _otherUserName;
   final currentUserId = FirebaseAuth.instance.currentUser!.uid;
   final TextEditingController _controller = TextEditingController();
 
@@ -43,7 +44,7 @@ class _MessagePageState extends State<MessagePage> {
             .collection('conversations')
             .doc(widget.chatId)
             .collection('messages')
-            .orderBy('timestamp', descending: true) //!!!!!!!!!!!!!!!!!!
+            .orderBy('timestamp', descending: true) 
             .snapshots(); //! to learn
 
     _userStream =
@@ -51,11 +52,81 @@ class _MessagePageState extends State<MessagePage> {
             .collection('users')
             .doc(widget.otherUserId)
             .snapshots();
-    _rideStream =
-        FirebaseFirestore.instance
-            .collection('rides')
-            .doc(widget.rideId)
-            .snapshots();
+    if (widget.isRideRequest) {
+      _rideStream =
+          FirebaseFirestore.instance
+              .collection('ride_requests')
+              .doc(widget.rideId)
+              .snapshots();
+    } else {
+      _rideStream =
+          FirebaseFirestore.instance
+              .collection('rides')
+              .doc(widget.rideId)
+              .snapshots();
+    }
+  }
+
+  void _showRideInfoDialog(BuildContext context) async {
+    final docRef = FirebaseFirestore.instance
+        .collection(widget.isRideRequest ? 'ride_requests' : 'rides')
+        .doc(widget.rideId);
+
+    final docSnap = await docRef.get();
+
+    if (!docSnap.exists) {
+      showDialog(
+        context: context,
+        builder:
+            (_) => AlertDialog(
+              title: Text("Error"),
+              content: Text("Ride not found."),
+            ),
+      );
+      return;
+    }
+
+    final data = docSnap.data() as Map<String, dynamic>;
+    final destination = data['destinationName'] ?? 'Unknown';
+    final price = data['price'] ?? 0;
+    final distance = data['distanceKm'] ?? 0;
+    final timestamp = data['timestamp']; // Assume it's a Firestore Timestamp
+
+    String formattedDate = 'Unknown';
+    String formattedTime = '';
+
+    if (timestamp != null && timestamp is Timestamp) {
+      final dateTime = timestamp.toDate();
+      formattedDate = "${dateTime.day}/${dateTime.month}/${dateTime.year}";
+      formattedTime =
+          "${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}";
+    }
+
+    showDialog(
+      context: context,
+      builder:
+          (_) => AlertDialog(
+            title: Text("Ride Info"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Destination: $destination"),
+                Text("Price: $price DZD"),
+                Text("Distance: ${distance.toStringAsFixed(1)} km"),
+                SizedBox(height: 8),
+                Text("Date: $formattedDate"),
+                Text("Time: $formattedTime"),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("Close"),
+              ),
+            ],
+          ),
+    );
   }
 
   void _sendMessage() async {
@@ -79,6 +150,25 @@ class _MessagePageState extends State<MessagePage> {
   }
 
   Widget _buildMessageBubble(Map<String, dynamic> message) {
+    final senderId = message['sender_id'];
+    final isSystem = senderId == 'system';
+
+    if (isSystem) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Center(
+          child: Text(
+            message['text'],
+            style: TextStyle(
+              color: Colors.grey,
+              fontStyle: FontStyle.italic,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      );
+    }
+
     bool isMe = message['sender_id'] == currentUserId;
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -174,10 +264,29 @@ class _MessagePageState extends State<MessagePage> {
                       ),
                       IconButton(
                         onPressed: () async {
+                          final collectionName =
+                              widget.isRideRequest ? 'ride_requests' : 'rides';
+
                           await FirebaseFirestore.instance
-                              .collection('rides')
+                              .collection(collectionName)
                               .doc(widget.rideId)
                               .update({'price': tempPrice});
+
+                          final systemMessage =
+                              widget.isRideRequest
+                                  ? 'The passenger proposed a new price: $tempPrice DZD'
+                                  : 'The driver updated the price to $tempPrice DZD';
+
+                          await FirebaseFirestore.instance
+                              .collection('conversations')
+                              .doc(widget.chatId)
+                              .collection('messages')
+                              .add({
+                                'text': systemMessage,
+                                'sender_id': 'system',
+                                'timestamp': Timestamp.now(),
+                              });
+
                           setState(() {
                             price = tempPrice.toDouble();
                           });
@@ -206,7 +315,22 @@ class _MessagePageState extends State<MessagePage> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          if (isDriver) IconButton(icon: Icon(Icons.money), onPressed: () {showPriceAdjustmentSheet(context); print(distanceInKm);}),
+          if ((widget.isRideRequest && !isDriver) ||
+              (!widget.isRideRequest && isDriver))
+            IconButton(
+              icon: Icon(Icons.money),
+              onPressed: () {
+                showPriceAdjustmentSheet(context);
+                print(distanceInKm);
+              },
+            ),
+          IconButton(
+            icon: Icon(Icons.info_outline),
+            onPressed: () {
+              _showRideInfoDialog(context);
+              print(widget.rideId);
+            },
+          ),
         ],
 
         title: StreamBuilder<DocumentSnapshot>(
@@ -232,15 +356,15 @@ class _MessagePageState extends State<MessagePage> {
                 if (rideData == null) {
                   return Text('Ride not found');
                 }
-                final fetchedDistance =
-                    (rideData['distanceKm'] ?? 0);
+                final fetchedDistance = (rideData['distanceKm'] ?? 0);
                 final fetchedPrice = (rideData['price'] ?? 0);
 
                 if (fetchedDistance != distanceInKm || fetchedPrice != price) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) { //! to learn 
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    //! to learn
                     setState(() {
-                      distanceInKm = fetchedDistance; 
-                      price = fetchedPrice; 
+                      distanceInKm = fetchedDistance;
+                      price = fetchedPrice;
                     });
                   });
                 }

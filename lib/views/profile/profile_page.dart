@@ -78,11 +78,18 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: Row(
                             children: [
                               CircleAvatar(
-                                radius: 35, // slightly bigger avatar
-                                backgroundImage: AssetImage(
-                                  'assets/images/OIP.jfif',
-                                ),
-                              ),
+  radius: 35,
+  backgroundColor: _getColorFromName(userData!['name']),
+  child: Text(
+    userData!['name'][0].toUpperCase(),
+    style: TextStyle(
+      fontSize: 36,
+      color: Colors.white,
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+),
+
                               SizedBox(width: 25),
                               Expanded(
                                 child: Text(
@@ -183,4 +190,19 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
+Color _getColorFromName(String name) {
+  final colors = [
+    Colors.red.shade200,
+    Colors.green.shade200,
+    Colors.blue.shade200,
+    Colors.orange.shade200,
+    Colors.purple.shade200,
+    Colors.teal.shade200,
+    Colors.brown.shade200,
+  ];
+  final index = name.codeUnitAt(0) % colors.length;//This gets the Unicode code unit (an integer) of the first character in the string name ex: Bob => B= 66
+  return colors[index]; // mraha yutilisi modulo ex: 66 mod 7 =3
+
+}
+
 }

@@ -3,7 +3,6 @@ import 'package:carpooling/views/ride/utils/ride_utils.dart';
 import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
@@ -38,6 +37,7 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
   String? pickupAddress;
   bool isLoading = false;
   bool isValidateLocation = false;
+  int? currentPrice;
 
   @override
   void initState() {
@@ -188,9 +188,9 @@ Row(
   children: [
     Expanded(
       child: Slider(
-        min: min!.toDouble(),
-        max: max!.toDouble(),
-        divisions: ((max - min) ~/ 100),
+        min: min.toDouble(),
+        max: max.toDouble(),
+        divisions: ((max - min) ~/ 10),
         value: tempPrice.toDouble(),
         onChanged: (value) {
           setSheetState(() {
@@ -203,8 +203,9 @@ Row(
     IconButton(
       onPressed: () {
         setSheetState(() {
-          // Optional: persist tempPrice to another variable if needed
+          currentPrice = tempPrice;
         });
+        setState(() {});
       },
       icon: Icon(Icons.check),
       style: IconButton.styleFrom(
@@ -343,10 +344,18 @@ Row(
                             if (await isValidLocation(pickupName) ||
                                 pickupName == 'Current Location') {
                               try {
+
+                                final currentUser = FirebaseAuth.instance.currentUser;
+      // creator infos
+      final userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(currentUser!.uid).get();
+      final userData = userDoc.data();
                                 await FirebaseFirestore.instance
                                     .collection('ride_requests')
                                     .add({
                                       'userId': currentUser.uid,
+                                      'userName': userData?['name'] ?? 'unknown',
+                                      'distanceKm' : widget.distanceInKm,
                                       'pickupName':
                                           pickupName == 'Current Location'
                                               ? pickupAddress
@@ -356,10 +365,12 @@ Row(
                                           selectedPickupCoords?.latitude,
                                       'pickupLon':
                                           selectedPickupCoords?.longitude,
-                                      'destination': destination,
+                                      'destinationName': destination,
                                       'timestamp': selectedDateTime,
                                       'status': 'pending',
                                       'createdAt': Timestamp.now(),
+                                      'price' : tempPrice,
+                                      'isRequested' : true,
                                     });
 
                                 Navigator.pop(context);
