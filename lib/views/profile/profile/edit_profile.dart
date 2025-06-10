@@ -1,7 +1,7 @@
 import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import '../../themes/costum_reusable.dart'; // Assuming roundedInputBorder is here
+import '../../../themes/costum_reusable.dart'; // Assuming roundedInputBorder is here
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 

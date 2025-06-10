@@ -8,7 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../messages/chat_services.dart';
+import '../../services/chat_services.dart';
 import '../messages/message_page.dart';
 
 class SeeRidesPage extends StatefulWidget {

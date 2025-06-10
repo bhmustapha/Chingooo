@@ -1,4 +1,4 @@
-import 'package:carpooling/views/auth/auth_service.dart';
+import 'package:carpooling/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import '../../components/settings_header.dart';
 

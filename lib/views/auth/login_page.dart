@@ -4,7 +4,7 @@ import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:flutter/material.dart';
 import 'signup_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'auth_service.dart';
+import '../../services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

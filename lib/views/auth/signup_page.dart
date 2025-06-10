@@ -3,7 +3,7 @@ import 'package:carpooling/widgets/main_navigator.dart';
 import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'auth_service.dart'; // auth logic
+import '../../services/auth_service.dart'; // auth logic
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});

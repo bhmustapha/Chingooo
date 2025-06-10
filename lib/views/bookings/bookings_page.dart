@@ -1,4 +1,4 @@
-import 'package:carpooling/views/messages/chat_services.dart';
+import 'package:carpooling/services/chat_services.dart';
 import 'package:carpooling/views/messages/message_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -28,13 +28,18 @@ class _BookingsPageState extends State<BookingsPage>
         return Colors.orange;
       case 'cancelled':
         return Colors.red;
+      case 'confirmed':
+        return Colors.blue;
+      case 'in progress':
+        return Colors.purple;
       default:
         return Colors.grey;
     }
   }
 
-  Widget buildRideCard(Map<String, dynamic> data, String rideId, bool isDriver) {
+  Widget buildBookedRideCard(Map<String, dynamic> data, String rideId, bool isDriver) {
     final dateTime = (data['date'] as Timestamp?)?.toDate() ?? DateTime.now();
+    final String partnerName = isDriver ? (data['']) : null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -100,10 +105,10 @@ class _BookingsPageState extends State<BookingsPage>
     );
   }
 
-  Widget buildRidesList({required bool isDriver}) {
+  Widget buildBookedRidesList({required bool isDriver}) {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
-          .collection('rides')
+          .collection('rides') //! change collection
           .orderBy('date', descending: false)
           .snapshots(),
       builder: (context, snapshot) {
@@ -134,7 +139,7 @@ class _BookingsPageState extends State<BookingsPage>
           itemBuilder: (context, index) {
             final ride = rides[index];
             final data = ride.data() as Map<String, dynamic>;
-            return buildRideCard(data, ride.id, isDriver);
+            return buildBookedRideCard(data, ride.id, isDriver);
           },
         );
       },
@@ -161,12 +166,13 @@ class _BookingsPageState extends State<BookingsPage>
           ),
           indicatorColor: Colors.blue,
         ),
+        elevation: 0,
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          buildRidesList(isDriver: false),
-          buildRidesList(isDriver: true),
+          buildBookedRidesList(isDriver: false),
+          buildBookedRidesList(isDriver: true),
         ],
       ),
     );

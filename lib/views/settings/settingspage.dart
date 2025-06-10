@@ -1,5 +1,5 @@
 import 'package:carpooling/components/container.dart';
-import 'package:carpooling/views/auth/auth_service.dart';
+import 'package:carpooling/services/auth_service.dart';
 import 'package:flutter/material.dart';
 // all individual setting pages
 import 'account_settings_page.dart';

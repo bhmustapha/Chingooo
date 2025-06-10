@@ -34,9 +34,9 @@ class BookingService {
     }
 
     final bookingData = {
-      'userId': userId,
-      'rideId': rideId,
-      'driverId': driverId,
+      'passenger_id': userId,
+      'ride_id': rideId,
+      'driver_id': driverId,
       'pickupLocation': pickupLocation,
       'dropoffLocation': dropoffLocation,
       'pickupAddress': pickupAddress,

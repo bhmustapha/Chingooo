@@ -1,10 +1,11 @@
-import 'package:carpooling/views/profile/edit_profile.dart';
+import 'package:carpooling/views/profile/profile/edit_profile.dart';
+import 'package:carpooling/views/profile/vehicle/my_vehicle_page.dart';
 import 'package:carpooling/views/ride/my_requested_rides.dart';
 import 'package:carpooling/views/ride/my_rides.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import '../../components/container.dart';
+import '../../../components/container.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -65,13 +66,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    SizedBox(height: 24),
+                    SizedBox(height: 20),
                     Text(
                       'Profile',
                       // use theme for title
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 15),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12.0),
                       child: GreyContainer(
@@ -80,25 +81,25 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: Row(
                             children: [
                               CircleAvatar(
-  radius: 25,
-  backgroundColor: _getColorFromName(userData!['name']),
-  child: Text(
-    userData!['name'][0].toUpperCase(),
-    style: TextStyle(
-      fontSize: 30,
-      color: Colors.white70,
-      fontWeight: FontWeight.bold,
-    ),
-  ),
-),
+                                radius: 25,
+                                backgroundColor: _getColorFromName(
+                                  userData!['name'],
+                                ),
+                                child: Text(
+                                  userData!['name'][0].toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 30,
+                                    color: Colors.white70,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
 
                               SizedBox(width: 15),
                               Expanded(
                                 child: Text(
                                   userData!['name'] ?? 'Unknown',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                  ),
+                                  style: TextStyle(fontSize: 16),
                                 ),
                               ),
                             ],
@@ -106,7 +107,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 20),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12.0),
                       child: GreyContainer(
@@ -134,42 +134,65 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 30),
+                    SizedBox(height: 10),
                     Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 20),
-  child: Column(
-    children: [
-      SizedBox(
-        width: double.infinity,
-        child: OutlinedButton.icon(
-          icon: Icon(Icons.drive_eta, color: Colors.blue),
-          label: Text("My Rides "),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => DriverRidesPage()),
-            );
-          },
-        ),
-      ),
-      SizedBox(height: 10),
-      SizedBox(
-        width: double.infinity,
-        child: OutlinedButton.icon(
-          icon: Icon(Icons.hail, color: Colors.green),
-          label: Text("My Ride Requests"),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => RideRequestsPage()),
-            );
-          },
-        ),
-      ),
-    ],
-  ),
-),
-SizedBox(height: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              icon: Icon(Icons.drive_eta, color: Colors.blue),
+                              label: Text("My Rides "),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => DriverRidesPage(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              icon: Icon(Icons.hail, color: Colors.green),
+                              label: Text("My Ride Requests"),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => RideRequestsPage(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              icon: Icon(
+                                Icons.car_rental,
+                                color: Colors.orange,
+                              ),
+                              label: Text("My Vehicles"),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MyVehiclesPage(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 20),
 
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -192,10 +215,9 @@ SizedBox(height: 20),
                                     builder: (context) => EditProfilePage(),
                                   ),
                                 );
-                                if ( result == true) {
-                                   _loadUserData();
+                                if (result == true) {
+                                  _loadUserData();
                                 }
-                                
                               },
                               label: Text('Edit'),
                               icon: Icon(Icons.edit),
@@ -229,19 +251,21 @@ SizedBox(height: 20),
       ),
     );
   }
-Color _getColorFromName(String name) {
-  final colors = [
-    Colors.red.shade200,
-    Colors.green.shade200,
-    Colors.blue.shade200,
-    Colors.orange.shade200,
-    Colors.purple.shade200,
-    Colors.teal.shade200,
-    Colors.brown.shade200,
-  ];
-  final index = name.codeUnitAt(0) % colors.length;//This gets the Unicode code unit (an integer) of the first character in the string name ex: Bob => B= 66
-  return colors[index]; // mraha yutilisi modulo ex: 66 mod 7 =3
 
-}
-
+  Color _getColorFromName(String name) {
+    final colors = [
+      Colors.red.shade200,
+      Colors.green.shade200,
+      Colors.blue.shade200,
+      Colors.orange.shade200,
+      Colors.purple.shade200,
+      Colors.teal.shade200,
+      Colors.brown.shade200,
+    ];
+    final index =
+        name.codeUnitAt(0) %
+        colors
+            .length; //This gets the Unicode code unit (an integer) of the first character in the string name ex: Bob => B= 66
+    return colors[index]; // mraha yutilisi modulo ex: 66 mod 7 =3
+  }
 }

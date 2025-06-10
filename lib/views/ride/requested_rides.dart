@@ -1,4 +1,4 @@
-import 'package:carpooling/views/messages/chat_services.dart';
+import 'package:carpooling/services/chat_services.dart';
 import 'package:carpooling/views/messages/message_page.dart';
 import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
