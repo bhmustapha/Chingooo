@@ -1,66 +1,174 @@
-import 'package:carpooling/components/container.dart';
-import 'package:carpooling/views/ride/my_requested_rides.dart';
-import 'package:carpooling/views/ride/my_rides.dart';
+import 'package:carpooling/views/messages/chat_services.dart';
+import 'package:carpooling/views/messages/message_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class BookingsPage extends StatelessWidget {
-  // a function to generate conversation id
-  String generateConversationId(String user1, String user2) {
-    final sorted = [user1, user2]..sort();
-    return '${sorted[0]}_${sorted[1]}';
+class BookingsPage extends StatefulWidget {
+  @override
+  _BookingsPageState createState() => _BookingsPageState();
+}
+
+class _BookingsPageState extends State<BookingsPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
   }
 
-  Future<void> onMessageDriverPressed(
-    BuildContext context,
-    String driverName,
-  ) async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
-      // Handle user not logged in
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Please login first')));
-      return;
+  Color _getStatusColor(String? status) {
+    switch (status?.toLowerCase()) {
+      case 'completed':
+        return Colors.green;
+      case 'pending':
+        return Colors.orange;
+      case 'cancelled':
+        return Colors.red;
+      default:
+        return Colors.grey;
     }
-    final passengerId = currentUser.uid;
-    final driverId = driverName.replaceAll(' ', '_').toLowerCase();
-    // Ideally, you should have real unique IDs for drivers, this is a placeholder!
+  }
 
-    final conversationId = generateConversationId(driverId, passengerId);
+  Widget buildRideCard(Map<String, dynamic> data, String rideId, bool isDriver) {
+    final dateTime = (data['date'] as Timestamp?)?.toDate() ?? DateTime.now();
 
-    final conversationDoc = FirebaseFirestore.instance
-        .collection('conversations')
-        .doc(conversationId);
-    final snapshot = await conversationDoc.get();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          color: Theme.of(context).cardColor,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Published by ${data['userName'] ?? 'Unknown'}',
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${data['pickUpName'] ?? 'Unknown'} → ${data['destinationName'] ?? 'Unknown'}',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            if (data['price'] != null)
+              Text(
+                '${data['price']} DZD',
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Colors.green),
+              ),
+            const SizedBox(height: 8),
+            Text(
+                'Date: ${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}'),
+            Text(
+                'Time: ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}'),
+            if (data['distanceKm'] != null)
+              Text('Distance: ${data['distanceKm'].toStringAsFixed(2)} km'),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Text('Status: ',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  data['status'] ?? 'unknown',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: _getStatusColor(data['status']),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            
+          ],
+        ),
+      ),
+    );
+  }
 
-    if (!snapshot.exists) {
-      await conversationDoc.set({
-        'participants': [driverId, passengerId],
-        'lastMessage': '',
-        'lastMessageTime': FieldValue.serverTimestamp(),
-      });
-    }
+  Widget buildRidesList({required bool isDriver}) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('rides')
+          .orderBy('date', descending: false)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text('No rides found.'));
+        }
 
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder:
-    //         (context) => MessagePage(
-    //           chatId: conversationId,
-    //           otherUserId: driverName, //! come later
-    //         ),
-    //   ),
-    // );
+        final rides = snapshot.data!.docs.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          final userId = data['userId'];
+          return isDriver
+              ? userId == currentUserId
+              : userId != currentUserId; // passenger view
+        }).toList();
+
+        if (rides.isEmpty) {
+          return Center(
+            child: Text('No available rides'),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          itemCount: rides.length,
+          itemBuilder: (context, index) {
+            final ride = rides[index];
+            final data = ride.data() as Map<String, dynamic>;
+            return buildRideCard(data, ride.id, isDriver);
+          },
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:  Column(
+      appBar: AppBar(
+        title: const Text('Bookings'),
+        centerTitle: true,
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Passenger'),
+            Tab(text: 'Driver'),
+          ],
+          labelStyle: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Poppins',
+            color: Colors.blue
+          ),
+          indicatorColor: Colors.blue,
         ),
-      
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          buildRidesList(isDriver: false),
+          buildRidesList(isDriver: true),
+        ],
+      ),
     );
   }
 }

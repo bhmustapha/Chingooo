@@ -17,12 +17,14 @@ class SeeRidesPage extends StatefulWidget {
   final Future<List<Map<String, dynamic>>> Function(String)
   fetchSuggestionsCallback;
   final double distanceInKm;
+  final LatLng destinationCoords;
 
   SeeRidesPage({
     required this.destinationLocation,
     required this.fetchSuggestionsCallback,
     this.initialPickupLocation,
     required this.distanceInKm,
+    required this.destinationCoords,
     super.key,
   });
 
@@ -89,14 +91,12 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
     }
   }
 
-int placeCount = 1; // Default number of places
+  int placeCount = 1; // Default number of places
   void showRequestRideBottomSheet() {
-    
-final priceRange = RideUtils.getNegotiablePriceRange(widget.distanceInKm);
-double? min = (priceRange['min']! / 10).floor() * 10;
-double? max = (priceRange['max']! / 10).ceil() * 10;
-int tempPrice = (priceRange['base']! / 10).round() * 10;
-
+    final priceRange = RideUtils.getNegotiablePriceRange(widget.distanceInKm);
+    double? min = (priceRange['min']! / 10).floor() * 10;
+    double? max = (priceRange['max']! / 10).ceil() * 10;
+    int tempPrice = (priceRange['base']! / 10).round() * 10;
 
     DateTime selectedDateTime = DateTime.now();
 
@@ -147,7 +147,12 @@ int tempPrice = (priceRange['base']! / 10).round() * 10;
                     TextField(
                       controller: pickupController,
                       decoration: InputDecoration(
-                        errorText: pickupController.text == 'Current Location' ? null : isValidateLocation? null : 'Invalid location',
+                        errorText:
+                            pickupController.text == 'Current Location'
+                                ? null
+                                : isValidateLocation
+                                ? null
+                                : 'Invalid location',
                         hintText: 'Search pickup location',
                         contentPadding: EdgeInsets.symmetric(
                           vertical: 16,
@@ -157,9 +162,9 @@ int tempPrice = (priceRange['base']! / 10).round() * 10;
                         enabledBorder: roundedInputBorder(14.0),
                         focusedBorder: roundedInputBorder(14.0),
                       ),
-                      
+
                       onChanged: (value) {
-                        setSheetState(() async{
+                        setSheetState(() async {
                           onPickupChanged(value);
                           isValidateLocation = await isValidLocation(value);
                         });
@@ -183,38 +188,41 @@ int tempPrice = (priceRange['base']! / 10).round() * 10;
                         },
                       ),
                     SizedBox(height: 20),
-Text('Set Your Price:', style: TextStyle(fontWeight: FontWeight.w600)),
-Row(
-  children: [
-    Expanded(
-      child: Slider(
-        min: min.toDouble(),
-        max: max.toDouble(),
-        divisions: ((max - min) ~/ 10),
-        value: tempPrice.toDouble(),
-        onChanged: (value) {
-          setSheetState(() {
-            tempPrice = value.round();
-          });
-        },
-        label: '$tempPrice DZD',
-      ),
-    ),
-    IconButton(
-      onPressed: () {
-        setSheetState(() {
-          currentPrice = tempPrice;
-        });
-        setState(() {});
-      },
-      icon: Icon(Icons.check),
-      style: IconButton.styleFrom(
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-      ),
-    ),
-  ],
-),
+                    Text(
+                      'Set Your Price:',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Slider(
+                            min: min.toDouble(),
+                            max: max.toDouble(),
+                            divisions: ((max - min) ~/ 10),
+                            value: tempPrice.toDouble(),
+                            onChanged: (value) {
+                              setSheetState(() {
+                                tempPrice = value.round();
+                              });
+                            },
+                            label: '$tempPrice DZD',
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            setSheetState(() {
+                              currentPrice = tempPrice;
+                            });
+                            setState(() {});
+                          },
+                          icon: Icon(Icons.check),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
 
                     Text('Date & Time:'),
                     SizedBox(height: 10),
@@ -296,16 +304,21 @@ Row(
                       ],
                     ),
                     SizedBox(height: 20),
-Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  children: [
-    Text('Number of Places: $placeCount', style: TextStyle(fontWeight: FontWeight.w600)),
-    TextButton(
-      onPressed: () => _showEditPlacesSheet(context, setSheetState),
-      child: Text('Edit'),
-    ),
-  ],
-),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Number of Places: $placeCount',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        TextButton(
+                          onPressed:
+                              () =>
+                                  _showEditPlacesSheet(context, setSheetState),
+                          child: Text('Edit'),
+                        ),
+                      ],
+                    ),
 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -344,18 +357,22 @@ Row(
                             if (await isValidLocation(pickupName) ||
                                 pickupName == 'Current Location') {
                               try {
-
-                                final currentUser = FirebaseAuth.instance.currentUser;
-      // creator infos
-      final userDoc =
-          await FirebaseFirestore.instance.collection('users').doc(currentUser!.uid).get();
-      final userData = userDoc.data();
+                                final currentUser =
+                                    FirebaseAuth.instance.currentUser;
+                                // creator infos
+                                final userDoc =
+                                    await FirebaseFirestore.instance
+                                        .collection('users')
+                                        .doc(currentUser!.uid)
+                                        .get();
+                                final userData = userDoc.data();
                                 await FirebaseFirestore.instance
                                     .collection('ride_requests')
                                     .add({
                                       'userId': currentUser.uid,
-                                      'userName': userData?['name'] ?? 'unknown',
-                                      'distanceKm' : widget.distanceInKm,
+                                      'userName':
+                                          userData?['name'] ?? 'unknown',
+                                      'distanceKm': widget.distanceInKm,
                                       'pickupName':
                                           pickupName == 'Current Location'
                                               ? pickupAddress
@@ -365,12 +382,14 @@ Row(
                                           selectedPickupCoords?.latitude,
                                       'pickupLon':
                                           selectedPickupCoords?.longitude,
+                                          'destinationLat': widget.destinationCoords.latitude,
+  'destinationLon': widget.destinationCoords.longitude,
                                       'destinationName': destination,
                                       'timestamp': selectedDateTime,
                                       'status': 'pending',
                                       'createdAt': Timestamp.now(),
-                                      'price' : tempPrice,
-                                      'isRequested' : true,
+                                      'price': tempPrice,
+                                      'isRequested': true,
                                     });
 
                                 Navigator.pop(context);
@@ -385,9 +404,7 @@ Row(
                                   'Error requesting ride: $e',
                                 );
                               }
-                            } else {
-                              
-                            }
+                            } else {}
                           },
 
                           child: Text('Request'),
@@ -403,87 +420,100 @@ Row(
       },
     );
   }
-  void _showEditPlacesSheet(BuildContext context, void Function(void Function()) setSheetState) { // TODO: //! tolearn
-  int tempPlaceCount = placeCount;
 
-  showModalBottomSheet(
-    context: context,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    builder: (BuildContext context) {
-      return StatefulBuilder(
-        builder: (BuildContext context, StateSetter setModalState) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      onPressed: tempPlaceCount > 1
-                          ? () => setModalState(() => tempPlaceCount--)
-                          : null,
-                      icon: Icon(
-                        Icons.remove_circle_outline,
-                        size: 50,
-                        color: tempPlaceCount > 1 ? Colors.blue : Colors.grey,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Text(
-                        '$tempPlaceCount',
-                        style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: tempPlaceCount < 8
-                          ? () => setModalState(() => tempPlaceCount++)
-                          : null,
-                      icon: Icon(
-                        Icons.add_circle_outline,
-                        size: 50,
-                        color: tempPlaceCount < 8 ? Colors.blue : Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 32),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 80),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setSheetState(() => placeCount = tempPlaceCount);
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+  void _showEditPlacesSheet(
+    BuildContext context,
+    void Function(void Function()) setSheetState,
+  ) {
+    // TODO: //! tolearn
+    int tempPlaceCount = placeCount;
+
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed:
+                            tempPlaceCount > 1
+                                ? () => setModalState(() => tempPlaceCount--)
+                                : null,
+                        icon: Icon(
+                          Icons.remove_circle_outline,
+                          size: 50,
+                          color: tempPlaceCount > 1 ? Colors.blue : Colors.grey,
                         ),
-                        backgroundColor: Colors.blue,
                       ),
-                      child: Text(
-                        'Confirm',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          '$tempPlaceCount',
+                          style: TextStyle(
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed:
+                            tempPlaceCount < 8
+                                ? () => setModalState(() => tempPlaceCount++)
+                                : null,
+                        icon: Icon(
+                          Icons.add_circle_outline,
+                          size: 50,
+                          color: tempPlaceCount < 8 ? Colors.blue : Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 32),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 80),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          setSheetState(() => placeCount = tempPlaceCount);
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          backgroundColor: Colors.blue,
+                        ),
+                        child: Text(
+                          'Confirm',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
-      );
-    },
-  );
-}
-
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   Color? _getStatusColor(String? status) {
     switch (status) {
@@ -656,9 +686,7 @@ Row(
                                 children: [
                                   Expanded(
                                     child: ElevatedButton(
-                                       onPressed: ()  {
-    
-  },
+                                      onPressed: () {},
                                       style: ElevatedButton.styleFrom(
                                         elevation: 0,
                                         backgroundColor: Colors.blue,
@@ -764,7 +792,7 @@ Row(
               },
               child:
                   isLoading
-                      ? CircularProgressIndicator(color: Colors.white,)
+                      ? CircularProgressIndicator(color: Colors.white)
                       : const Text(
                         'Post a ride request',
                         style: TextStyle(fontSize: 16),

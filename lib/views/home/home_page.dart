@@ -174,7 +174,9 @@ class HomePageState extends State<HomePage> {
                     foregroundColor: Colors.white,
                   ),
                   onPressed: () {
-                    Navigator.push(
+                    final destinationLatLon = _mapKey.currentState?.destinationLocation;
+                    if (destinationLatLon != null) {
+                      Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder:
@@ -186,9 +188,12 @@ class HomePageState extends State<HomePage> {
                                   (input) => _mapKey.currentState!
                                       .fetchSuggestions(input),
                               distanceInKm: routeDistance!/1000 ,
+                              destinationCoords: destinationLatLon,
                             ),
                       ),
                     );
+                    }
+                    
                   },
                   child: Text('See rides'),
                 ),

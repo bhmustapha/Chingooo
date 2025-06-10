@@ -19,6 +19,10 @@ class MapPage extends StatefulWidget {
 }
 
 class MapPageState extends State<MapPage> {
+LatLng? _destinationLocation;
+// getter for the _destinationLocation
+LatLng? get destinationLocation => _destinationLocation;
+
   // loadingg
   bool _isLoading = true;
   // getter for the _suggestoions
@@ -71,12 +75,15 @@ double calculateRouteDistance() {
     final name = suggestion['name']; // set the suggestion map
 
     LatLng location = LatLng(lat, lon); // get the location
+    
+
 
     try {
       // Call getRoute to draw the route from current location to suggestion
       final route = await getRoute(_currentLocation!, location);
 
       setState(() {
+        _destinationLocation = location; 
         // Set the route points to draw the polyline
         routePoints = route;
 
@@ -212,9 +219,11 @@ double calculateRouteDistance() {
       query,
     ); // get coordinate of the typed place
     if (location != null && _currentLocation != null) {
+      
       // if it exist
       final route = await getRoute(_currentLocation!, location);
       setState(() {
+        _destinationLocation = location;
         //set route points to draw the line
         routePoints = route;
 
