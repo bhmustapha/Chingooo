@@ -9,6 +9,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'utils/ride_utils.dart';
+import 'package:carpooling/models/vehicle.dart';
+import 'package:carpooling/services/vehicle_service.dart';
 
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -41,7 +43,11 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
 
-  int placeCount = 0;
+  int placeCount = 1;
+
+  final VehicleService _vehicleService = VehicleService();
+  List<Vehicle> _driverVehicles = [];
+  Vehicle? _selectedVehicle;
 
   final String apiKey = 'e80bab52-948d-4148-9f15-f56591cca16a';
   final String routeApiKey =
@@ -51,7 +57,30 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
   void initState() {
     super.initState();
     _fetchRoute();
+    _fetchVehicles();
   }
+
+  Future<void> _fetchVehicles() async {
+    try {
+      _vehicleService.getMyVehicles().listen((vehicles) {
+        setState(() {
+          _driverVehicles = vehicles;
+          //auto-select the first vehicle if available and none is selected
+          if (_selectedVehicle == null && _driverVehicles.isNotEmpty) {
+            _selectedVehicle = _driverVehicles.first;
+          } else if (_selectedVehicle != null &&
+              !_driverVehicles.contains(_selectedVehicle)) {
+            // If the previously selected vehicle was deleted, clear selection
+            _selectedVehicle = null;
+          }
+        });
+      });
+    } catch (e) {
+      showErrorSnackbar(context, 'Failed to load vehicles: $e');
+    }
+  }
+
+  
 
   //! confirm ride function
   Future<bool> confirmRide() async {
@@ -92,6 +121,14 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
         'timestamp': FieldValue.serverTimestamp(),
         'status': 'pending',
         'placeCount': placeCount,
+        'vehicle': {
+          'vehicleMake': _selectedVehicle?.make,
+          'vehicleModel': _selectedVehicle?.model,
+          'vehicleId': _selectedVehicle?.id,
+          'maxPlaces': _selectedVehicle?.capacity,
+        },
+        'leftPlace': placeCount,
+        'bookedPlaces': 0
       });
 
       return true;
@@ -115,6 +152,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
+      
     );
     if (picked != null) setState(() => selectedTime = picked);
   }
@@ -152,11 +190,11 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
           double rawPrice = RideUtils.calculateRidePrice(distanceKm);
           currentPrice =
               (rawPrice / 10).round() * 10; // Round to nearest 10 DZD
-          final bounds = LatLngBounds(
-            start, // Start location
-            end, // End location
-          );
-          _mapController.move(bounds.center, 11.5);
+
+          _mapController.move(
+            LatLng(35.6, -0.6),
+            11.5,
+          ); // atrick to center tha map
           _showLoading = false; //  Hide loading once route is ready
         });
       } else {
@@ -181,7 +219,8 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
 
     int tempPrice = base;
 
-    showModalBottomSheet( //! to learn 
+    showModalBottomSheet(
+      //! to learn
       context: context,
       isScrollControlled: true,
       shape: RoundedRectangleBorder(
@@ -195,14 +234,17 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                 const Text(
+                  const Text(
                     'Adjust Ride Price (DZD)',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),
                   Text(
                     '$tempPrice DZD',
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 30),
                   Row(
@@ -247,103 +289,124 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
   }
 
   void _showEditPlacesSheet(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    builder: (BuildContext context) {
-      int tempPlaceCount = placeCount;
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        int tempPlaceCount = placeCount;
+        int effectiveMaxCapacity = _selectedVehicle?.capacity ?? 0;
 
-      return StatefulBuilder(
-        builder: (BuildContext context, StateSetter setModalState) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Plus/Minus and count row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // - Button (icon only)
-                    IconButton(
-                      onPressed: tempPlaceCount > 0
-                          ? () => setModalState(() => tempPlaceCount--)
-                          : null,
-                      icon: Icon(
-                        Icons.remove_circle_outline,
-                        size: 50,
-                        color: tempPlaceCount > 0 ? Colors.blue : Colors.grey,
-                      ),
-                    ),
-
-                    // Count in the center
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (effectiveMaxCapacity == 0)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      padding: const EdgeInsets.only(bottom: 16.0),
                       child: Text(
-                        '$tempPlaceCount',
-                        style: TextStyle(
-                          fontSize: 40,
-                          fontWeight: FontWeight.bold,
+                        'Please select a vehicle first to set places.',
+                        style: TextStyle(color: Colors.red, fontSize: 16),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  // Plus/Minus and count row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // - Button (icon only)
+                      IconButton(
+                        onPressed:
+                            tempPlaceCount > 0
+                                ? () => setModalState(() => tempPlaceCount--)
+                                : null,
+                        icon: Icon(
+                          Icons.remove_circle_outline,
+                          size: 50,
+                          color: tempPlaceCount > 0 ? Colors.blue : Colors.grey,
                         ),
+                      ),
+
+                      // Count in the center
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          '$tempPlaceCount',
+                          style: TextStyle(
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+
+                      // + Button (icon only)
+                      IconButton(
+                        onPressed:
+                            tempPlaceCount < effectiveMaxCapacity
+                                ? () => setModalState(() => tempPlaceCount++)
+                                : null,
+                        icon: Icon(
+                          Icons.add_circle_outline,
+                          size: 50,
+                          color:
+                              tempPlaceCount < effectiveMaxCapacity
+                                  ? Colors.blue
+                                  : Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (effectiveMaxCapacity > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        'Max: $effectiveMaxCapacity places (based on selected vehicle)',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                     ),
 
-                    // + Button (icon only)
-                    IconButton(
-                      onPressed: tempPlaceCount < 8
-                          ? () => setModalState(() => tempPlaceCount++)
-                          : null,
-                      icon: Icon(
-                        Icons.add_circle_outline,
-                        size: 50,
-                        color: tempPlaceCount < 8 ? Colors.blue : Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
+                  SizedBox(height: 32),
 
-                SizedBox(height: 32),
-
-                // Confirm Button
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 80),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setState(() => placeCount = tempPlaceCount);
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                  // Confirm Button
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 80),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          setState(() => placeCount = tempPlaceCount);
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          backgroundColor: Colors.blue,
                         ),
-                        backgroundColor: Colors.blue,
-                      ),
-                      child: Text(
-                        'Confirm',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                        child: Text(
+                          'Confirm',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
-      );
-    },
-  );
-}
-
-
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -520,6 +583,44 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                       ],
                     ),
                     SizedBox(height: 20),
+
+                    _driverVehicles.isEmpty
+                        ? Text(
+                          // Display message if no vehicles are added
+                          'No vehicles added. Please add a vehicle first.',
+                          style: TextStyle(color: Colors.red),
+                        )
+                        : DropdownButtonFormField<Vehicle>(
+                          value: _selectedVehicle,
+                          decoration: InputDecoration(
+                            labelText: 'Select Your Vehicle',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            prefixIcon: Icon(Icons.car_rental),
+                          ),
+                          items:
+                              _driverVehicles.map((vehicle) {
+                                return DropdownMenuItem(
+                                  value: vehicle,
+                                  child: Text(
+                                    '${vehicle.make} ${vehicle.model}',
+                                  ),
+                                );
+                              }).toList(),
+                          onChanged: (Vehicle? newValue) {
+                            setState(() {
+                              _selectedVehicle = newValue;// Update place count when vehicle changes
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null) {
+                              return 'Please select a vehicle';
+                            }
+                            return null;
+                          },
+                        ),
+                    SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -532,7 +633,17 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                         ),
                         TextButton(
                           onPressed: () {
-                            _showEditPlacesSheet(context);
+                            if (_selectedVehicle == null) {
+                              // ✨ NEW Check
+                              showErrorSnackbar(
+                                context,
+                                'Please select a vehicle first to adjust places.',
+                              );
+                              return;
+                            }
+                            _showEditPlacesSheet(
+                              context,
+                            ); // ✅ No need to pass maxCapacity now, as it's fetched from _selectedVehicle inside the sheet.
                           },
                           child: Text('Adjust Places'),
                         ),
@@ -556,6 +667,12 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                             showErrorSnackbar(
                               context,
                               'please set place count',
+                            );
+                            return;
+                          } else if (_selectedVehicle == null) {
+                            showErrorSnackbar(
+                              context,
+                              'Please select a vehicle for this ride.',
                             );
                             return;
                           }

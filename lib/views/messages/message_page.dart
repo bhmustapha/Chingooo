@@ -1,6 +1,8 @@
 import 'package:carpooling/main.dart';
+import 'package:carpooling/services/booking_service.dart';
 import 'package:carpooling/services/chat_services.dart';
 import 'package:carpooling/views/ride/utils/ride_utils.dart';
+import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -33,6 +35,7 @@ class _MessagePageState extends State<MessagePage> {
   final currentUserId = FirebaseAuth.instance.currentUser!.uid;
   final TextEditingController _controller = TextEditingController();
 
+  
   double distanceInKm = 0;
   double price = 0;
 
@@ -44,7 +47,7 @@ class _MessagePageState extends State<MessagePage> {
             .collection('conversations')
             .doc(widget.chatId)
             .collection('messages')
-            .orderBy('timestamp', descending: true)
+            .orderBy('timestamp', descending: true) 
             .snapshots(); //! to learn
 
     _userStream =
@@ -52,6 +55,7 @@ class _MessagePageState extends State<MessagePage> {
             .collection('users')
             .doc(widget.otherUserId)
             .snapshots();
+
     if (widget.isRideRequest) {
       _rideStream =
           FirebaseFirestore.instance
@@ -78,7 +82,7 @@ class _MessagePageState extends State<MessagePage> {
       showDialog(
         context: context,
         builder:
-            (_) => AlertDialog(
+            (_) => const AlertDialog(
               title: Text("Error"),
               content: Text("Ride not found."),
             ),
@@ -88,8 +92,8 @@ class _MessagePageState extends State<MessagePage> {
 
     final data = docSnap.data() as Map<String, dynamic>;
     final destination = data['destinationName'] ?? 'Unknown';
-    final price = data['price'] ?? 0;
-    final distance = data['distanceKm'] ?? 0;
+    final double price = (data['price'] as num?)?.toDouble() ?? 0.0; 
+    final double distance = (data['distanceKm'] as num?)?.toDouble() ?? 0.0; 
     final timestamp = data['timestamp']; // Assume it's a Firestore Timestamp
 
     String formattedDate = 'Unknown';
@@ -106,26 +110,26 @@ class _MessagePageState extends State<MessagePage> {
       context: context,
       builder:
           (_) => AlertDialog(
-            title: Text("Ride Info"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Destination: $destination"),
-                Text("Price: $price DZD"),
-                Text("Distance: ${distance.toStringAsFixed(1)} km"),
-                SizedBox(height: 8),
-                Text("Date: $formattedDate"),
-                Text("Time: $formattedTime"),
+              title: const Text("Ride Info"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Destination: $destination"),
+                  Text("Price: ${price.toStringAsFixed(0)} DZD"),
+                  Text("Distance: ${distance.toStringAsFixed(1)} km"),
+                  const SizedBox(height: 8),
+                  Text("Date: $formattedDate"),
+                  Text("Time: $formattedTime"),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Close"),
+                ),
               ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text("Close"),
-              ),
-            ],
-          ),
     );
   }
 
@@ -159,7 +163,7 @@ class _MessagePageState extends State<MessagePage> {
         child: Center(
           child: Text(
             message['text'],
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.grey,
               fontStyle: FontStyle.italic,
               fontSize: 13,
@@ -173,8 +177,8 @@ class _MessagePageState extends State<MessagePage> {
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-        padding: EdgeInsets.all(12),
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        padding: const EdgeInsets.all(12),
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 1,
         ),
@@ -186,8 +190,8 @@ class _MessagePageState extends State<MessagePage> {
                   ? Colors.grey[300]
                   : Colors.grey[900],
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(12),
-            topRight: Radius.circular(12),
+            topLeft: const Radius.circular(12),
+            topRight: const Radius.circular(12),
             bottomLeft: Radius.circular(isMe ? 12 : 0),
             bottomRight: Radius.circular(isMe ? 0 : 12),
           ),
@@ -197,10 +201,10 @@ class _MessagePageState extends State<MessagePage> {
           style: TextStyle(
             color:
                 themeNotifier.value == ThemeMode.light
-                    ? isMe
-                        ? Colors.white
-                        : Colors.black
-                    : Colors.white,
+                        ? isMe
+                            ? Colors.white
+                            : Colors.black
+                        : Colors.white,
             fontSize: 14,
             fontWeight: FontWeight.w300,
             fontFamily: 'Lato',
@@ -225,7 +229,7 @@ class _MessagePageState extends State<MessagePage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
@@ -236,16 +240,16 @@ class _MessagePageState extends State<MessagePage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
+                  const Text(
                     'Adjust Ride Price (DZD)',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   Text(
                     '$tempPrice DZD',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 30),
+                  const SizedBox(height: 30),
                   Row(
                     children: [
                       Expanded(
@@ -292,7 +296,7 @@ class _MessagePageState extends State<MessagePage> {
                           });
                           Navigator.pop(context);
                         },
-                        icon: Icon(Icons.check),
+                        icon: const Icon(Icons.check),
                         style: IconButton.styleFrom(
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
@@ -300,7 +304,7 @@ class _MessagePageState extends State<MessagePage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                 ],
               ),
             );
@@ -318,26 +322,34 @@ class _MessagePageState extends State<MessagePage> {
           StreamBuilder<DocumentSnapshot>(
             stream: _rideStream,
             builder: (context, rideSnapshot) {
-              if (!rideSnapshot.hasData || !rideSnapshot.data!.exists)
-                return SizedBox();
-              final rideData =
-                  rideSnapshot.data!.data() as Map<String, dynamic>;
-              final ownerId = rideData['userId']; // take the owner id to show the adjust button for him
-              if (ownerId != currentUserId) return SizedBox(); // if the current user is not the owner
+              if (!rideSnapshot.hasData || !rideSnapshot.data!.exists) {
+                return const SizedBox();
+              }
+              final rideData = rideSnapshot.data!.data() as Map<String, dynamic>;
+              final ownerId = rideData['userId'];
 
-              return IconButton(
-                icon: Icon(Icons.money),
-                onPressed: () {
-                  showPriceAdjustmentSheet(context);
-                },
-              );
+              // Only show adjust price button if current user is the owner 
+              if (ownerId == currentUserId) {
+                return IconButton(
+                  icon: const Icon(Icons.money, color: Colors.blue),
+                  onPressed: () {
+                    showPriceAdjustmentSheet(context);
+                  },
+                );
+              } 
+              return const SizedBox();
             },
           ),
           IconButton(
-            icon: Icon(Icons.info_outline),
+            icon: const Icon(Icons.phone, color: Colors.blue),
+            onPressed: () {
+              ChatService.callUser(widget.otherUserId);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.info_outline, color: Colors.blue),
             onPressed: () {
               _showRideInfoDialog(context);
-              print(widget.rideId);
             },
           ),
         ],
@@ -349,7 +361,7 @@ class _MessagePageState extends State<MessagePage> {
               stream: _rideStream,
               builder: (context, rideSnapshot) {
                 if (!userSnapshot.hasData || !rideSnapshot.hasData) {
-                  return Text('Loading...');
+                  return const Text('Loading...');
                 }
 
                 final userDoc = userSnapshot.data!;
@@ -359,14 +371,15 @@ class _MessagePageState extends State<MessagePage> {
                 final rideData = rideDoc.data() as Map<String, dynamic>?;
 
                 if (userData == null) {
-                  return Text('User not found');
+                  return const Text('User not found');
                 }
 
                 if (rideData == null) {
-                  return Text('Ride not found');
+                  return const Text('Ride not found');
                 }
-                final fetchedDistance = (rideData['distanceKm'] ?? 0);
-                final fetchedPrice = (rideData['price'] ?? 0);
+                
+                final double fetchedDistance = (rideData['distanceKm'] as num?)?.toDouble() ?? 0.0; 
+                final double fetchedPrice = (rideData['price'] as num?)?.toDouble() ?? 0.0; 
 
                 if (fetchedDistance != distanceInKm || fetchedPrice != price) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -382,7 +395,8 @@ class _MessagePageState extends State<MessagePage> {
                 final destination = rideData['destinationName'] ?? 'Unknown';
                 final driverId =
                     rideData['isRequested'] == true ? '' : rideData['userId'];
-                final currentPrice = rideData['price'];
+                
+                final int currentPrice = (rideData['price'] as num?)?.toInt() ?? 0; 
 
                 final newIsDriver =
                     (driverId == currentUserId); // 3lah: to avoid rebuild loops
@@ -403,11 +417,11 @@ class _MessagePageState extends State<MessagePage> {
                   children: [
                     Text(
                       '$name ${isOtherDriver ? "(Driver)" : ""}',
-                      style: TextStyle(fontSize: 16),
+                      style: const TextStyle(fontSize: 16),
                     ),
                     Text(
                       'To: $destination ($currentPrice DZD)',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
                 );
@@ -420,21 +434,64 @@ class _MessagePageState extends State<MessagePage> {
       ),
       body: Column(
         children: [
+          StreamBuilder<DocumentSnapshot>(
+            stream: _rideStream,
+            builder: (context, rideSnapshot) {
+              if (!rideSnapshot.hasData || !rideSnapshot.data!.exists) {
+                return const SizedBox.shrink(); // Hide button if no ride data
+              }
+              final rideData = rideSnapshot.data!.data() as Map<String, dynamic>;
+              final ownerId = rideData['userId'];
+
+              final List<dynamic> bookedBy = rideData['bookedBy'] ?? [];
+              final bool hasCurrentUserBooked = bookedBy.contains(currentUserId);
+
+              // Show button only if current user is NOT the owner,
+              // has NOT already booked it, and it's NOT a ride request.
+              if (ownerId != currentUserId && !hasCurrentUserBooked && !widget.isRideRequest) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: SizedBox( // Use SizedBox to make the button full width
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        BookingService.bookRide(rideId: rideData['ride_id']);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Attempting to book ride...')),
+                        );
+                        print('Book this Ride button pressed for rideId: ${widget.rideId}');
+                      },
+                      label: const Text('Book this Ride'),
+                      icon: const Icon(Icons.bookmark_border), // Changed icon for direct relevance
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10), // Slightly less rounded than FAB
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink(); // Hide button if conditions are not met
+            },
+          ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              //! to learn
-              stream: _messagesStream,
+              stream: _messagesStream, //! to learn
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(child: Text('No messages yet'));
+                  return const Center(child: Text('No messages yet'));
                 }
 
                 final docs = snapshot.data!.docs;
                 return ListView.builder(
-                  reverse: true, //!!!!!!!!!!!!!!!!!!
+                  reverse: true,
                   itemCount: docs.length,
                   itemBuilder: (context, index) {
                     final doc = docs[index];
@@ -449,34 +506,35 @@ class _MessagePageState extends State<MessagePage> {
               },
             ),
           ),
-          Divider(height: 1),
+          
+          const Divider(height: 1),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _controller,
                     decoration: InputDecoration(
-                      contentPadding: EdgeInsets.only(left: 18),
+                      contentPadding: const EdgeInsets.only(left: 18),
                       hintText: 'Type a message...',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide(
-                          color: const Color.fromARGB(255, 241, 241, 241),
+                        borderSide: const BorderSide(
+                          color: Color.fromARGB(255, 241, 241, 241),
                           width: 2,
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide(
-                          color: const Color.fromARGB(255, 241, 241, 241),
+                        borderSide: const BorderSide(
+                          color: Color.fromARGB(255, 241, 241, 241),
                           width: 2,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide(color: Colors.blue, width: 2),
+                        borderSide: const BorderSide(color: Colors.blue, width: 2),
                       ),
                     ),
                     onSubmitted: (value) {
@@ -490,7 +548,7 @@ class _MessagePageState extends State<MessagePage> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(LucideIcons.send, color: Colors.blue),
+                  icon: const Icon(LucideIcons.send, color: Colors.blue),
                   onPressed: () {
                     final text = _controller.text.trim();
                     ChatService.sendMessage(
@@ -506,6 +564,7 @@ class _MessagePageState extends State<MessagePage> {
           ),
         ],
       ),
+      
     );
   }
 }

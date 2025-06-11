@@ -5,15 +5,16 @@ import 'message_page.dart';
 
 class RideConversationsPage extends StatelessWidget {
   final String rideId;
+  final String destinationName;
 
-  const RideConversationsPage({super.key, required this.rideId});
+  const RideConversationsPage({super.key, required this.rideId, required this.destinationName});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ride Conversations'),
-        backgroundColor: Colors.blue,
+        elevation: 0,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream:
@@ -70,7 +71,7 @@ class RideConversationsPage extends StatelessWidget {
 
                   return ListTile(
                     leading: const Icon(Icons.person),
-                    title: Text(userName),
+                    title: Text('$userName ($destinationName)'),
                     subtitle: Text(lastMessage),
                     onTap: () {
                       Navigator.push(

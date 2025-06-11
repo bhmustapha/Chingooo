@@ -317,6 +317,7 @@ String _cleanLabel(String label) {
                             selectedPickUpLat != null &&
                             selectedPickUpLon != null &&
                             destinationLocation != null) {
+                              print('selectedLon $selectedLon');
                           Navigator.push(
                             context,
                             MaterialPageRoute(

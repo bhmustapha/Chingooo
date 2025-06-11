@@ -1,3 +1,4 @@
+import 'package:carpooling/services/booking_service.dart';
 import 'package:carpooling/themes/costum_reusable.dart';
 import 'package:carpooling/views/ride/utils/ride_utils.dart';
 import 'package:carpooling/widgets/snackbar_utils.dart';
@@ -366,31 +367,42 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                                         .doc(currentUser!.uid)
                                         .get();
                                 final userData = userDoc.data();
-                                await FirebaseFirestore.instance
-                                    .collection('ride_requests')
-                                    .add({
-                                      'userId': currentUser.uid,
-                                      'userName':
-                                          userData?['name'] ?? 'unknown',
-                                      'distanceKm': widget.distanceInKm,
-                                      'pickupName':
-                                          pickupName == 'Current Location'
-                                              ? pickupAddress
-                                              : pickupName,
 
-                                      'pickupLat':
-                                          selectedPickupCoords?.latitude,
-                                      'pickupLon':
-                                          selectedPickupCoords?.longitude,
-                                          'destinationLat': widget.destinationCoords.latitude,
-  'destinationLon': widget.destinationCoords.longitude,
-                                      'destinationName': destination,
-                                      'timestamp': selectedDateTime,
-                                      'status': 'pending',
-                                      'createdAt': Timestamp.now(),
-                                      'price': tempPrice,
-                                      'isRequested': true,
-                                    });
+                                DocumentReference requestedRideRef =
+                                    await FirebaseFirestore.instance
+                                        .collection('ride_requests')
+                                        .add({
+                                          'userId': currentUser.uid,
+                                          'userName':
+                                              userData?['name'] ?? 'unknown',
+                                          'distanceKm': widget.distanceInKm,
+                                          'pickupName':
+                                              pickupName == 'Current Location'
+                                                  ? pickupAddress
+                                                  : pickupName,
+
+                                          'pickupLat':
+                                              selectedPickupCoords?.latitude,
+                                          'pickupLon':
+                                              selectedPickupCoords?.longitude,
+                                          'destinationLat':
+                                              widget.destinationCoords.latitude,
+                                          'destinationLon':
+                                              widget
+                                                  .destinationCoords
+                                                  .longitude,
+                                          'destinationName': destination,
+                                          'timestamp': selectedDateTime,
+                                          'status': 'pending',
+                                          'createdAt': Timestamp.now(),
+                                          'price': tempPrice,
+                                          'isRequested': true,
+                                          'placeCount': placeCount,
+                                        });
+                                String requestedRideId = requestedRideRef.id;
+
+                                // Update the document with its own ID
+                                await requestedRideRef.update({'ride_id': requestedRideId});
 
                                 Navigator.pop(context);
 
@@ -530,6 +542,8 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+    final destinationFilter = widget.destinationLocation.trim().toLowerCase();
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -563,42 +577,58 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
                   }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
                   if (!snapshot.hasData) {
                     return Center(child: Text('No available rides!'));
                   }
 
-                  final destinationFilter =
-                      widget.destinationLocation.trim().toLowerCase();
-                  final filteredRides =
-                      snapshot.data!.docs.where((doc) {
-                        final data = doc.data() as Map<String, dynamic>;
+                  final filteredAndAvailableRides =
+                      snapshot.data!.docs.where((rideDoc) {
+                        final rideData = rideDoc.data() as Map<String, dynamic>;
+
+                        final String ridePublisherId = rideData['userId'] ?? '';
+                        final List<dynamic> bookedByList =
+                            rideData['bookedBy'] ?? []; // Ensure it's not null
+                        final int leftPlaces =
+                            (rideData['leftPlace'] as num?)?.toInt() ?? 0;
+                        // Assuming 'active' is the status for bookable rides
+
+                        // Exclude rides published by the current user (you can't book your own)
+                        if (ridePublisherId == currentUserId) {
+                          return false;
+                        }
+
+                        // Exclude rides already booked by the current user
+                        if (bookedByList.contains(currentUserId)) {
+                          return false;
+                        }
+
+                        //  Exclude rides with no available seats
+                        if (leftPlaces <= 0) {
+                          return false;
+                        }
                         final rideDestination =
-                            (data['destinationName'] ?? '')
+                            (rideData['destinationName'] ?? '')
                                 .toString()
                                 .trim()
                                 .toLowerCase();
-                        return rideDestination.contains(destinationFilter);
+                        if (!rideDestination.contains(destinationFilter)) {
+                          return false; // Exclude rides not matching the destination filter
+                        }
+
+                        return true; // If all filters pass, include this ride
                       }).toList();
-
-                  final currentUserId = FirebaseAuth.instance.currentUser!.uid;
-
-                  final notUserRides =
-                      filteredRides.where((ride) {
-                        final data = ride.data() as Map<String, dynamic>;
-                        return data['userId'] != currentUserId;
-                      }).toList();
-
-                  if (notUserRides.isEmpty) {
-                    return Center(
-                      child: Text('No rides to $destinationFilter'),
-                    );
+                  if (filteredAndAvailableRides.isEmpty) {
+                    return const Center(child: Text('No available rides'));
                   }
 
                   return ListView.builder(
                     padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                    itemCount: notUserRides.length,
+                    itemCount: filteredAndAvailableRides.length,
                     itemBuilder: (context, index) {
-                      final ride = notUserRides[index];
+                      final ride = filteredAndAvailableRides[index];
                       final data = ride.data() as Map<String, dynamic>;
 
                       final pickupName = data['pickUpName'] ?? 'Unknown pickup';
@@ -686,7 +716,40 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                                 children: [
                                   Expanded(
                                     child: ElevatedButton(
-                                      onPressed: () {},
+                                      onPressed: () async {
+                                        try {
+                                          await BookingService.bookRide(
+                                            rideId: data['ride_id'],
+                                          );
+
+                                          // Show success message
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Ride booked successfully!',
+                                              ),
+                                              backgroundColor: Colors.green,
+                                            ),
+                                          );
+                                        } on Exception catch (e) {
+                                          // Show error message
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Booking failed: ${e.toString().replaceFirst('Exception: ', '')}',
+                                              ),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                          print(
+                                            "Booking error: $e",
+                                          ); // Log the error for debugging
+                                        } finally {}
+                                      },
                                       style: ElevatedButton.styleFrom(
                                         elevation: 0,
                                         backgroundColor: Colors.blue,

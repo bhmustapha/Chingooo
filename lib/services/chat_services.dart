@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ChatService {
   static final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  // Create or get chat for a ride 
+  // Create or get chat for a ride
   static Future<DocumentReference> createOrGetChat({
     required String rideId,
     required String driverId,
@@ -32,7 +33,7 @@ class ChatService {
       'passenger_id': passengerId,
       'last_message': '',
       'last_timestamp': FieldValue.serverTimestamp(),
-      'participants': [driverId, passengerId], 
+      'participants': [driverId, passengerId],
       'is_ride_request': isRideRequest,
     });
 
@@ -41,7 +42,7 @@ class ChatService {
 
   // Send a message in the chat
   static Future<void> sendMessage({
-    required String chatId, 
+    required String chatId,
     required String senderId,
     required String text,
   }) async {
@@ -67,5 +68,26 @@ class ChatService {
         .collection('messages')
         .orderBy('timestamp')
         .snapshots();
+  }
+
+  static void launchPhoneDialer(String phoneNumber) async { //!!!!!!!!!!!!!!!!!!!!!!
+    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    } else {
+      throw 'Could not call $phoneNumber';
+    }
+  }
+
+  static void callUser(String userId) async {
+    final doc =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    final phone = doc['phone']; 
+
+    if (phone != null && phone.toString().isNotEmpty) {
+      launchPhoneDialer(phone);
+    } else {
+      print("Phone number not available");
+    }
   }
 }

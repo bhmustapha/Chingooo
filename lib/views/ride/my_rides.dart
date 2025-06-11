@@ -227,10 +227,6 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                                 ),
 
                                 child: Text('Messages'),
-                                // icon: const Icon(
-                                //   Icons.chat,
-                                //   color: Colors.blue,
-                                // ),
                                 onPressed: () {
                                   Navigator.push(
                                     context,
@@ -238,6 +234,7 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                                       builder:
                                           (context) => RideConversationsPage(
                                             rideId: ride.id,
+                                            destinationName: data['destinationName'],
                                           ),
                                     ),
                                   );

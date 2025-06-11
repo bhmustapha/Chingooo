@@ -58,7 +58,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Container(
+      child: SingleChildScrollView(
         child:
             userData == null
                 ? Center(child: CircularProgressIndicator(color: Colors.blue))

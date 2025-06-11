@@ -68,8 +68,6 @@ dependencies:
   # firebase storage
   firebase_storage: ^12.4.6
 
-  fluttertoast: ^8.2.12
-  animated_toggle_switch: ^0.8.5
 
   
 

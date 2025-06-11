@@ -17,13 +17,13 @@ class ChatListPage extends StatelessWidget {
               'Messages',
               style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
             ),
-            SizedBox(height: 15,),
+            SizedBox(height: 15),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream:
                     FirebaseFirestore.instance
                         .collection('conversations')
-                        .where('participants', arrayContains: currentUserId)
+                        .where('participants', arrayContains: currentUserId).orderBy('last_timestamp', descending: true)
                         .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -54,9 +54,7 @@ class ChatListPage extends StatelessWidget {
                                 .get(),
                         builder: (context, userSnapshot) {
                           if (!userSnapshot.hasData) {
-                            return ListTile(
-                              title: Text("Loading..."),
-                            );
+                            return ListTile(title: Text("Loading..."));
                           }
 
                           final userData =
@@ -85,61 +83,71 @@ class ChatListPage extends StatelessWidget {
                                           '')
                                       : '';
 
-                              return  ListTile(
-  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-  leading: CircleAvatar(
-    radius: 28,
-    child: Text(
-      friendName[0].toUpperCase(),
-      style: TextStyle(
-        fontSize: 22,
-        fontWeight: FontWeight.bold,
-      ),
-    ),
-  ),
-  title: Text(
-    friendName,
-    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-  ),
-  subtitle: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      if (destination.isNotEmpty)
-        Padding(
-          padding: const EdgeInsets.only(top: 4.0),
-          child: Text(
-            'Ride to: $destination',
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-          ),
-        ),
-      SizedBox(height: 4),
-      Text(
-        data['last_message'] ?? '',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-    ],
-  ),
-  trailing: Text(
-    _formatTimestamp(data['last_timestamp']),
-    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-  ),
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MessagePage(
-          chatId: chatId,
-          rideId: data['ride_id'],
-          otherUserId: otherUserId,
-          isRideRequest: data['is_ride_request'] == true,
-        ),
-      ),
-    );
-  },
-);
-
-
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  radius: 28,
+                                  child: Text(
+                                    friendName[0].toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                title: Text(
+                                  friendName,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (destination.isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          top: 4.0,
+                                        ),
+                                        child: Text(
+                                          'Ride to: $destination',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                      ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      data['last_message'] ?? '',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                                trailing: Text(
+                                  _formatTimestamp(data['last_timestamp']),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => MessagePage(
+                                            chatId: chatId,
+                                            rideId: data['ride_id'],
+                                            otherUserId: otherUserId,
+                                            isRideRequest:
+                                                data['is_ride_request'] == true,
+                                          ),
+                                    ),
+                                  );
+                                },
+                              );
                             },
                           );
                         },

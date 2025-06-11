@@ -23,10 +23,11 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
     return Scaffold(
       appBar: AppBar(title: const Text("Your Ride Requests"), elevation: 0),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('ride_requests')
-            .where('userId', isEqualTo: currentUserId)
-            .snapshots(),
+        stream:
+            FirebaseFirestore.instance
+                .collection('ride_requests')
+                .where('userId', isEqualTo: currentUserId)
+                .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(child: Text("Something went wrong."));
@@ -49,18 +50,23 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
               final rideRequestId = rideRequest.id;
 
               final pickupName = data['pickupName'] ?? 'Unknown pickup';
-              final destinationName = data['destinationName'] ?? 'Unknown destination';
+              final destinationName =
+                  data['destinationName'] ?? 'Unknown destination';
               final timestamp = data['timestamp'] as Timestamp?;
               final dateTime = timestamp?.toDate() ?? DateTime.now();
 
               return FutureBuilder<QuerySnapshot>(
-                future: FirebaseFirestore.instance
-                    .collection('conversations')
-                    .where('ride_id', isEqualTo: rideRequestId)
-                    .get(),
+                future:
+                    FirebaseFirestore.instance
+                        .collection('conversations')
+                        .where('ride_id', isEqualTo: rideRequestId)
+                        .get(),
                 builder: (context, chatSnapshot) {
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(24),
@@ -84,11 +90,14 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                           const SizedBox(height: 8),
                           Text(
                             '$pickupName → $destinationName',
-                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           if (data['price'] != null)
                             Text(
-                              '${data['price']} DZD',
+                              '${(data['price'] as num).toStringAsFixed(0)} DZD',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 20,
@@ -99,7 +108,9 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                           Text('Date: ${_formatDate(dateTime)}'),
                           Text('Time: ${_formatTime(dateTime)}'),
                           if (data['distanceKm'] != null)
-                            Text('Distance: ${data['distanceKm'].toStringAsFixed(2)} km'),
+                            Text(
+                              'Distance: ${(data['distanceKm'] as num).toStringAsFixed(2)} km',
+                            ),
                           Text('Requests: ${data['placeCount']}'),
                           const SizedBox(height: 8),
                           Row(
@@ -122,50 +133,79 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.edit, color: Colors.blue),
-                                onPressed: () => _showEditSheet(context, rideRequestId, data),
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Colors.blue,
+                                ),
+                                onPressed:
+                                    () => _showEditSheet(
+                                      context,
+                                      rideRequestId,
+                                      data,
+                                    ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.blue),
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.blue,
+                                ),
                                 onPressed: () async {
                                   final confirm = await showDialog<bool>(
                                     context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text("Delete Ride Request"),
-                                      content: const Text(
-                                          "Are you sure you want to delete this ride request?"),
-                                      actions: [
-                                        TextButton(
-                                          child: const Text("Cancel"),
-                                          onPressed: () => Navigator.pop(context, false),
-                                        ),
-                                        TextButton(
-                                          child: const Text(
-                                            "Delete",
-                                            style: TextStyle(color: Colors.red),
+                                    builder:
+                                        (context) => AlertDialog(
+                                          title: const Text(
+                                            "Delete Ride Request",
                                           ),
-                                          onPressed: () => Navigator.pop(context, true),
+                                          content: const Text(
+                                            "Are you sure you want to delete this ride request?",
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              child: const Text("Cancel"),
+                                              onPressed:
+                                                  () => Navigator.pop(
+                                                    context,
+                                                    false,
+                                                  ),
+                                            ),
+                                            TextButton(
+                                              child: const Text(
+                                                "Delete",
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                ),
+                                              ),
+                                              onPressed:
+                                                  () => Navigator.pop(
+                                                    context,
+                                                    true,
+                                                  ),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
                                   );
 
                                   if (confirm == true) {
-                                    // Delete conversations related to this ride request
-                                    final conversationsSnapshot = await FirebaseFirestore
-                                        .instance
-                                        .collection('conversations')
-                                        .where('ride_id', isEqualTo: rideRequestId)
-                                        .get();
+                                    final conversationsSnapshot =
+                                        await FirebaseFirestore.instance
+                                            .collection('conversations')
+                                            .where(
+                                              'ride_id',
+                                              isEqualTo: rideRequestId,
+                                            )
+                                            .get();
 
-                                    final batch = FirebaseFirestore.instance.batch();
+                                    final batch =
+                                        FirebaseFirestore.instance.batch();
 
-                                    for (final doc in conversationsSnapshot.docs) {
+                                    for (final doc
+                                        in conversationsSnapshot.docs) {
                                       batch.delete(doc.reference);
                                     }
 
-                                    // Delete the ride_request document
-                                    final rideRequestRef = FirebaseFirestore.instance
+                                    final rideRequestRef = FirebaseFirestore
+                                        .instance
                                         .collection('ride_requests')
                                         .doc(rideRequestId);
                                     batch.delete(rideRequestRef);
@@ -186,7 +226,10 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.blue,
                                   foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 14,
+                                  ),
                                   side: BorderSide(color: Colors.transparent),
                                 ),
                                 child: Text('Messages'),
@@ -194,9 +237,12 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => RideConversationsPage(
-                                        rideId: rideRequestId,
-                                      ),
+                                      builder:
+                                          (context) => RideConversationsPage(
+                                            rideId: rideRequestId,
+                                            destinationName:
+                                                data['destinationName'],
+                                          ),
                                     ),
                                   );
                                 },
@@ -221,7 +267,10 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
     double distanceKm,
     void Function(double) onPriceChanged,
   ) {
-    final range = RideUtils.getNegotiablePriceRange(distanceKm, marginPercent: 20);
+    final range = RideUtils.getNegotiablePriceRange(
+      distanceKm,
+      marginPercent: 20,
+    );
 
     int base = (range['base']! / 10).round() * 10;
     int min = (range['min']! / 10).floor() * 10;
@@ -232,7 +281,9 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -248,7 +299,10 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                   const SizedBox(height: 20),
                   Text(
                     '$tempPrice DZD',
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 30),
                   Row(
@@ -272,7 +326,7 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                           onPriceChanged(tempPrice.toDouble());
                           Navigator.pop(context);
                         },
-                        icon: Icon(Icons.check),
+                        icon: const Icon(Icons.check),
                         style: IconButton.styleFrom(
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
@@ -280,7 +334,7 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                 ],
               ),
             );
@@ -290,16 +344,124 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
     );
   }
 
-  void _showEditSheet(BuildContext context, String rideRequestId, Map<String, dynamic> rideData) {
-    DateTime selectedDateTime = (rideData['date'] as Timestamp?)?.toDate() ?? DateTime.now();
+  void _showEditPlacesSheet(
+    BuildContext context,
+    void Function(int newPlaceCount) onPlacesConfirmed, //! to learn
+    int initialPlaceCount,
+  ) {
+    int tempPlaceCount = initialPlaceCount;
 
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Adjust Number of Seats',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed:
+                            tempPlaceCount > 1
+                                ? () => setModalState(() => tempPlaceCount--)
+                                : null,
+                        icon: Icon(
+                          Icons.remove_circle_outline,
+                          size: 50,
+                          color: tempPlaceCount > 1 ? Colors.blue : Colors.grey,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          '$tempPlaceCount',
+                          style: const TextStyle(
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed:
+                            tempPlaceCount <
+                                    8 // Assuming a max of 8 places
+                                ? () => setModalState(() => tempPlaceCount++)
+                                : null,
+                        icon: Icon(
+                          Icons.add_circle_outline,
+                          size: 50,
+                          color: tempPlaceCount < 8 ? Colors.blue : Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 80),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          onPlacesConfirmed(tempPlaceCount);
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          backgroundColor: Colors.blue,
+                        ),
+                        child: const Text(
+                          'Confirm',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEditSheet(
+    BuildContext context,
+    String rideRequestId,
+    Map<String, dynamic> rideData,
+  ) {
+    DateTime selectedDateTime =
+        (rideData['date'] as Timestamp?)?.toDate() ?? DateTime.now();
     currentPrice = rideData['price'];
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (context) {
+        int _tempPlaceCount = (rideData['placeCount'] as num?)?.toInt() ?? 1;
+
         return Padding(
           padding: EdgeInsets.only(
             left: 16,
@@ -317,23 +479,43 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),
+                  ListTile(
+                    title: Text('Number of Seats: $_tempPlaceCount'),
+                    trailing: const Icon(Icons.edit, color: Colors.blue),
+                    onTap: () {
+                      _showEditPlacesSheet(context, (newPlaceCount) {
+                        setModalState(() {
+                          _tempPlaceCount = newPlaceCount;
+                        });
+                      }, _tempPlaceCount);
+                    },
+                  ),
+                  const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '$currentPrice',
-                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                          '${currentPrice?.toStringAsFixed(0) ?? 'N/A'} DZD',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.edit, color: Colors.blue),
                           onPressed: () {
-                            showPriceAdjustmentSheet(context, rideData['distanceKm'], (newPrice) {
-                              setModalState(() {
-                                currentPrice = newPrice;
-                              });
-                            });
+                            showPriceAdjustmentSheet(
+                              context,
+                              (rideData['distanceKm'] as num?)?.toDouble() ??
+                                  0.0,
+                              (newPrice) {
+                                setModalState(() {
+                                  currentPrice = newPrice;
+                                });
+                              },
+                            );
                           },
                         ),
                       ],
@@ -342,7 +524,10 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                   const SizedBox(height: 12),
                   ListTile(
                     title: Text('Date: ${_formatDate(selectedDateTime)}'),
-                    trailing: const Icon(Icons.calendar_today),
+                    trailing: const Icon(
+                      Icons.calendar_today,
+                      color: Colors.blue,
+                    ),
                     onTap: () async {
                       final pickedDate = await showDatePicker(
                         context: context,
@@ -351,28 +536,44 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                         lastDate: DateTime(2100),
                       );
                       if (pickedDate != null) {
-                        final pickedTime = await showTimePicker(
-                          context: context,
-                          initialTime: TimeOfDay.fromDateTime(selectedDateTime),
-                        );
-                        if (pickedTime != null) {
-                          setModalState(() {
-                            selectedDateTime = DateTime(
-                              pickedDate.year,
-                              pickedDate.month,
-                              pickedDate.day,
-                              pickedTime.hour,
-                              pickedTime.minute,
-                            );
-                          });
-                        }
+                        setModalState(() {
+                          selectedDateTime = DateTime(
+                            pickedDate.year,
+                            pickedDate.month,
+                            pickedDate.day,
+                            selectedDateTime.hour,
+                            selectedDateTime.minute,
+                          );
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  ListTile(
+                    title: Text('Time: ${_formatTime(selectedDateTime)}'),
+                    trailing: const Icon(Icons.access_time, color: Colors.blue),
+                    onTap: () async {
+                      final pickedTime = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.fromDateTime(selectedDateTime),
+                      );
+                      if (pickedTime != null) {
+                        setModalState(() {
+                          selectedDateTime = DateTime(
+                            selectedDateTime.year,
+                            selectedDateTime.month,
+                            selectedDateTime.day,
+                            pickedTime.hour,
+                            pickedTime.minute,
+                          );
+                        });
                       }
                     },
                   ),
                   const SizedBox(height: 20),
-                  ElevatedButton(
+                  OutlinedButton(
                     onPressed: () async {
-                      setState(() {
+                      setModalState(() {
                         isLoading = true;
                       });
                       try {
@@ -380,27 +581,46 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                             .collection('ride_requests')
                             .doc(rideRequestId)
                             .update({
-                          'price': currentPrice,
-                          'timestamp': Timestamp.fromDate(selectedDateTime),
-                        });
+                              'placeCount': _tempPlaceCount,
+                              'price': currentPrice,
+                              'timestamp': Timestamp.fromDate(selectedDateTime),
+                            });
 
-                        if (mounted) { //! tolearn
+                        if (mounted) {
                           Navigator.pop(context);
-                          showSuccessSnackbar(context, "Ride request updated successfully");
+                          showSuccessSnackbar(
+                            context,
+                            "Ride request updated successfully",
+                          );
                         }
                       } catch (e) {
                         if (mounted) {
                           showErrorSnackbar(context, "Failed to update: $e");
                         }
                       } finally {
-                        setState(() {
+                        setModalState(() {
                           isLoading = false;
                         });
                       }
                     },
-                    child: isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('Save Changes'),
+                    child:
+                        isLoading
+                            ? const CircularProgressIndicator(
+                              color: Colors.white,
+                            )
+                            : const Text(
+                              'Save Changes',
+                              style: TextStyle(fontSize: 15),
+                            ),
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 50,
+                        vertical: 20,
+                      ),
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      side: BorderSide.none,
+                    ),
                   ),
                 ],
               );
