@@ -1,5 +1,6 @@
 import 'package:carpooling/services/chat_services.dart';
 import 'package:carpooling/views/messages/message_page.dart';
+import 'package:carpooling/views/profile/users_profiles.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -54,12 +55,20 @@ class _BookingsPageState extends State<BookingsPage>
     );
   }
 
-  Future<void> _cancelBooking(String bookingId) async {
+  Future<void> _cancelBooking(String bookingId, String rideId) async { 
   try {
     await FirebaseFirestore.instance
         .collection('bookings')
         .doc(bookingId)
-        .delete(); 
+        .delete();
+
+    // Remove the current user's ID from the 'bookedBy' array in the 'rides' collection
+    await FirebaseFirestore.instance
+        .collection('rides')
+        .doc(rideId)
+        .update({
+      'bookedBy': FieldValue.arrayRemove([FirebaseAuth.instance.currentUser!.uid])
+    });
 
     _showMessageDialog(
       'Booking Cancelled',
@@ -197,11 +206,17 @@ Future<void> _sendMessage(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              isDriver
-                  ? 'Booked by: $displayUserName'
-                  : 'Driver: $displayUserName',
-              style: Theme.of(context).textTheme.labelLarge,
+            TextButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => UserProfilePage(userId: isDriver? passengerId : driverId)));
+              },
+              style: TextButton.styleFrom(padding: EdgeInsets.all(0)),
+              child: Text(
+                isDriver
+                    ? 'Booked by: $displayUserName'
+                    : 'Driver: $displayUserName',
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -376,7 +391,7 @@ Future<void> _sendMessage(
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).pop(); 
-                            _cancelBooking(bookingId); 
+                            _cancelBooking(bookingId, rideId); 
                           },
                           child: const Text('Yes', style: TextStyle(color: Colors.red),),
                         ),

@@ -451,7 +451,7 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
   ) {
     DateTime selectedDateTime =
         (rideData['date'] as Timestamp?)?.toDate() ?? DateTime.now();
-    currentPrice = rideData['price'];
+    currentPrice = (rideData['price'] as num?)?.toDouble();
 
     showModalBottomSheet(
       context: context,
@@ -460,7 +460,7 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        int _tempPlaceCount = (rideData['placeCount'] as num?)?.toInt() ?? 1;
+        int tempPlaceCount = (rideData['placeCount'] as num?)?.toInt() ?? 1;
 
         return Padding(
           padding: EdgeInsets.only(
@@ -480,14 +480,14 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                   ),
                   const SizedBox(height: 20),
                   ListTile(
-                    title: Text('Number of Seats: $_tempPlaceCount'),
+                    title: Text('Number of Seats: $tempPlaceCount'),
                     trailing: const Icon(Icons.edit, color: Colors.blue),
                     onTap: () {
                       _showEditPlacesSheet(context, (newPlaceCount) {
                         setModalState(() {
-                          _tempPlaceCount = newPlaceCount;
+                          tempPlaceCount = newPlaceCount;
                         });
-                      }, _tempPlaceCount);
+                      }, tempPlaceCount);
                     },
                   ),
                   const SizedBox(height: 12),
@@ -571,55 +571,61 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                     },
                   ),
                   const SizedBox(height: 20),
-                  OutlinedButton(
-                    onPressed: () async {
-                      setModalState(() {
-                        isLoading = true;
-                      });
-                      try {
-                        await FirebaseFirestore.instance
-                            .collection('ride_requests')
-                            .doc(rideRequestId)
-                            .update({
-                              'placeCount': _tempPlaceCount,
-                              'price': currentPrice,
-                              'timestamp': Timestamp.fromDate(selectedDateTime),
-                            });
-
-                        if (mounted) {
-                          Navigator.pop(context);
-                          showSuccessSnackbar(
-                            context,
-                            "Ride request updated successfully",
-                          );
-                        }
-                      } catch (e) {
-                        if (mounted) {
-                          showErrorSnackbar(context, "Failed to update: $e");
-                        }
-                      } finally {
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
                         setModalState(() {
-                          isLoading = false;
+                          isLoading = true;
                         });
-                      }
-                    },
-                    child:
-                        isLoading
-                            ? const CircularProgressIndicator(
-                              color: Colors.white,
-                            )
-                            : const Text(
-                              'Save Changes',
-                              style: TextStyle(fontSize: 15),
-                            ),
-                    style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 50,
-                        vertical: 20,
+                        try {
+                          await FirebaseFirestore.instance
+                              .collection('ride_requests')
+                              .doc(rideRequestId)
+                              .update({
+                                'placeCount': tempPlaceCount,
+                                'price': currentPrice,
+                                'timestamp': Timestamp.fromDate(selectedDateTime),
+                              });
+                    
+                          if (mounted) {
+                            Navigator.pop(context);
+                            showSuccessSnackbar(
+                              context,
+                              "Ride request updated successfully",
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            showErrorSnackbar(context, "Failed to update: $e");
+                          }
+                        } finally {
+                          setModalState(() {
+                            isLoading = false;
+                          });
+                        }
+                      },
+                      
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 14,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
                       ),
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      side: BorderSide.none,
+                      child:
+                          isLoading
+                              ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                              : const Text(
+                                'Save Changes',
+                                style: TextStyle(fontSize: 15),
+                              ),
                     ),
                   ),
                 ],

@@ -1,6 +1,7 @@
 import 'package:carpooling/main.dart';
 import 'package:carpooling/services/booking_service.dart';
 import 'package:carpooling/services/chat_services.dart';
+import 'package:carpooling/views/profile/users_profiles.dart';
 import 'package:carpooling/views/ride/utils/ride_utils.dart';
 import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -94,7 +95,7 @@ class _MessagePageState extends State<MessagePage> {
     final destination = data['destinationName'] ?? 'Unknown';
     final double price = (data['price'] as num?)?.toDouble() ?? 0.0; 
     final double distance = (data['distanceKm'] as num?)?.toDouble() ?? 0.0; 
-    final timestamp = data['timestamp']; // Assume it's a Firestore Timestamp
+    final timestamp = data['date']; 
 
     String formattedDate = 'Unknown';
     String formattedTime = '';
@@ -415,9 +416,16 @@ class _MessagePageState extends State<MessagePage> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '$name ${isOtherDriver ? "(Driver)" : ""}',
-                      style: const TextStyle(fontSize: 16),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => UserProfilePage(userId: userData['uid'])));
+                      },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.all(0)
+                      ),
+                      child: Text('$name ${isOtherDriver ? "(Driver)" : ""}',style: TextStyle(fontSize: 16, color: themeNotifier.value == ThemeMode.light
+                  ? Colors.black
+                  : Colors.white),),
                     ),
                     Text(
                       'To: $destination ($currentPrice DZD)',
@@ -456,18 +464,15 @@ class _MessagePageState extends State<MessagePage> {
                     child: ElevatedButton.icon(
                       onPressed: () {
                         BookingService.bookRide(rideId: rideData['ride_id']);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Attempting to book ride...')),
-                        );
-                        print('Book this Ride button pressed for rideId: ${widget.rideId}');
+                        showSuccessSnackbar(context, 'Ride boocked succefuly!');
                       },
                       label: const Text('Book this Ride'),
-                      icon: const Icon(Icons.bookmark_border), // Changed icon for direct relevance
+                      icon: const Icon(Icons.bookmark_border), 
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10), // Slightly less rounded than FAB
+                          borderRadius: BorderRadius.circular(15), 
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
@@ -475,7 +480,7 @@ class _MessagePageState extends State<MessagePage> {
                   ),
                 );
               }
-              return const SizedBox.shrink(); // Hide button if conditions are not met
+              return const SizedBox.shrink(); 
             },
           ),
           Expanded(

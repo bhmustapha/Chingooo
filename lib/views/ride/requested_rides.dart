@@ -1,5 +1,6 @@
 import 'package:carpooling/services/chat_services.dart';
 import 'package:carpooling/views/messages/message_page.dart';
+import 'package:carpooling/views/profile/users_profiles.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -93,9 +94,23 @@ class RequestedRidesPage extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Published by ${data['userName']}',
-                                style: Theme.of(context).textTheme.labelLarge,
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => UserProfilePage(
+                                            userId: data['userId'],
+                                          ),
+                                    ),
+                                  );
+                                },
+                                style: TextButton.styleFrom(padding: EdgeInsets.all(0)),
+                                child: Text(
+                                  'Published by ${data['userName']}',
+                                  style: Theme.of(context).textTheme.labelLarge,
+                                ),
                               ),
                               const SizedBox(height: 8),
                               Text(
@@ -196,7 +211,6 @@ class RequestedRidesPage extends StatelessWidget {
                                               ),
                                         ),
                                       );
-                                      
                                     },
                                     style: OutlinedButton.styleFrom(
                                       padding: const EdgeInsets.symmetric(

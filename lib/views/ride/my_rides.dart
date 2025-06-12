@@ -55,6 +55,9 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
               final timestamp = data['date'] as Timestamp?;
               final dateTime = timestamp?.toDate() ?? DateTime.now();
 
+              final int maxPlaces = (data['vehicle']?['maxPlaces'] as num?)?.toInt() ?? 1;
+
+
               return FutureBuilder<QuerySnapshot>(
                 future:
                     FirebaseFirestore.instance
@@ -138,7 +141,7 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                                   color: Colors.blue,
                                 ),
                                 onPressed:
-                                    () => _showEditSheet(context, rideId, data),
+                                    () => _showEditSheet(context, rideId, data, maxPlaces),
                               ),
                               IconButton(
                                 icon: const Icon(
@@ -339,16 +342,116 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
       },
     );
   }
+  void _showEditPlacesSheet(
+    BuildContext context,
+    void Function(int newPlaceCount) onPlacesConfirmed, //! to learn
+    int initialPlaceCount,
+    int maxAllowedPlaces,
+  ) {
+    int tempPlaceCount = initialPlaceCount;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Adjust Number of Seats',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed:
+                            tempPlaceCount > 1
+                                ? () => setModalState(() => tempPlaceCount--)
+                                : null,
+                        icon: Icon(
+                          Icons.remove_circle_outline,
+                          size: 50,
+                          color: tempPlaceCount > 1 ? Colors.blue : Colors.grey,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          '$tempPlaceCount',
+                          style: const TextStyle(
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed:
+                            tempPlaceCount <maxAllowedPlaces
+                                ? () => setModalState(() => tempPlaceCount++)
+                                : null,
+                        icon: Icon(
+                          Icons.add_circle_outline,
+                          size: 50,
+                          color: tempPlaceCount < maxAllowedPlaces? Colors.blue : Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 80),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          onPlacesConfirmed(tempPlaceCount);
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          backgroundColor: Colors.blue,
+                        ),
+                        child: const Text(
+                          'Confirm',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   void _showEditSheet(
     BuildContext context,
     String rideId,
     Map<String, dynamic> rideData,
+    int maxPlaces,
   ) {
     DateTime selectedDateTime =
         (rideData['date'] as Timestamp?)?.toDate() ?? DateTime.now();
 
-    currentPrice = rideData['price'];
+    currentPrice = (rideData['price'] as num?)?.toDouble();
 
     showModalBottomSheet(
       context: context,
@@ -357,6 +460,7 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
+        int tempPlaceCount = (rideData['placeCount'] as num?)?.toInt() ?? 1;
         return Padding(
           padding: EdgeInsets.only(
             left: 16,
@@ -374,13 +478,26 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),
+                  ListTile(
+                    title: Text('Number of Seats: $tempPlaceCount'),
+                    trailing: const Icon(Icons.edit, color: Colors.blue),
+                    onTap: () {
+                      _showEditPlacesSheet(context, (newPlaceCount) {
+                        setModalState(() {
+                          tempPlaceCount = newPlaceCount;
+                        });
+                      }, tempPlaceCount,maxPlaces,);
+                    },
+                  ),
+                  const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        
                         Text(
-                          '$currentPrice',
+                          '${currentPrice?.toStringAsFixed(0) ?? 'N/A'} DZD',
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -391,7 +508,7 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                           onPressed: () {
                             showPriceAdjustmentSheet(
                               context,
-                              rideData['distanceKm'],
+                              (rideData['distanceKm'] as num?)?.toDouble() ?? 0.0,
                               (newPrice) {
                                 setModalState(() {
                                   currentPrice = newPrice;
@@ -482,6 +599,7 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                               'date': Timestamp.fromDate(selectedDateTime),
                               'time':
                                   '${rideTime.hour.toString().padLeft(2, '0')}:${rideTime.minute.toString().padLeft(2, '0')}',
+                                  'placeCount': tempPlaceCount,
                             });
                         setState(() {
                           isLoading = false;

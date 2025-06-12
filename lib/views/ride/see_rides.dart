@@ -1,5 +1,6 @@
 import 'package:carpooling/services/booking_service.dart';
 import 'package:carpooling/themes/costum_reusable.dart';
+import 'package:carpooling/views/profile/users_profiles.dart';
 import 'package:carpooling/views/ride/utils/ride_utils.dart';
 import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -402,7 +403,9 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                                 String requestedRideId = requestedRideRef.id;
 
                                 // Update the document with its own ID
-                                await requestedRideRef.update({'ride_id': requestedRideId});
+                                await requestedRideRef.update({
+                                  'ride_id': requestedRideId,
+                                });
 
                                 Navigator.pop(context);
 
@@ -658,9 +661,23 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Published by ${data['userName'] ?? 'Unknown'}',
-                                style: Theme.of(context).textTheme.labelLarge,
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => UserProfilePage(
+                                            userId: data['userId'],
+                                          ),
+                                    ),
+                                  );
+                                },
+                                style: TextButton.styleFrom(padding: EdgeInsets.all(0)),
+                                child: Text(
+                                  'Published by ${data['userName'] ?? 'Unknown'}',
+                                  style: Theme.of(context).textTheme.labelLarge,
+                                ),
                               ),
                               const SizedBox(height: 8),
                               Text(
