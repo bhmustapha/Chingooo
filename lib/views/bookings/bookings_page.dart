@@ -1,6 +1,7 @@
 import 'package:carpooling/services/chat_services.dart';
 import 'package:carpooling/views/messages/message_page.dart';
 import 'package:carpooling/views/profile/users_profiles.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,7 +12,7 @@ class BookingsPage extends StatefulWidget {
 }
 
 class _BookingsPageState extends State<BookingsPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {//! to learn 
   late TabController _tabController;
   final currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
@@ -20,7 +21,7 @@ class _BookingsPageState extends State<BookingsPage>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
   }
-
+bool _isLoading = false;
   Color _getStatusColor(String? status) {
     switch (status?.toLowerCase()) {
       case 'completed':
@@ -55,29 +56,41 @@ class _BookingsPageState extends State<BookingsPage>
     );
   }
 
-  Future<void> _cancelBooking(String bookingId, String rideId) async { 
-  try {
-    await FirebaseFirestore.instance
-        .collection('bookings')
-        .doc(bookingId)
-        .delete();
+  Future<void> _cancelBooking(String bookingId, String rideId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(bookingId)
+          .delete();
 
-    // Remove the current user's ID from the 'bookedBy' array in the 'rides' collection
-    await FirebaseFirestore.instance
+           DocumentSnapshot rideSnapshot = await FirebaseFirestore.instance
         .collection('rides')
         .doc(rideId)
-        .update({
-      'bookedBy': FieldValue.arrayRemove([FirebaseAuth.instance.currentUser!.uid])
-    });
+        .get();
 
-    _showMessageDialog(
-      'Booking Cancelled',
-      'Your booking has been successfully cancelled and removed.',
-    );
-  } catch (e) {
-    _showMessageDialog('Error', 'Failed to cancel booking: $e');
+        int leftPlaces = rideSnapshot.get('leftPlace');
+        leftPlaces ++;
+
+        int bookedPlaces = rideSnapshot.get('bookedPlaces');
+        bookedPlaces --;
+
+      // Remove the current user's ID from the 'bookedBy' array in the 'rides' collection
+      await FirebaseFirestore.instance.collection('rides').doc(rideId).update({
+        'bookedBy': FieldValue.arrayRemove([
+          FirebaseAuth.instance.currentUser!.uid,
+        ]),
+        'leftPlace' : leftPlaces,
+        'bookedPlaces' : bookedPlaces,
+      });
+
+      _showMessageDialog(
+        'Booking Cancelled',
+        'Your booking has been successfully cancelled and removed.',
+      );
+    } catch (e) {
+      _showMessageDialog('Error', 'Failed to cancel booking: $e');
+    }
   }
-}
 
   Future<void> _acceptBooking(String bookingId) async {
     try {
@@ -131,40 +144,41 @@ class _BookingsPageState extends State<BookingsPage>
   }
 
   // Ensure your ChatService.dart has a createOrGetChat method that returns Future<DocumentReference<Map<String, dynamic>>>
-// and accepts an optional 'isRideRequest' parameter if needed, like your working example suggests.
+  // and accepts an optional 'isRideRequest' parameter if needed, like your working example suggests.
 
-Future<void> _sendMessage(
+  Future<void> _sendMessage(
     String otherUserId,
     String otherUserName,
     String rideId,
     String driverId,
     String passengerId,
-) async {
+  ) async {
     // Correctly await the Future to get the DocumentReference
     final chatDocRef = await ChatService.createOrGetChat(
-        rideId: rideId,
-        driverId: driverId,
-        passengerId: passengerId,
-        // Add this parameter if your ChatService.createOrGetChat expects it
-        // based on your working example, it seems to differentiate ride requests.
-         
+      rideId: rideId,
+      driverId: driverId,
+      passengerId: passengerId,
+
+      // Add this parameter if your ChatService.createOrGetChat expects it
+      // based on your working example, it seems to differentiate ride requests.
     );
 
     // Get the actual ID from the DocumentReference
     String chatId = chatDocRef.id;
 
     Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => MessagePage(
-                chatId: chatId, // Pass the correct chat ID
-                rideId: rideId,
-                otherUserId: otherUserId,
-                // Pass this parameter to MessagePage if it uses it
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => MessagePage(
+              chatId: chatId, // Pass the correct chat ID
+              rideId: rideId,
+              otherUserId: otherUserId,
+              // Pass this parameter to MessagePage if it uses it
             ),
-        ),
+      ),
     );
-}
+  }
 
   Widget buildBookedRideCard(
     Map<String, dynamic> bookingData,
@@ -208,7 +222,15 @@ Future<void> _sendMessage(
           children: [
             TextButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => UserProfilePage(userId: isDriver? passengerId : driverId)));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => UserProfilePage(
+                          userId: isDriver ? passengerId : driverId,
+                        ),
+                  ),
+                );
               },
               style: TextButton.styleFrom(padding: EdgeInsets.all(0)),
               child: Text(
@@ -291,21 +313,24 @@ Future<void> _sendMessage(
 
     buttons.add(
       OutlinedButton(
-        onPressed:
-            () => _sendMessage(
-              otherUserId,
-              otherUserName,
-              rideId,
-              driverId,
-              passengerId,
-            ),
+        onPressed: () async {
+          _isLoading = true;
+          await _sendMessage(
+            otherUserId,
+            otherUserName,
+            rideId,
+            driverId,
+            passengerId,
+          );
+          _isLoading = false;
+        },
         style: OutlinedButton.styleFrom(
           backgroundColor: Colors.blue,
           foregroundColor: Colors.white,
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           side: BorderSide.none,
         ),
-        child: Text('Messages'),
+        child: _isLoading? CircularProgressIndicator(color: Colors.white,) : Text('Messages'),
       ),
     );
 
@@ -376,24 +401,29 @@ Future<void> _sendMessage(
         case 'confirmed':
           buttons.add(
             OutlinedButton(
-              onPressed: () {showDialog(
+              onPressed: () {
+                showDialog(
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
                       title: const Text('Confirm Cancellation'),
                       content: const Text(
-                          'Are you sure you want to cancel this booking? This action cannot be undone.'),
+                        'Are you sure you want to cancel this booking? This action cannot be undone.',
+                      ),
                       actions: <Widget>[
                         TextButton(
-                          onPressed: () => Navigator.of(context).pop(), 
+                          onPressed: () => Navigator.of(context).pop(),
                           child: const Text('No'),
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.of(context).pop(); 
-                            _cancelBooking(bookingId, rideId); 
+                            Navigator.of(context).pop();
+                            _cancelBooking(bookingId, rideId);
                           },
-                          child: const Text('Yes', style: TextStyle(color: Colors.red),),
+                          child: const Text(
+                            'Yes',
+                            style: TextStyle(color: Colors.red),
+                          ),
                         ),
                       ],
                     );
@@ -406,9 +436,7 @@ Future<void> _sendMessage(
                 padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 side: BorderSide.none,
               ),
-              child: Text(
-                'Cancel Booking',
-              ),
+              child: Text('Cancel Booking'),
             ),
           );
           break;

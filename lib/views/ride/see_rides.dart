@@ -39,7 +39,8 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
   List<Map<String, dynamic>> suggestions = [];
   LatLng? selectedPickupCoords;
   String? pickupAddress;
-  bool isLoading = false;
+  bool _isLoading = false;
+  bool _isBookingLoading = false;
   bool isValidateLocation = false;
   int? currentPrice;
 
@@ -734,38 +735,23 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                                   Expanded(
                                     child: ElevatedButton(
                                       onPressed: () async {
+                                        setState(() {
+                                          _isBookingLoading = true;
+                                        });
                                         try {
                                           await BookingService.bookRide(
                                             rideId: data['ride_id'],
                                           );
-
-                                          // Show success message
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'Ride booked successfully!',
-                                              ),
-                                              backgroundColor: Colors.green,
-                                            ),
-                                          );
+                                          setState(() {
+                                          _isBookingLoading = false;
+                                        });
+                                          showSuccessSnackbar(context, 'Ride booked successfully!');
                                         } on Exception catch (e) {
-                                          // Show error message
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Booking failed: ${e.toString().replaceFirst('Exception: ', '')}',
-                                              ),
-                                              backgroundColor: Colors.red,
-                                            ),
-                                          );
-                                          print(
-                                            "Booking error: $e",
-                                          ); // Log the error for debugging
-                                        } finally {}
+                                          
+                                          showErrorSnackbar(context, 'Booking failed: ${e.toString().replaceFirst('Exception: ', '')}');
+                                          // Log the error for debugging
+                                        } 
+                                        
                                       },
                                       style: ElevatedButton.styleFrom(
                                         elevation: 0,
@@ -777,7 +763,10 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                                           ),
                                         ),
                                       ),
-                                      child: const Text('Take this Ride'),
+                                      child: _isBookingLoading? Padding(
+                                        padding: const EdgeInsets.all(3.0),
+                                        child: CircularProgressIndicator(color: Colors.white,),
+                                      ) : const Text('Take this Ride'),
                                     ),
                                   ),
                                   const SizedBox(width: 5),
@@ -849,8 +838,8 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                 ),
               ),
               onPressed: () async {
-                isLoading = true;
-                setState(() {});
+                
+                setState(() {_isLoading = true;});
                 Position position = await Geolocator.getCurrentPosition(
                   desiredAccuracy: LocationAccuracy.high,
                 );
@@ -865,13 +854,13 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
 
                 pickupAddress =
                     "${place.street}, ${place.locality}, ${place.administrativeArea}, ${place.country}";
-                isLoading = false;
-                setState(() {});
+                
+                setState(() {_isLoading = false;});
 
                 showRequestRideBottomSheet();
               },
               child:
-                  isLoading
+                  _isLoading
                       ? CircularProgressIndicator(color: Colors.white)
                       : const Text(
                         'Post a ride request',

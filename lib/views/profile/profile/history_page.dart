@@ -27,12 +27,14 @@ class _HistoryPageState extends State<HistoryPage> {
     _passengerBookingsStream = FirebaseFirestore.instance
         .collection('bookings')
         .where('passengerId', isEqualTo: currentUserId)
+        .where('status', isEqualTo: 'completed')
         .orderBy('createdAt', descending: true)
         .snapshots();
 
     _driverBookingsStream = FirebaseFirestore.instance
         .collection('bookings')
         .where('driverId', isEqualTo: currentUserId)
+        .where('status', isEqualTo: 'completed')
         .orderBy('createdAt', descending: true)
         .snapshots();
 
@@ -291,6 +293,12 @@ Future<void> _submitRating({
   String? comment,
 }) async {
   try {
+    DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(raterId)
+        .get();
+    final raterName = userSnapshot.get('name');
+
     await FirebaseFirestore.instance.collection('ratings').add({
       'bookingId': bookingId,
       'rideId': rideId,
@@ -298,6 +306,7 @@ Future<void> _submitRating({
       'ratedUserId': ratedUserId,
       'rating': rating,
       'comment': comment,
+      'raterName' : raterName,
       'timestamp': Timestamp.now(),
     });
 
@@ -359,7 +368,7 @@ Future<void> _submitRating({
           if (allBookingDocs.isEmpty) {
             return const Center(child: Text('No booking history found yet.'));
           }
-
+          
           return ListView.builder(
             itemCount: allBookingDocs.length,
             itemBuilder: (context, index) {

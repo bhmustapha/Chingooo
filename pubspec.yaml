@@ -59,6 +59,9 @@ dependencies:
   
   #allows us to combine multiple streams
   async: ^2.12.0
+
+  # for my rating
+  flutter_rating_bar: ^4.0.1
   
 
   #firebase

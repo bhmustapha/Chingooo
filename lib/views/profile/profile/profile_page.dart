@@ -1,5 +1,6 @@
 import 'package:carpooling/views/profile/profile/edit_profile.dart';
 import 'package:carpooling/views/profile/profile/history_page.dart';
+import 'package:carpooling/views/profile/profile/my_rating.dart';
 import 'package:carpooling/views/profile/vehicle/my_vehicle_page.dart';
 import 'package:carpooling/views/ride/my_requested_rides.dart';
 import 'package:carpooling/views/ride/my_rides.dart';
@@ -59,11 +60,11 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: SingleChildScrollView(
-        child:
-            userData == null
-                ? Center(child: CircularProgressIndicator(color: Colors.blue))
-                : Column(
+      child:
+          userData == null
+              ? Center(child: CircularProgressIndicator(color: Colors.blue))
+              : SingleChildScrollView(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
@@ -104,20 +105,33 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
                               ),
                               if (userData!['averageRating'] != null)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.star, color: Colors.amber, size: 22),
-                              const SizedBox(width: 5),
-                              Text(
-                                userData!['averageRating'].toStringAsFixed(1), // Display rating with one decimal place
-                                style: TextStyle(fontSize: 15),
-                              ),
-                            ],
-                          ),
-                        ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12.0,
+                                  ),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(context, MaterialPageRoute(builder: (context) => MyRatingsPage()));
+                                    },
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.star,
+                                          color: Colors.amber,
+                                          size: 22,
+                                        ),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          userData!['averageRating'].toStringAsFixed(
+                                            1,
+                                          ), // Display rating with one decimal place
+                                          style: TextStyle(fontSize: 15),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                             ],
                           ),
                         ),
@@ -217,7 +231,12 @@ class _ProfilePageState extends State<ProfilePage> {
                           Expanded(
                             child: OutlinedButton.icon(
                               onPressed: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => HistoryPage()));
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => HistoryPage(),
+                                  ),
+                                );
                               },
                               label: Text('History'),
                               icon: Icon(LucideIcons.history),
@@ -247,7 +266,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     SizedBox(height: 20),
                   ],
                 ),
-      ),
+              ),
     );
   }
 

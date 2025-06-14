@@ -5,9 +5,27 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class RequestedRidesPage extends StatelessWidget {
+class RequestedRidesPage extends StatefulWidget {
   const RequestedRidesPage({super.key});
 
+  @override
+  State<RequestedRidesPage> createState() => _RequestedRidesPageState();
+
+  static Color? _getStatusColor(String? status) {
+    switch (status) {
+      case 'pending':
+        return Colors.orange;
+      case 'confirmed':
+        return Colors.green;
+      case 'rejected':
+        return Colors.red;
+      default:
+        return null;
+    }
+  }
+}
+
+class _RequestedRidesPageState extends State<RequestedRidesPage> {
   @override
   Widget build(BuildContext context) {
     final ridesRef = FirebaseFirestore.instance.collection('ride_requests');
@@ -150,7 +168,7 @@ class RequestedRidesPage extends StatelessWidget {
                                     data['status'],
                                     style: TextStyle(
                                       fontWeight: FontWeight.w600,
-                                      color: _getStatusColor(data['status']),
+                                      color: RequestedRidesPage._getStatusColor(data['status']),
                                     ),
                                   ),
                                 ],
@@ -244,22 +262,8 @@ class RequestedRidesPage extends StatelessWidget {
     );
   }
 
-  static Color? _getStatusColor(String? status) {
-    switch (status) {
-      case 'pending':
-        return Colors.orange;
-      case 'confirmed':
-        return Colors.green;
-      case 'rejected':
-        return Colors.red;
-      default:
-        return null;
-    }
-  }
-
   String _formatDate(DateTime date) =>
       '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
   String _formatTime(DateTime date) =>
-      '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}'; // ! move into seperate file nd make it reusable
-}
+      '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}'; }
