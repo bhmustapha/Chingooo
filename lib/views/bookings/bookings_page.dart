@@ -153,11 +153,28 @@ bool _isLoading = false;
     String driverId,
     String passengerId,
   ) async {
+    bool isRequestedRide = false;
+    
+        final bookingSnapshot = await FirebaseFirestore.instance
+            .collection('bookings')
+            .where('rideId', isEqualTo: rideId) // Assuming rideId here is rideRequestId
+            .limit(1) // We only need one booking document if it exists
+            .get();
+
+        if (bookingSnapshot.docs.isNotEmpty) {
+            final bookingData = bookingSnapshot.docs.first.data();
+            // Check if 'isRideRequest' field exists and is true
+            if (bookingData.containsKey('isRideRequest') && bookingData['isRideRequest'] == true) {
+                isRequestedRide = true;
+            }
+        }
+    
     // Correctly await the Future to get the DocumentReference
     final chatDocRef = await ChatService.createOrGetChat(
       rideId: rideId,
       driverId: driverId,
       passengerId: passengerId,
+      isRideRequest: isRequestedRide
 
       // Add this parameter if your ChatService.createOrGetChat expects it
       // based on your working example, it seems to differentiate ride requests.
@@ -174,6 +191,7 @@ bool _isLoading = false;
               chatId: chatId, // Pass the correct chat ID
               rideId: rideId,
               otherUserId: otherUserId,
+              isRideRequest: isRequestedRide,
               // Pass this parameter to MessagePage if it uses it
             ),
       ),

@@ -6,6 +6,7 @@ final _firestore = FirebaseFirestore.instance;
 final _auth = FirebaseAuth.instance;
 
 class BookingService {
+  // Existing method (for driver offering ride, passenger booking it) - No changes here
   static Future<void> bookRide({required String rideId}) async {
     final user = _auth.currentUser;
     if (user == null) {
@@ -44,18 +45,14 @@ class BookingService {
 
       final int totalCapacity = (rideData['placeCount'] as num).toInt();
       int placesCurrentlyBooked = (rideData['bookedPlaces'] as num?)?.toInt() ?? 0;
-      // Fetch current leftPlace
       int leftPlaces = (rideData['leftPlace'] as num?)?.toInt() ?? totalCapacity;
 
-      // Get the existing bookedBy array, or initialize if null
       List<String> bookedByUsers = (rideData['bookedBy'] as List<dynamic>?)?.cast<String>() ?? [];
 
-      // Check if the user has already booked this ride using the new 'bookedBy' array
       if (bookedByUsers.contains(userId)) {
         throw Exception("You have already booked this ride.");
       }
 
-      // Existing check from 'bookings' collection 
       final existingBookingInBookingsCollection = await _firestore
           .collection('bookings')
           .where('passengerId', isEqualTo: userId)
@@ -63,29 +60,24 @@ class BookingService {
           .get();
 
       if (existingBookingInBookingsCollection.docs.isNotEmpty) {
-        
-         throw Exception("You have already booked this ride (checked via bookings collection).");
+        throw Exception("You have already booked this ride (checked via bookings collection).");
       }
-
 
       if (userId == driverId) {
         throw Exception("You cannot book your own ride.");
       }
 
-      // Check if there's enough capacity using leftPlaces
       if (leftPlaces <= 0) {
         throw Exception("Sorry, this ride is fully booked (no places left).");
       }
 
-      // Decrement leftPlace and increment bookedPlaces
       placesCurrentlyBooked++;
       leftPlaces--;
 
-      // Update the ride document: increment bookedPlaces, decrement leftPlace, and add userId to bookedBy
       transaction.update(rideRef, {
         'bookedPlaces': placesCurrentlyBooked,
         'leftPlace': leftPlaces,
-        'bookedBy': FieldValue.arrayUnion([userId]), // add the user id to the booked array
+        'bookedBy': FieldValue.arrayUnion([userId]),
       });
 
       final LatLng pickupLocation = LatLng(
@@ -98,8 +90,7 @@ class BookingService {
       );
       final String pickupAddress = rideData['pickUpName'];
       final String dropoffAddress = rideData['destinationName'];
-      final Timestamp date =
-          rideData['date'] is Timestamp
+      final Timestamp date = rideData['date'] is Timestamp
               ? rideData['date']
               : Timestamp.fromDate(rideData['date'].toDate());
 
@@ -140,6 +131,148 @@ class BookingService {
       };
 
       transaction.set(_firestore.collection('bookings').doc(), bookingData);
+    });
+  }
+
+  // UPDATED METHOD: For a driver accepting a passenger's ride request
+  static Future<void> acceptRideRequest({required String rideRequestId}) async {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      throw Exception("Driver not authenticated.");
+    }
+
+    final driverId = currentUser.uid;
+    String driverName = "Unknown Driver";
+
+    // 1. Get Driver's Name
+    try {
+      DocumentSnapshot driverDoc = await _firestore.collection('users').doc(driverId).get();
+      if (driverDoc.exists) {
+        final driverData = driverDoc.data() as Map<String, dynamic>?;
+        driverName = driverData?['name'] ?? 'Unknown Driver';
+      }
+    } catch (e) {
+      print("Error fetching driver name: $e");
+      // Optionally rethrow or handle more robustly
+    }
+
+    // Use a transaction for atomic updates to ride_request and bookings
+    await _firestore.runTransaction((transaction) async {
+      final rideRequestRef = _firestore.collection('ride_requests').doc(rideRequestId);
+      final rideRequestSnapshot = await transaction.get(rideRequestRef);
+
+      if (!rideRequestSnapshot.exists) {
+        throw Exception("Ride request with ID $rideRequestId not found.");
+      }
+
+      final rideRequestData = rideRequestSnapshot.data();
+      if (rideRequestData == null) {
+        throw Exception("Ride request data is empty.");
+      }
+
+      final String passengerId = rideRequestData['userId']; // User who made the request is the passenger
+      String passengerName = rideRequestData['userName'] ?? "Unknown Passenger";
+
+      final int requestedPlaces = (rideRequestData['placeCount'] as num).toInt();
+
+      // Check if driver is attempting to accept their own request (shouldn't happen here)
+      if (driverId == passengerId) {
+        throw Exception("You cannot accept your own ride request.");
+      }
+
+      // Check if this driver has already accepted this specific ride request
+      final existingBookingForThisRequest = await _firestore
+          .collection('bookings')
+          .where('rideId', isEqualTo: rideRequestId) // Note: Using 'rideId' in bookings to link to rideRequestId
+          .where('driverId', isEqualTo: driverId)
+          .get();
+
+      if (existingBookingForThisRequest.docs.isNotEmpty) {
+        throw Exception("You have already accepted this ride request.");
+      }
+
+      // Important: Check if another driver has already accepted this request
+      final currentRequestStatus = rideRequestData['status'];
+      if (currentRequestStatus != 'pending') {
+         throw Exception("This ride request has already been ${currentRequestStatus}.");
+      }
+
+      // 2. Get Driver's Vehicle and Check Capacity
+      final vehiclesSnapshot = await _firestore.collection('users').doc(driverId).collection('vehicles').get();
+
+      if (vehiclesSnapshot.docs.isEmpty) {
+        throw Exception("You do not have a registered vehicle. Please add one to accept rides.");
+      }
+
+      // For simplicity, assume the first vehicle found is the one to use.
+      final vehicleData = vehiclesSnapshot.docs.first.data();
+      final int maxSeatsInVehicle = (vehicleData['capacity'] as num?)?.toInt() ?? 0; // Changed to 'capacity'
+      final String vehicleMake = vehicleData['make'] ?? 'N/A';
+      final String vehicleModel = vehicleData['model'] ?? 'N/A';
+      final String vehicleId = vehiclesSnapshot.docs.first.id; // The document ID of the vehicle
+
+      if (requestedPlaces > maxSeatsInVehicle) {
+        throw Exception("Your vehicle's maximum places ($maxSeatsInVehicle) are less than the requested places ($requestedPlaces).");
+      }
+
+      // 3. Create the Booking Document in 'bookings' collection
+      final LatLng pickupLocation = LatLng(
+        rideRequestData['pickupLat'] ?? 0.0, // Using updated field name: pickupLat
+        rideRequestData['pickupLon'] ?? 0.0, // Using updated field name: pickupLon
+      );
+      final LatLng dropoffLocation = LatLng(
+        rideRequestData['destinationLat'] ?? 0.0, // Using updated field name: destinationLat
+        rideRequestData['destinationLon'] ?? 0.0, // Using updated field name: destinationLon
+      );
+      final String pickupAddress = rideRequestData['pickupName'];
+      final String dropoffAddress = rideRequestData['destinationName'];
+      final Timestamp date = rideRequestData['timestamp'] is Timestamp
+              ? rideRequestData['timestamp']
+              : Timestamp.fromDate(DateTime.parse(rideRequestData['timestamp'].toString()));
+
+      final double price = (rideRequestData['price'] as num).toDouble();
+      final double distanceKm = (rideRequestData['distanceKm'] as num?)?.toDouble() ?? 0.0;
+
+
+      final bookingData = {
+        'isRideRequest' : true,
+        'rideId': rideRequestId, // Link to the original ride request (using its ID)
+        'passengerId': passengerId,
+        'passengerName': passengerName,
+        'driverId': driverId,
+        'driverName': driverName,
+        'seatsBooked': requestedPlaces, // Number of places requested by the passenger
+        'status': 'confirmed', // Driver accepts, so status is confirmed
+        'createdAt': FieldValue.serverTimestamp(),
+        'rideDetails': {
+          'pickupLocation': {
+            'latitude': pickupLocation.latitude,
+            'longitude': pickupLocation.longitude,
+          },
+          'dropoffLocation': {
+            'latitude': dropoffLocation.latitude,
+            'longitude': dropoffLocation.longitude,
+          },
+          'pickUpName': pickupAddress,
+          'destinationName': dropoffAddress,
+          'date': date,
+          'price': price,
+          'distanceKm': distanceKm,
+          'vehicleMake': vehicleMake,
+          'vehicleModel': vehicleModel,
+          'vehicleId': vehicleId, // Add vehicle ID
+        }
+      };
+
+      // Set the new booking document
+      transaction.set(_firestore.collection('bookings').doc(), bookingData);
+
+      // 4. Update the ride_request status to 'accepted'
+      transaction.update(rideRequestRef, {
+        'status': 'accepted', // Mark as accepted
+        'acceptedByDriverId': driverId, // Record which driver accepted
+        'acceptedAt': FieldValue.serverTimestamp(),
+      });
     });
   }
 }
