@@ -12,6 +12,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/chat_services.dart';
 import '../messages/message_page.dart';
+import 'package:intl/intl.dart';
 
 class SeeRidesPage extends StatefulWidget {
   final String destinationLocation;
@@ -44,6 +45,16 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
   bool isValidateLocation = false;
   int? currentPrice;
 
+  // filter vars
+  double _minPrice = 0;
+  double _maxPrice = 5000;
+  DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
+  int _minPlaces = 0;
+  int _maxPlaces = 8;
+
+   
+
   @override
   void initState() {
     super.initState();
@@ -54,7 +65,7 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
   }
 
   @override
-  void dispose() {
+  void dispose() {//! to learn
     pickupController.dispose();
     super.dispose();
   }
@@ -560,15 +571,53 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                   icon: Icon(LucideIcons.arrowLeft),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  'Available Rides',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Text(
+                    'Available Rides',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
+                 IconButton(
+                    onPressed: () async {
+                      // Changed to async here
+                      final result = await _showFilterDialog(
+                        context,
+                      ); // Await the result
+
+                      // Only apply filters if result is not null (i.e., "Apply Filters" was pressed)
+                      if (result != null) {
+                        setState(() {
+                          _minPrice = result['minPrice'];
+                          _maxPrice = result['maxPrice'];
+                          _selectedDate = result['selectedDate'];
+                          _selectedTime = result['selectedTime'];
+                          _minPlaces = result['minPlaces'];
+                          _maxPlaces = result['maxPlaces'];
+                          // Note: Search query is updated directly by TextField's onChanged
+                        });
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 15,
+                      ),
+                    ),
+                    icon: const Icon(Icons.filter_list),
+                  ),
+                
               ],
             ),
-
+            const SizedBox(height: 16),
+              
+                 
+              
+              const SizedBox(height: 16),
             // Expanded list of rides
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
@@ -597,6 +646,13 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                             rideData['bookedBy'] ?? []; // Ensure it's not null
                         final int leftPlaces =
                             (rideData['leftPlace'] as num?)?.toInt() ?? 0;
+                        final userName =
+                              (rideData['userName'] as String?)?.toLowerCase() ??
+                              '';
+                        final price =
+                              (rideData['price'] as num?)?.toDouble() ?? 0.0;
+                        final timestamp = rideData['date'] as Timestamp?;
+                          final rideDateTime = timestamp?.toDate();
                         // Assuming 'active' is the status for bookable rides
 
                         // Exclude rides published by the current user (you can't book your own)
@@ -621,8 +677,37 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                         if (!rideDestination.contains(destinationFilter)) {
                           return false; // Exclude rides not matching the destination filter
                         }
+                        
 
-                        return true; // If all filters pass, include this ride
+                      // Price filter
+                          final matchesPrice =
+                              price >= _minPrice && price <= _maxPrice;
+
+                              // Date filter
+                          final matchesDate =
+                              _selectedDate == null ||
+                              (rideDateTime != null &&
+                                  _selectedDate!.year == rideDateTime.year &&
+                                  _selectedDate!.month == rideDateTime.month &&
+                                  _selectedDate!.day == rideDateTime.day);
+
+                                  // Time filter
+                          final matchesTime =
+                              _selectedTime == null ||
+                              (rideDateTime != null &&
+                                  _selectedTime!.hour == rideDateTime.hour &&
+                                  _selectedTime!.minute == rideDateTime.minute);
+
+                                  // Places filter
+                          final matchesPlaces =
+                              (leftPlaces >= _minPlaces &&
+                                  leftPlaces <= _maxPlaces);
+
+                        return 
+                              matchesPrice &&
+                              matchesDate &&
+                              matchesTime &&
+                              matchesPlaces; // If all filters pass, include this ride
                       }).toList();
                   if (filteredAndAvailableRides.isEmpty) {
                     return const Center(child: Text('No available rides'));
@@ -870,6 +955,286 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
           ],
         ),
       ),
+    );
+    
+  }
+  String _formatDate(DateTime date) => DateFormat('yyyy-MM-dd').format(date);
+
+  String _formatTime(DateTime date) => DateFormat('HH:mm').format(date);
+
+  Future<Map<String, dynamic>?> _showFilterDialog(BuildContext context) async {
+    double tempMinPrice = _minPrice;
+    double tempMaxPrice = _maxPrice;
+    DateTime? tempSelectedDate = _selectedDate;
+    TimeOfDay? tempSelectedTime = _selectedTime;
+    int tempMinPlaces = _minPlaces;
+    int tempMaxPlaces = _maxPlaces;
+
+    return await showDialog<Map<String, dynamic>?>(
+      // Specify return type
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Filter Rides'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Price Range (DZD)'),
+                    RangeSlider(
+                      values: RangeValues(tempMinPrice, tempMaxPrice),
+                      min: 0,
+                      max: 5000,
+                      divisions: 50,
+                      labels: RangeLabels(
+                        tempMinPrice.round().toString(),
+                        tempMaxPrice.round().toString(),
+                      ),
+                      onChanged: (values) {
+                        setState(() {
+                          tempMinPrice = values.start;
+                          tempMaxPrice = values.end;
+                        });
+                      },
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Min: ${tempMinPrice.round()}'),
+                        Text('Max: ${tempMaxPrice.round()}'),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Date Picker
+                    ListTile(
+                      title: Text(
+                        'Date: ${tempSelectedDate != null ? DateFormat('yyyy-MM-dd').format(tempSelectedDate!) : 'Any'}',
+                      ),
+                      trailing: const Icon(Icons.calendar_today),
+                      onTap: () async {
+                        final pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: tempSelectedDate ?? DateTime.now(),
+                          firstDate: DateTime.now().subtract(
+                            const Duration(days: 365),
+                          ),
+                          lastDate: DateTime.now().add(
+                            const Duration(days: 365),
+                          ),
+                        );
+                        if (pickedDate != null) {
+                          setState(() {
+                            tempSelectedDate = pickedDate;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Time Picker
+                    ListTile(
+                      title: Text(
+                        'Time: ${tempSelectedTime != null ? tempSelectedTime!.format(context) : 'Any'}',
+                      ),
+                      trailing: const Icon(Icons.access_time),
+                      onTap: () async {
+                        final pickedTime = await showTimePicker(
+                          context: context,
+                          initialTime: tempSelectedTime ?? TimeOfDay.now(),
+                        );
+                        if (pickedTime != null) {
+                          setState(() {
+                            tempSelectedTime = pickedTime;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Min Places Input with Buttons
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Minimum Places'),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              iconSize: 36,
+                              padding: const EdgeInsets.all(12),
+                              style: ButtonStyle(
+                                minimumSize: MaterialStateProperty.all(
+                                  const Size(50, 50),
+                                ),
+                                shape: MaterialStateProperty.all(
+                                  const CircleBorder(),
+                                ),
+                              ),
+                              icon: const Icon(Icons.remove),
+                              onPressed:
+                                  tempMinPlaces > 0
+                                      ? () {
+                                        setState(() {
+                                          tempMinPlaces--;
+                                          if (tempMinPlaces > tempMaxPlaces) {
+                                            tempMaxPlaces = tempMinPlaces;
+                                          }
+                                        });
+                                      }
+                                      : null,
+                            ),
+                            SizedBox(
+                              width: 80,
+                              child: Text(
+                                tempMinPlaces.toString(),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            IconButton(
+                              iconSize: 36,
+                              padding: const EdgeInsets.all(12),
+                              style: ButtonStyle(
+                                minimumSize: MaterialStateProperty.all(
+                                  const Size(50, 50),
+                                ),
+                                shape: MaterialStateProperty.all(
+                                  const CircleBorder(),
+                                ),
+                              ),
+                              icon: const Icon(Icons.add),
+                              onPressed:
+                                  tempMinPlaces < 8
+                                      ? () {
+                                        setState(() {
+                                          tempMinPlaces++;
+                                        });
+                                      }
+                                      : null,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Max Places Input with Buttons
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Maximum Places'),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              iconSize: 36,
+                              padding: const EdgeInsets.all(12),
+                              style: ButtonStyle(
+                                minimumSize: MaterialStateProperty.all(
+                                  const Size(50, 50),
+                                ),
+                                shape: MaterialStateProperty.all(
+                                  const CircleBorder(),
+                                ),
+                              ),
+                              icon: const Icon(Icons.remove),
+                              onPressed:
+                                  tempMaxPlaces > 0
+                                      ? () {
+                                        setState(() {
+                                          tempMaxPlaces--;
+                                          if (tempMaxPlaces < tempMinPlaces) {
+                                            tempMinPlaces = tempMaxPlaces;
+                                          }
+                                        });
+                                      }
+                                      : null,
+                            ),
+                            SizedBox(
+                              width: 80,
+                              child: Text(
+                                tempMaxPlaces.toString(),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            IconButton(
+                              iconSize: 36,
+                              padding: const EdgeInsets.all(12),
+                              style: ButtonStyle(
+                                minimumSize: MaterialStateProperty.all(
+                                  const Size(50, 50),
+                                ),
+                                shape: MaterialStateProperty.all(
+                                  const CircleBorder(),
+                                ),
+                              ),
+                              icon: const Icon(Icons.add),
+                              onPressed:
+                                  tempMaxPlaces < 8
+                                      ? () {
+                                        setState(() {
+                                          tempMaxPlaces++;
+                                        });
+                                      }
+                                      : null,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext, null); // Return null on Cancel
+                  },
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // Return a map of the temporary filter values
+                    Navigator.pop(dialogContext, {
+                      'minPrice': tempMinPrice,
+                      'maxPrice': tempMaxPrice,
+                      'selectedDate': tempSelectedDate,
+                      'selectedTime': tempSelectedTime,
+                      'minPlaces': tempMinPlaces,
+                      'maxPlaces': tempMaxPlaces,
+                    });
+                  },
+                  child: const Text('Apply Filters'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // Return map with default/cleared values
+                    Navigator.pop(dialogContext, {
+                      'minPrice': 0.0,
+                      'maxPrice': 5000.0,
+                      'selectedDate': null,
+                      'selectedTime': null,
+                      'minPlaces': 0,
+                      'maxPlaces': 8,
+                    });
+                  },
+                  child: const Text('Clear Filters'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

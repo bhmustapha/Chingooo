@@ -88,7 +88,7 @@ class _RequestedRidesPageState extends State<RequestedRidesPage> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  ElevatedButton(
+                  IconButton(
                     onPressed: () async {
                       // Changed to async here
                       final result = await _showFilterDialog(
@@ -117,7 +117,7 @@ class _RequestedRidesPageState extends State<RequestedRidesPage> {
                         vertical: 15,
                       ),
                     ),
-                    child: const Icon(Icons.filter_list),
+                    icon: const Icon(Icons.filter_list),
                   ),
                 ],
               ),

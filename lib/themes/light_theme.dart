@@ -125,15 +125,15 @@ final ThemeData lightTheme = ThemeData(
   ),
 
   // Time Picker Theme
-  timePickerTheme: const TimePickerThemeData(
-    backgroundColor: Colors.red,
-    hourMinuteTextColor: Colors.purple,
-    hourMinuteColor: Colors.orange, // Hour/Minute box color
+  timePickerTheme:  TimePickerThemeData(
+    backgroundColor: Colors.white,
+    hourMinuteTextColor: Colors.blue,
+    hourMinuteColor: Colors.grey[300], // Hour/Minute box color
     dayPeriodTextColor: Colors.white, // AM/PM text color
     dayPeriodColor: Colors.blue, // AM/PM background color
-    dialHandColor: Colors.green, // Dial hand color
-    dialBackgroundColor: Colors.black, // Dial background color
-    dialTextColor: Colors.deepOrange, // Dial text color
+    dialHandColor: Colors.blue, // Dial hand color
+    dialBackgroundColor: Colors.grey[300], // Dial background color
+    dialTextColor: Colors.blue, // Dial text color
     entryModeIconColor: Colors.brown, // Icon color for switching modes
   ),
 
