@@ -24,6 +24,8 @@ class AuthService {
           'name': name,
           'email': email,
           'phone': phone,
+          'role' : 'passenger',
+          'status' : 'active',
           'createdAt': Timestamp.now(),
         });
         return true;

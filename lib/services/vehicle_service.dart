@@ -20,6 +20,9 @@ class VehicleService {
       throw Exception("User not logged in.");
     }
     await _userVehiclesCollection(currentUserId!).add(vehicle.toFirestore()); // to firestore returns a map (string, dunamyc)
+    await _firestore.collection('users').doc(currentUserId).update({
+      'role' : 'driver',
+    });
   }
 
   // Get a stream of vehicles for the current user

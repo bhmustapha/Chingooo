@@ -1,4 +1,5 @@
 import 'package:carpooling/main.dart';
+import 'package:carpooling/views/admin/admin_dashboard_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart'; // for the menu
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -74,6 +75,17 @@ class _ToggleMenuState extends State<ToggleMenu> {
           foregroundColor: Colors.blue[600],
           onTap: () {
             Navigator.pushNamed(context, '/aboutapp');
+          },
+        ),
+        SpeedDialChild(
+          child: Icon(Icons.admin_panel_settings),
+          shape: CircleBorder(),
+          foregroundColor: Colors.blue[600],
+          onTap: () {
+            Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
+  );
           },
         ),
       ],
