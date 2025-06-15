@@ -1,5 +1,6 @@
 // lib/views/profile/user_profile_page.dart
 
+import 'package:carpooling/services/report_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -53,6 +54,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
   }
 
+  
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<DocumentSnapshot>(
@@ -103,6 +106,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
         return Scaffold(
           appBar: AppBar(
             title: Text('$userName Profile'),
+            actions: [
+              if (currentUserId != widget.userId)
+                // MODIFIED: Changed from IconButton to TextButton
+                IconButton(
+                  onPressed: () => ReportService.reportUser(context, widget.userId, userName),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.red, // Make the text red
+                  ),
+                  icon: const Icon(Icons.report)
+                ),
+            ],
             elevation: 0,
             backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
             foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
@@ -354,7 +368,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       padding: const EdgeInsets.only(bottom: 8.0),
                       child: Text(
                         '${vehicleMake} ${vehicleModel} (${vehicleYear})',
-                        // MODIFIED: Changed from titleSmall to titleMedium
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),

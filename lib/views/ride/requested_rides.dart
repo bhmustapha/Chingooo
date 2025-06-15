@@ -153,7 +153,7 @@ class _RequestedRidesPageState extends State<RequestedRidesPage> {
                         allRequestedRides.where((ride) {
                           final data = ride.data() as Map<String, dynamic>;
                           final pickupName =
-                              (data['pickupName'] as String?)?.toLowerCase() ??
+                              (data['pickUpName'] as String?)?.toLowerCase() ??
                               '';
                           final destinationName =
                               (data['destinationName'] as String?)
@@ -164,7 +164,7 @@ class _RequestedRidesPageState extends State<RequestedRidesPage> {
                               '';
                           final price =
                               (data['price'] as num?)?.toDouble() ?? 0.0;
-                          final timestamp = data['timestamp'] as Timestamp?;
+                          final timestamp = data['date'] as Timestamp?;
                           final rideDateTime = timestamp?.toDate();
                           final placeCount = (data['placeCount'] as int?) ?? 0;
 
@@ -248,7 +248,7 @@ class _RequestedRidesPageState extends State<RequestedRidesPage> {
                       itemBuilder: (context, index) {
                         final ride = filteredRides[index];
                         final data = ride.data() as Map<String, dynamic>;
-                        final timestamp = data['timestamp'] as Timestamp?;
+                        final timestamp = data['date'] as Timestamp?;
                         final dateTime = timestamp?.toDate() ?? DateTime.now();
                         final displayPlaceCount = data['placeCount'] ?? 'N/A';
 

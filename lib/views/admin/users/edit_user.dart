@@ -1,16 +1,18 @@
 import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:flutter/material.dart';
-import '../../../themes/costum_reusable.dart'; // Assuming roundedInputBorder is here
-import 'package:firebase_auth/firebase_auth.dart';
+import '../../../themes/costum_reusable.dart'; 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 
-class EditProfilePage extends StatefulWidget {
+class EditUserPage extends StatefulWidget {
+  final String userId;
+
+  const EditUserPage({super.key, required this.userId});
   @override
-  _EditProfilePageState createState() => _EditProfilePageState();
+  _EditUserPageState createState() => _EditUserPageState();
 }
 
-class _EditProfilePageState extends State<EditProfilePage> {
+class _EditUserPageState extends State<EditUserPage> {
   final _formKey = GlobalKey<FormState>();
 
   TextEditingController nameController = TextEditingController();
@@ -18,7 +20,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
 
-  final uid = FirebaseAuth.instance.currentUser!.uid;
+  bool _isLoading = false;
+  
 
   @override
   void initState() {
@@ -28,7 +31,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
    Future<void> _loadUserData() async {
     try {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final doc = await FirebaseFirestore.instance.collection('users').doc(widget.userId).get();
       if (doc.exists) {
         final data = doc.data()!;
         nameController.text = data['name'] ?? '';
@@ -57,16 +60,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _saveProfile() async {
+    setState(() {
+      _isLoading = true;
+    });
     if (_formKey.currentState!.validate()) {
       try {
-        await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        await FirebaseFirestore.instance.collection('users').doc(widget.userId).update({
           'name': nameController.text,
           'birthdate': dobController.text,
           'email': emailController.text,
           'phone': phoneController.text,
           
         });
-
+      setState(() {
+        _isLoading = false;
+      });
         showSuccessSnackbar(context, 'Profile updated!');
         Navigator.pop(context, true);
       } catch (e) {
@@ -124,7 +132,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         validator:
                             (value) =>
                                 value!.isEmpty
-                                    ? 'Please enter your name'
+                                    ? 'Please enter the name'
                                     : null,
                       ),
                       const SizedBox(height: 16),
@@ -147,7 +155,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         validator:
                             (value) =>
                                 value!.isEmpty
-                                    ? 'Please select your date of birth'
+                                    ? 'Please select the date of birth'
                                     : null,
                       ),
                       const SizedBox(height: 16),
@@ -168,7 +176,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         validator:
                             (value) =>
                                 value!.isEmpty
-                                    ? 'Please enter your email'
+                                    ? 'Please enter the email'
                                     : null,
                       ),
                       const SizedBox(height: 16),
@@ -189,7 +197,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         validator:
                             (value) =>
                                 value!.isEmpty
-                                    ? 'Please enter your phone number'
+                                    ? 'Please enter the phone number'
                                     : null,
                       ),
                       const SizedBox(height: 32,),
@@ -207,7 +215,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               borderRadius: BorderRadius.circular(16),
                             ),
                           ),
-                          child: Text('Save Changes'),
+                          child: _isLoading? Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: CircularProgressIndicator(color: Colors.white,),
+                          ) : Text('Save Changes'),
                         ),
                       ),
                     ],

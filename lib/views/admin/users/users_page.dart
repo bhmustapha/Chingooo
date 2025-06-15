@@ -1,3 +1,4 @@
+import 'package:carpooling/views/admin/users/add_new_user.dart';
 import 'package:carpooling/views/admin/users/user_details.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,7 +6,7 @@ import 'package:intl/intl.dart'; // For date formatting
 
 class UsersPage extends StatefulWidget {
   const UsersPage({super.key});
-
+//! to learn view this page
   @override
   State<UsersPage> createState() => _UsersPageState();
 }
@@ -46,10 +47,7 @@ class _UsersPageState extends State<UsersPage> {
             icon: const Icon(Icons.add_circle_outline),
             tooltip: "Add New User",
             onPressed: () {
-              // TODO: Implement "Add New User" functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Add New User functionality not yet implemented")),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (context) => AddNewUser()));
             },
           ),
         ],

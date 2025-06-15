@@ -1,3 +1,4 @@
+import 'package:carpooling/services/report_service.dart';
 import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -534,7 +535,9 @@ Future<void> _submitRating({
                                               ],
                                             ),
                                           ),
-
+                                          IconButton(onPressed: () {
+                                            ReportService.reportUser(context, otherUserId, otherUserName);
+                                          }, icon: Icon(Icons.report, color : Colors.red)),
                                           if (showRateButton)
                                             OutlinedButton.icon(
                                               onPressed: () {

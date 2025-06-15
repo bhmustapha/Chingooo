@@ -1,3 +1,4 @@
+import 'package:carpooling/views/admin/users/edit_user.dart';
 import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -57,11 +58,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
   // Method to delete user account
   Future<void> _deleteUser() async {
     try {
-      // TODO: Implement actual user deletion (e.g., Firebase Authentication deletion,
-      // and then Firestore document deletion).
-      // Note: Deleting a user from Firebase Auth requires server-side logic
-      // or callable Cloud Functions for security reasons.
-      // For this example, we'll just delete the Firestore document.
+      // TODO: Implement actual user deletion 
       await FirebaseFirestore.instance.collection('users').doc(widget.userId).delete();
       showSuccessSnackbar(context, 'User account deleted successfully');
       Navigator.pop(context); // Go back to the users list
@@ -85,10 +82,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
             icon: const Icon(Icons.edit),
             tooltip: "Edit User Profile",
             onPressed: () {
-              // TODO: Implement "Edit User Profile" functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Edit User functionality not yet implemented")),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (context) => EditUserPage(userId: widget.userId,)));
             },
           ),
         ],
@@ -209,14 +203,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 _buildRatingsList(widget.userId),
                 const SizedBox(height: 24),
 
-                // You can add more sections like:
-                // _buildSectionHeader("Ride Requests"),
-                // _buildRideRequestsList(widget.userId),
-                // const SizedBox(height: 24),
-                //
-                // _buildSectionHeader("Bookings"),
-                // _buildBookingsList(widget.userId),
-                // const SizedBox(height: 24),
+                
               ],
             ),
           );
@@ -333,7 +320,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
               itemCount: uniqueRides.length,
               itemBuilder: (context, index) {
                 final rideData = uniqueRides[index].data() as Map<String, dynamic>;
-                final String from = rideData['pickupName'] ?? 'N/A';
+                final String from = rideData['pickUpName'] ?? 'N/A';
                 final String to = rideData['destinationName'] ?? 'N/A';
                 final Timestamp? startTime = rideData['timestamp'];
                 final String status = rideData['status'] ?? 'N/A';
@@ -358,7 +345,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     ),
                     trailing: Text(rideType),
                     onTap: () {
-                      // TODO: Navigate to Ride Detail Page if you have one
+                      // TODO: Navigate to Ride Detail 
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text("View Ride ${uniqueRides[index].id} details")),
                       );
@@ -415,10 +402,15 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   elevation: 1,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   child: ListTile(
-                    leading: Icon(Icons.star, color: Colors.amber, size: 28),
+                    leading: Column(
+                      children: [
+                        Icon(Icons.star, color: Colors.amber, size: 28),
+                        Text('$ratingValue')
+                      ],
+                    ),
                     title: Row(
                       children: [
-                        Text('$ratingValue stars by $raterName'),
+                        Text(raterName),
                         const Spacer(),
                         Text(
                           timestamp != null ? DateFormat('MMM dd, yyyy').format(timestamp.toDate()) : 'N/A',

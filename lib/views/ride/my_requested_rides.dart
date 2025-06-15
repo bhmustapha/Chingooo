@@ -49,10 +49,10 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
               final data = rideRequest.data() as Map<String, dynamic>;
               final rideRequestId = rideRequest.id;
 
-              final pickupName = data['pickupName'] ?? 'Unknown pickup';
+              final pickupName = data['pickUpName'] ?? 'Unknown pickup';
               final destinationName =
                   data['destinationName'] ?? 'Unknown destination';
-              final timestamp = data['timestamp'] as Timestamp?;
+              final timestamp = data['date'] as Timestamp?;
               final dateTime = timestamp?.toDate() ?? DateTime.now();
 
               return FutureBuilder<QuerySnapshot>(

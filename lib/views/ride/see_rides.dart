@@ -389,7 +389,7 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                                           'userName':
                                               userData?['name'] ?? 'unknown',
                                           'distanceKm': widget.distanceInKm,
-                                          'pickupName':
+                                          'pickUpName':
                                               pickupName == 'Current Location'
                                                   ? pickupAddress
                                                   : pickupName,
@@ -405,7 +405,7 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                                                   .destinationCoords
                                                   .longitude,
                                           'destinationName': destination,
-                                          'timestamp': selectedDateTime,
+                                          'date': selectedDateTime,
                                           'status': 'pending',
                                           'createdAt': Timestamp.now(),
                                           'price': tempPrice,
