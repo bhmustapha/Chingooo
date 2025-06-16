@@ -2,15 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart'; //launch urlsor other apps
 // info page (toggeled menu)
 
-class AboutAppPage extends StatelessWidget {
+class AboutAppPage extends StatefulWidget {
   const AboutAppPage({Key? key}) : super(key: key);
 
-  void _launchURL(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
+  @override
+  State<AboutAppPage> createState() => _AboutAppPageState();
+}
+
+class _AboutAppPageState extends State<AboutAppPage> {
+  
+
+   Future<void> _launchUrl(String urlString) async {
+    final Uri url = Uri.parse(urlString);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      print('Could not launch $urlString');
+      // Optional: Show a user-friendly error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not open the policy page. Please check your internet connection.')),
+      );
     }
   }
+
+final String _privacyPolicyUrl = 'https://chingooocarpooling-privacy.netlify.app/'; 
+
+  final String _appTermsUrl = 'https://chingooocarpooling-terms.netlify.app/';  
 
   @override
   Widget build(BuildContext context) {
@@ -68,18 +83,18 @@ class AboutAppPage extends StatelessWidget {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                // todo (privacy sittings)
+                
                 GestureDetector(
-                  onTap: () => _launchURL("https://example.com/privacy"),
+                  onTap: () => _launchUrl(_privacyPolicyUrl),
                   child: const Text(
                     "Privacy Policy",
                     style: TextStyle(decoration: TextDecoration.underline),
                   ),
                 ),
                 const SizedBox(height: 4),
-                // todo terms
+                
                 GestureDetector(
-                  onTap: () => _launchURL("https://example.com/terms"),
+                  onTap: () => _launchUrl(_appTermsUrl),
                   child: const Text(
                     "Terms of Service",
                     style: TextStyle(decoration: TextDecoration.underline),
@@ -88,7 +103,7 @@ class AboutAppPage extends StatelessWidget {
                 const SizedBox(height: 32),
                 Center(
                   child: GestureDetector(
-                    onTap: () => _launchURL(
+                    onTap: () => _launchUrl(
                       "https://play.google.com/store/apps/details?id=mycarpool.app",
                     ),
                     child: Container(

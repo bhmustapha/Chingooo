@@ -82,6 +82,9 @@ dependencies:
   #facebook login
   flutter_facebook_auth: ^7.1.2
 
+  #notifications
+  firebase_messaging: ^15.2.7
+
 
   
 

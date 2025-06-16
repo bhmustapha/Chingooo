@@ -1,9 +1,10 @@
 import 'package:carpooling/views/settings/account%20settings/account_settings_page.dart';
-import 'package:carpooling/views/settings/music_preferences_settings_page.dart';
 import 'package:carpooling/views/settings/notifications_settings_page.dart';
 import 'package:carpooling/views/settings/payment_settings_page.dart';
-import 'package:carpooling/views/settings/ride_preferences_page.dart';
 import 'package:flutter/material.dart';
+
+// import 'package:carpooling/views/settings/ride_preferences_page.dart';
+// import 'package:carpooling/views/settings/music_preferences_settings_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -92,32 +93,32 @@ class SettingsPage extends StatelessWidget {
 
                     const SizedBox(height: 24),
 
-                    SectionTitle(title: 'Ride Preferences'),
-                    // Removed GreyContainer
+                    // SectionTitle(title: 'Ride Preferences'),
+                    // // Removed GreyContainer
                     Column( // Column directly wrapping SettingsTiles
                       children: [
-                        SettingsTile(
-                          icon: Icons.directions_car,
-                          text: 'Preferred Vehicle',
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const RidePreferencesPage(),
-                              ),
-                            );
-                          },
-                        ),
-                        SettingsTile(
-                          icon: Icons.music_note,
-                          text: 'Music Preferences',
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const MusicPreferencesSettingsPage(),
-                              ),
-                            );
-                          },
-                        ),
+                        // SettingsTile(
+                        //   icon: Icons.directions_car,
+                        //   text: 'Preferred Vehicle',
+                        //   onTap: () {
+                        //     Navigator.of(context).push(
+                        //       MaterialPageRoute(
+                        //         builder: (_) => const RidePreferencesPage(),
+                        //       ),
+                        //     );
+                        //   },
+                        // ),
+                        // SettingsTile(
+                        //   icon: Icons.music_note,
+                        //   text: 'Music Preferences',
+                        //   onTap: () {
+                        //     Navigator.of(context).push(
+                        //       MaterialPageRoute(
+                        //         builder: (_) => const MusicPreferencesSettingsPage(),
+                        //       ),
+                        //     );
+                        //   },
+                        // ),
                       ],
                     ),
                     const SizedBox(height: 24), // Add some bottom spacing

@@ -4,6 +4,7 @@ import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../services/auth_service.dart'; // auth logic
 
 class SignUpPage extends StatefulWidget {
@@ -14,6 +15,12 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
+  
+  final String _privacyPolicyUrl = 'https://chingooocarpooling-privacy.netlify.app/'; 
+  final String _appTermsUrl = 'https://chingooocarpooling-terms.netlify.app/';   
+
+
+
   bool _isLoading = false; // loading flag
 
   // Declare controllers as StatefulWidget members so they persist
@@ -34,6 +41,17 @@ class _SignUpPageState extends State<SignUpPage> {
     passwordController.dispose();
     confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _launchUrl(String urlString) async {
+    final Uri url = Uri.parse(urlString);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      print('Could not launch $urlString');
+      // Optional: Show a user-friendly error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not open the policy page. Please check your internet connection.')),
+      );
+    }
   }
 
   @override
@@ -259,8 +277,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                           recognizer: TapGestureRecognizer()
                             ..onTap = () {
-                              // TODO: Navigate to Privacy Policy page or show a dialog
-                              print('Navigate to Privacy Policy');
+                              _launchUrl(_privacyPolicyUrl);
                             },
                         ),
                         TextSpan(
@@ -275,8 +292,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                           recognizer: TapGestureRecognizer()
                             ..onTap = () {
-                              // TODO: Navigate to App Terms page or show a dialog
-                              print('Navigate to App Terms');
+                              _launchUrl(_appTermsUrl);
                             },
                         ),
                         TextSpan(

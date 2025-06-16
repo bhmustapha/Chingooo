@@ -51,6 +51,60 @@ class _LoginPageState extends State<LoginPage> {
   }
   // --- End new method ---
 
+  // --- Modified method for Forgot Password Dialog ---
+  void _showForgotPasswordDialog(BuildContext context) {
+    // Pre-populate the reset email field with the current email controller's text
+    final TextEditingController resetEmailController =
+        TextEditingController(text: emailController.text.trim());
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Forgot Password'),
+          content: TextField(
+            controller: resetEmailController,
+            keyboardType: TextInputType.emailAddress,
+            decoration: const InputDecoration(
+              hintText: 'Enter your email',
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            ElevatedButton(
+              child: const Text('Reset Password'),
+              onPressed: () async {
+                String email = resetEmailController.text.trim();
+                if (email.isEmpty) {
+                  showErrorSnackbar(context, "Please enter your email address.");
+                  return;
+                }
+                try {
+                  await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+                  Navigator.of(dialogContext).pop();
+                  showSuccessSnackbar(context, "Password reset email sent to $email. Check your inbox.");
+                } on FirebaseAuthException catch (e) {
+                  showErrorSnackbar(context, e.message ?? "Failed to send reset email.");
+                } catch (e) {
+                  showErrorSnackbar(context, "An unexpected error occurred.");
+                  print("Forgot password error: $e");
+                }
+              },
+            ),
+          ],
+        );
+      },
+    ).then((_) {
+      resetEmailController.dispose(); // Dispose the controller after the dialog is closed
+    });
+  }
+  // --- End modified method ---
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -116,7 +170,18 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 8), // Added some space
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => _showForgotPasswordDialog(context),
+                    child: const Text(
+                      'Forgot Password?',
+                      style: TextStyle(color: Colors.blue), // You can customize the color
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16), // Adjusted space to account for the new button
                 ElevatedButton(
                   onPressed: _isLoading ? null : () async {
                     setState(() => _isLoading = true);
@@ -129,7 +194,7 @@ class _LoginPageState extends State<LoginPage> {
                       userCredential = (await AuthService.login(
                         emailController.text.trim(),
                         passwordController.text.trim(),
-                      )) as UserCredential?;
+                      ));
                       if (userCredential == null) {
                         errorMessage = "Invalid credentials. Please try again.";
                       }
