@@ -1,6 +1,7 @@
 import 'package:carpooling/themes/costum_reusable.dart';
 import 'package:carpooling/widgets/main_navigator.dart';
 import 'package:carpooling/widgets/snackbar_utils.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../services/auth_service.dart'; // auth logic
@@ -59,7 +60,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   const SizedBox(height: 24),
                   // Full Name
-                  TextFormField( // Changed from TextField to TextFormField
+                  TextFormField(
                     controller: nameController,
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(
@@ -71,16 +72,16 @@ class _SignUpPageState extends State<SignUpPage> {
                       enabledBorder: roundedInputBorder(14.0),
                       focusedBorder: roundedInputBorder(14.0),
                     ),
-                    validator: (value) { // Validator for Full Name
+                    validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Please enter your full name';
                       }
-                      return null; // Return null if the input is valid
+                      return null;
                     },
                   ),
                   const SizedBox(height: 16),
                   // Phone Number
-                  TextFormField( // Changed from TextField to TextFormField
+                  TextFormField(
                     controller: phoneController,
                     keyboardType: TextInputType.phone,
                     decoration: InputDecoration(
@@ -93,18 +94,16 @@ class _SignUpPageState extends State<SignUpPage> {
                       enabledBorder: roundedInputBorder(14.0),
                       focusedBorder: roundedInputBorder(14.0),
                     ),
-                    validator: (value) { // Validator for Phone Number
+                    validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Please enter your phone number';
                       }
-                      // Optional: Add regex for phone number format validation if needed
-                      // Example: if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) { return 'Enter a valid 10-digit phone number'; }
                       return null;
                     },
                   ),
                   const SizedBox(height: 16),
                   // Email Address
-                  TextFormField( // Changed from TextField to TextFormField
+                  TextFormField(
                     controller: emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
@@ -117,11 +116,10 @@ class _SignUpPageState extends State<SignUpPage> {
                       enabledBorder: roundedInputBorder(14.0),
                       focusedBorder: roundedInputBorder(14.0),
                     ),
-                    validator: (value) { // Validator for Email
+                    validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Please enter your email address';
                       }
-                      // Optional: Basic email format validation
                       if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
                         return 'Please enter a valid email address';
                       }
@@ -130,7 +128,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   const SizedBox(height: 16),
                   // Password
-                  TextFormField( // Changed from TextField to TextFormField
+                  TextFormField(
                     controller: passwordController,
                     obscureText: true,
                     decoration: InputDecoration(
@@ -143,11 +141,11 @@ class _SignUpPageState extends State<SignUpPage> {
                       enabledBorder: roundedInputBorder(14.0),
                       focusedBorder: roundedInputBorder(14.0),
                     ),
-                    validator: (value) { // Validator for Password
+                    validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Please enter a password';
                       }
-                      if (value.length < 6) { // Example: Minimum 6 characters
+                      if (value.length < 6) {
                         return 'Password must be at least 6 characters long';
                       }
                       return null;
@@ -155,7 +153,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   const SizedBox(height: 16),
                   // Confirm Password
-                  TextFormField( // Changed from TextField to TextFormField
+                  TextFormField(
                     controller: confirmPasswordController,
                     obscureText: true,
                     decoration: InputDecoration(
@@ -168,7 +166,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       enabledBorder: roundedInputBorder(14.0),
                       focusedBorder: roundedInputBorder(14.0),
                     ),
-                    validator: (value) { // Validator for Confirm Password
+                    validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Please confirm your password';
                       }
@@ -181,13 +179,9 @@ class _SignUpPageState extends State<SignUpPage> {
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: _isLoading ? null : () async {
-                      // Validate all form fields first
                       if (formKey.currentState!.validate()) {
-                        // The confirm password check is now also handled by its validator,
-                        // but keeping a separate check here for immediate feedback is fine too,
-                        // though the validator will also catch it.
                         if (passwordController.text.trim() != confirmPasswordController.text.trim()) {
-                          showErrorSnackbar(context, 'Passwords do not match'); // This is now redundant if validator is comprehensive
+                          showErrorSnackbar(context, 'Passwords do not match');
                           return;
                         }
 
@@ -236,6 +230,63 @@ class _SignUpPageState extends State<SignUpPage> {
                     onPressed: () => Navigator.pop(context),
                     child: const Text('Already have an account? Login'),
                   ),
+                  const SizedBox(height: 24), // Added some spacing before the footer
+                  // --- Footer Section ---
+                  RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      text: "By clicking '",
+                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                      children: [
+                        TextSpan(
+                          text: "Sign Up",
+                          style: const TextStyle(
+                            color: Colors.blue, // Make 'Sign Up' a different color to indicate it's clickable in context
+                            fontWeight: FontWeight.bold,
+                          ),
+                          // You can add a tap gesture recognizer here if 'Sign Up' needs a special action
+                          // other than submitting the form. For this context, it just refers to the button.
+                        ),
+                        TextSpan(
+                          text: "' you agree on ",
+                          style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                        ),
+                        TextSpan(
+                          text: "Privacy Policy",
+                          style: const TextStyle(
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              // TODO: Navigate to Privacy Policy page or show a dialog
+                              print('Navigate to Privacy Policy');
+                            },
+                        ),
+                        TextSpan(
+                          text: " and ",
+                          style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                        ),
+                        TextSpan(
+                          text: "App Terms",
+                          style: const TextStyle(
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              // TODO: Navigate to App Terms page or show a dialog
+                              print('Navigate to App Terms');
+                            },
+                        ),
+                        TextSpan(
+                          text: ".",
+                          style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20), // Spacing at the bottom
                 ],
               ),
             ),
@@ -245,3 +296,4 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 }
+

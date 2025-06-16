@@ -15,7 +15,7 @@ class _LinkedAccountsPageState extends State<LinkedAccountsPage> {
         title: Text('Linked accounts'),
         elevation: 0,
       ),
-      body: Center(child: Text('Linked Accounts Page'),),
+      body: Center(child: Text('Coming soon'),),
     );
   }
 }
