@@ -1,10 +1,13 @@
 import 'package:carpooling/themes/costum_reusable.dart';
-import 'package:carpooling/widgets/main_navigator.dart';
+import 'package:carpooling/widgets/main_navigator.dart'; // For regular users
 import 'package:carpooling/widgets/snackbar_utils.dart';
 import 'package:flutter/material.dart';
 import 'signup_page.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../services/auth_service.dart';
+import '../../services/auth_service.dart'; // Your AuthService
+import '../admin/admin_dashboard_page.dart'; // Import the AdminDashboardPage
+import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase User
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -29,6 +32,24 @@ class _LoginPageState extends State<LoginPage> {
     passwordController.dispose();
     super.dispose();
   }
+
+  // --- New method to check user role ---
+  Future<String?> _getUserRole(User? user) async {
+    if (user == null) return null;
+    try {
+      DocumentSnapshot userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      if (userDoc.exists && userDoc.data() != null) {
+        // Assuming 'role' is a field in your user document in Firestore
+        return (userDoc.data() as Map<String, dynamic>)['role'] as String?;
+      }
+      return null; // User document not found or no role field
+    } catch (e) {
+      print("Error fetching user role: $e");
+      return null;
+    }
+  }
+  // --- End new method ---
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +103,7 @@ class _LoginPageState extends State<LoginPage> {
                     border: roundedInputBorder(14.0),
                     enabledBorder: roundedInputBorder(14.0),
                     focusedBorder: roundedInputBorder(14.0),
-                    suffixIcon: IconButton( // The eye icon button
+                    suffixIcon: IconButton(
                       icon: Icon(
                         _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
                         color: Theme.of(context).primaryColor,
@@ -99,21 +120,50 @@ class _LoginPageState extends State<LoginPage> {
                 ElevatedButton(
                   onPressed: _isLoading ? null : () async {
                     setState(() => _isLoading = true);
-                    final errorMessage = await AuthService.login(
-                      emailController.text.trim(), // Trim whitespace
-                      passwordController.text.trim(), // Trim whitespace
-                    );
-                    setState(() => _isLoading = false);
-                    if (errorMessage == null) {
-                      // Login successful — navigate to home
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => MainNavigator()),
-                      );
-                    } else {
-                      // Show error
-                      showErrorSnackbar(context, errorMessage);
+
+                    // --- Modified Login Logic ---
+                    // Assuming AuthService.login now returns a UserCredential or null
+                    UserCredential? userCredential;
+                    String? errorMessage;
+                    try {
+                      userCredential = (await AuthService.login(
+                        emailController.text.trim(),
+                        passwordController.text.trim(),
+                      )) as UserCredential?;
+                      if (userCredential == null) {
+                        errorMessage = "Invalid credentials. Please try again.";
+                      }
+                    } on FirebaseAuthException catch (e) {
+                      errorMessage = e.message; // Use Firebase's error message
+                    } catch (e) {
+                      errorMessage = "An unexpected error occurred.";
+                      print("Login error: $e"); // Log for debugging
                     }
+
+                    setState(() => _isLoading = false);
+
+                    if (userCredential != null && userCredential.user != null) {
+                      // Login successful, now check the user's role
+                      final String? userRole = await _getUserRole(userCredential.user);
+
+                      if (userRole == 'admin') {
+                        // Navigate to Admin Dashboard
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
+                        );
+                      } else {
+                        // Navigate to Main Navigator for regular users
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => MainNavigator()),
+                        );
+                      }
+                    } else {
+                      // Show error if login failed
+                      showErrorSnackbar(context, errorMessage ?? "Login failed.");
+                    }
+                    // --- End Modified Login Logic ---
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,

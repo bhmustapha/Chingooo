@@ -40,31 +40,27 @@ class AuthService {
     }
   }
 
-  // login
-  static Future<String?> login(String email, String password) async {
-  try {
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: email.trim(),
-      password: password.trim(), // trim tgla3 l'espace m debut w la fin
-    );
-    return null; // success
-  } on FirebaseAuthException catch (e) {
-    switch (e.code) {
-      case 'invalid-email':
-        return 'Invalid email format.';
-      case 'user-not-found':
-        return 'No user found with this email.';
-      case 'wrong-password':
-        return 'Incorrect password.';
-      default:
-        return 'Login failed: ${e.message}';
+ static Future<UserCredential?> login(String email, String password) async {
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password.trim(),
+      );
+      return userCredential; // Return the UserCredential on success
+    } on FirebaseAuthException catch (e) {
+      // Re-throw the FirebaseAuthException so LoginPage can catch it
+      // and display the specific error message.
+      rethrow;
+    } catch (e) {
+      // For any other unexpected errors, re-throw a custom exception
+      // or a generic message.
+      print("AuthService: An unknown error occurred during login: $e");
+      rethrow;
     }
-  } catch (e) {
-    return 'An unknown error occurred.';
-  }
 }
 // log out
  static Future<void> signOut() async {
     await _auth.signOut();
   }
 }
+

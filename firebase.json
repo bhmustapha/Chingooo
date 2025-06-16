@@ -1,1 +1,35 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"sarii-app-pfe-2025","appId":"1:103323551308:android:e46eb88e9892e3f68656e9","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"sarii-app-pfe-2025","configurations":{"android":"1:103323551308:android:e46eb88e9892e3f68656e9","ios":"1:103323551308:ios:f4f55d18ae0140f18656e9"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "sarii-app-pfe-2025",
+          "appId": "1:103323551308:android:e46eb88e9892e3f68656e9",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "sarii-app-pfe-2025",
+          "configurations": {
+            "android": "1:103323551308:android:e46eb88e9892e3f68656e9",
+            "ios": "1:103323551308:ios:f4f55d18ae0140f18656e9"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}

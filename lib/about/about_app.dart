@@ -36,7 +36,7 @@ class AboutAppPage extends StatelessWidget {
                 const SizedBox(height: 24),
                 // the title
                 const Text(
-                  "About Sarii",
+                  "About Chingooo",
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
@@ -47,7 +47,7 @@ class AboutAppPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 const Text(
-                  "Sarii helps users find and offer carpool rides easily and safely. "
+                  "Chingooo helps users find and offer carpool rides easily and safely. "
                   "Connect with nearby riders and drivers to save money and reduce your carbon footprint.",
                   style: TextStyle(fontSize: 16),
                 ),

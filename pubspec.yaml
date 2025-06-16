@@ -73,6 +73,15 @@ dependencies:
   # firebase storage
   firebase_storage: ^12.4.6
 
+  #for admin page
+  fl_chart: ^1.0.0
+
+  #google auth
+  google_sign_in: ^6.3.0
+
+  #facebook login
+  flutter_facebook_auth: ^7.1.2
+
 
   
 

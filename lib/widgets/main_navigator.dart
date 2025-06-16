@@ -2,7 +2,6 @@
 import 'package:carpooling/views/bookings/bookings_page.dart';
 import 'package:carpooling/views/home/home_page.dart';
 import 'package:carpooling/views/messages/conversations_list.dart';
-import 'package:carpooling/views/messages/message_page.dart';
 import 'package:carpooling/views/profile/profile/profile_page.dart';
 
 import 'package:flutter/material.dart';

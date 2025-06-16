@@ -7,6 +7,8 @@ class ReportService {
 
   static Future<void> reportUser(BuildContext context, String reportedUserId, String reportedUserName) async {
     final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
+    DocumentSnapshot userSnapshot = await FirebaseFirestore.instance.collection('users').doc(currentUserId).get();
+    String username = userSnapshot.get('name');
 
     if (currentUserId == reportedUserId) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -91,6 +93,7 @@ class ReportService {
           'reportedUserName': reportedUserName,
           'reason': reasonController.text.trim().isNotEmpty ? reasonController.text.trim() : 'No reason provided',
           'timestamp': FieldValue.serverTimestamp(),
+          'reporterName' : username,
           'status': 'pending',
         });
 

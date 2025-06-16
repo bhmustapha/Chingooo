@@ -1,11 +1,12 @@
+
 import 'package:carpooling/main.dart';
-import 'package:carpooling/themes/light_theme.dart';
 import 'package:carpooling/views/admin/analytics_page.dart';
 import 'package:carpooling/views/admin/reports_page.dart';
 import 'package:carpooling/views/admin/reviews_page.dart';
 import 'package:carpooling/views/admin/rides_page.dart';
 import 'package:carpooling/views/admin/users/users_page.dart';
 import 'package:flutter/material.dart';
+import '../../services/auth_service.dart'; // Import AuthService for logout
 
 class AdminDashboardPage extends StatelessWidget {
   const AdminDashboardPage({super.key});
@@ -14,10 +15,10 @@ class AdminDashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<_AdminTileData> adminTiles = [
       _AdminTileData(title: "Users", icon: Icons.person, onTap: () {
-         Navigator.push(context, MaterialPageRoute(builder: (_) => UsersPage()));
+        Navigator.push(context, MaterialPageRoute(builder: (_) => UsersPage()));
       }),
       _AdminTileData(title: "Rides", icon: Icons.directions_car, onTap: () {
-         Navigator.push(context, MaterialPageRoute(builder: (_) => RidesPage()));
+        Navigator.push(context, MaterialPageRoute(builder: (_) => RidesAdminPage()));
       }),
       _AdminTileData(title: "Reports", icon: Icons.report, onTap: () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => ReportsPage()));
@@ -26,7 +27,43 @@ class AdminDashboardPage extends StatelessWidget {
         Navigator.push(context, MaterialPageRoute(builder: (_) => ReviewsPage()));
       }),
       _AdminTileData(title: "Analytics", icon: Icons.bar_chart, onTap: () {
-         Navigator.push(context, MaterialPageRoute(builder: (_) => AnalyticsPage()));
+        Navigator.push(context, MaterialPageRoute(builder: (_) => AnalyticsPage()));
+      }),
+      _AdminTileData(title: "Log Out", icon: Icons.logout, onTap: () {
+        // Show a confirmation dialog before logging out
+        showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return AlertDialog(
+              title: const Text("Log Out"),
+              content: const Text("Are you sure you want to log out?"),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text("Cancel"),
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop(); // Dismiss the dialog
+                  },
+                ),
+                TextButton(
+                  child: const Text("Log Out"),
+                  onPressed: () async { // Make the onPressed callback async
+                    // Dismiss the dialog first
+                    Navigator.of(dialogContext).pop();
+
+                    // Perform Firebase logout
+                    await AuthService.signOut(); // Call the logout method from AuthService
+
+                    // Navigate to the login page and remove all previous routes from the stack
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => MyApp()), // Assumes MyApp is your login/root page
+                      (Route<dynamic> route) => false, // This ensures all previous routes are removed
+                    );
+                  },
+                ),
+              ],
+            );
+          },
+        );
       }),
     ];
 
@@ -54,7 +91,7 @@ class AdminDashboardPage extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: themeNotifier.value == ThemeMode.light ? Colors.white : Colors.grey[900],
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
                       color: Colors.black12,
                       blurRadius: 8,
@@ -89,4 +126,3 @@ class _AdminTileData {
 
   _AdminTileData({required this.title, required this.icon, required this.onTap});
 }
-  
