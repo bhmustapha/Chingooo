@@ -1,3 +1,4 @@
+import 'package:carpooling/services/notifications_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -45,6 +46,8 @@ class ChatService {
     required String chatId,
     required String senderId,
     required String text,
+    required String recieverId,
+    required String recieverName
   }) async {
     final chatRef = firestore.collection('conversations').doc(chatId);
 
@@ -58,6 +61,7 @@ class ChatService {
       'last_message': text,
       'last_timestamp': FieldValue.serverTimestamp(),
     });
+    await NotificationsService.sendOneSignalNotification(userId: recieverId, title: '$recieverName sent you a new message!', message: text);
   }
 
   // Get real-time messages by chatId (not rideId)

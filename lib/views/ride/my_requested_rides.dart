@@ -204,6 +204,14 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                                       batch.delete(doc.reference);
                                     }
 
+                                    final conversations = await FirebaseFirestore.instance
+      .collection('bookings')
+      .where('rideId', isEqualTo: rideRequestId)
+      .get();
+  for (var doc in conversations.docs) {
+    await doc.reference.delete();
+  }
+
                                     final rideRequestRef = FirebaseFirestore
                                         .instance
                                         .collection('ride_requests')

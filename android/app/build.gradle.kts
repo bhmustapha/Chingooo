@@ -31,6 +31,14 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        manifestPlaceholders.putAll(
+    mapOf(
+        "onesignal_app_id" to "924b44f7-e96e-477c-8547-55b98800accc",
+        "onesignal_google_project_number" to "REMOTE"
+    )
+)
+
     }
 
     buildTypes {

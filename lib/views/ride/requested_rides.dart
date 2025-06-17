@@ -290,7 +290,7 @@ class _RequestedRidesPageState extends State<RequestedRidesPage> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                '${data['pickupName']} → ${data['destinationName']}',
+                                '${data['pickUpName']} → ${data['destinationName']}',
                                 style: const TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,

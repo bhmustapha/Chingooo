@@ -13,6 +13,7 @@ import 'themes/light_theme.dart';
 import 'package:flutter/services.dart'; // to hide the state bar
 import 'views/about/about_app.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 // for the theme
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
@@ -32,8 +33,13 @@ void main() async {
     ),
   );
   await Firebase.initializeApp();
-  
+  // Enable verbose logging for debugging (remove in production)
+  OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+  OneSignal.initialize("924b44f7-e96e-477c-8547-55b98800accc");
 
+//! Use this method to prompt for push notifications.
+  //! We recommend removing this method after testing and instead use In-App Messages to prompt for notification permission.
+  OneSignal.Notifications.requestPermission(false);
   runApp(const MyApp());
 }
 

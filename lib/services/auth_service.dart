@@ -1,10 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-// sign up
+  // sign up
   static Future<bool> signUp({
     required String name,
     required String email,
@@ -24,10 +25,11 @@ class AuthService {
           'name': name,
           'email': email,
           'phone': phone,
-          'role' : 'passenger',
-          'status' : 'active',
+          'role': 'passenger',
+          'status': 'active',
           'createdAt': Timestamp.now(),
         });
+        await OneSignal.login(user.uid);
         return true;
       }
       return false;
@@ -40,12 +42,18 @@ class AuthService {
     }
   }
 
- static Future<UserCredential?> login(String email, String password) async {
+  static Future<UserCredential?> login(String email, String password) async {
     try {
-      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email.trim(),
-        password: password.trim(),
-      );
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+            email: email.trim(),
+            password: password.trim(),
+          );
+      User? user = userCredential.user;
+      if (user != null) {
+        await OneSignal.login(user.uid);
+      }
+
       return userCredential; // Return the UserCredential on success
     } on FirebaseAuthException catch (e) {
       // Re-throw the FirebaseAuthException so LoginPage can catch it
@@ -57,10 +65,11 @@ class AuthService {
       print("AuthService: An unknown error occurred during login: $e");
       rethrow;
     }
-}
-// log out
- static Future<void> signOut() async {
+  }
+
+  // log out
+  static Future<void> signOut() async {
     await _auth.signOut();
+    OneSignal.logout();
   }
 }
-

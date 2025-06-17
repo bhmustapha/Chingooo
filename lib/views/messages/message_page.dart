@@ -1,6 +1,7 @@
 import 'package:carpooling/main.dart';
 import 'package:carpooling/services/booking_service.dart';
 import 'package:carpooling/services/chat_services.dart';
+import 'package:carpooling/services/notifications_service.dart';
 import 'package:carpooling/views/profile/users_profiles.dart';
 import 'package:carpooling/views/ride/utils/ride_utils.dart';
 import 'package:carpooling/widgets/snackbar_utils.dart';
@@ -36,6 +37,7 @@ class _MessagePageState extends State<MessagePage> {
   final currentUserId = FirebaseAuth.instance.currentUser!.uid;
   final TextEditingController _controller = TextEditingController();
 
+  String? recieverName ;
   
   double distanceInKm = 0;
   double price = 0;
@@ -134,25 +136,7 @@ class _MessagePageState extends State<MessagePage> {
     );
   }
 
-  void _sendMessage() async {
-    final text =
-        _controller.text.trim(); // .trim removes whitespace from both ends
-    if (text.isNotEmpty) {
-      final currentUserId = FirebaseAuth.instance.currentUser!.uid;
-
-      await FirebaseFirestore.instance
-          .collection('conversations')
-          .doc(widget.chatId)
-          .collection('messages')
-          .add({
-            'text': text,
-            'sender_id': currentUserId,
-            'timestamp': Timestamp.now(),
-          });
-
-      _controller.clear();
-    }
-  }
+  
 
   Widget _buildMessageBubble(Map<String, dynamic> message) {
     final senderId = message['sender_id'];
@@ -166,7 +150,6 @@ class _MessagePageState extends State<MessagePage> {
             message['text'],
             style: const TextStyle(
               color: Colors.grey,
-              fontStyle: FontStyle.italic,
               fontSize: 13,
             ),
           ),
@@ -215,7 +198,7 @@ class _MessagePageState extends State<MessagePage> {
     );
   }
 
-  void showPriceAdjustmentSheet(BuildContext context) {
+  void showPriceAdjustmentSheet(BuildContext context, userId) {
     final range = RideUtils.getNegotiablePriceRange(
       distanceInKm,
       marginPercent: 20,
@@ -291,6 +274,7 @@ class _MessagePageState extends State<MessagePage> {
                                 'sender_id': 'system',
                                 'timestamp': Timestamp.now(),
                               });
+                        await NotificationsService.sendOneSignalNotification(message: 'the driver updated the price to $tempPrice',title: 'Price updated', userId: userId);
 
                           setState(() {
                             price = tempPrice.toDouble();
@@ -334,7 +318,7 @@ class _MessagePageState extends State<MessagePage> {
                 return IconButton(
                   icon: const Icon(Icons.money, color: Colors.blue),
                   onPressed: () {
-                    showPriceAdjustmentSheet(context);
+                    showPriceAdjustmentSheet(context, widget.otherUserId );
                   },
                 );
               } 
@@ -393,6 +377,7 @@ class _MessagePageState extends State<MessagePage> {
                 }
 
                 final name = userData['name'] ?? 'User';
+                recieverName = name;
                 final destination = rideData['destinationName'] ?? 'Unknown';
                 final driverId =
                     rideData['isRequested'] == true ? '' : rideData['userId'];
@@ -462,8 +447,21 @@ class _MessagePageState extends State<MessagePage> {
                   child: SizedBox( // Use SizedBox to make the button full width
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        BookingService.bookRide(rideId: rideData['ride_id']);
+                      onPressed: () async{
+                        await BookingService.bookRide(rideId: rideData['ride_id']);
+                        final systemMessage =
+                              widget.isRideRequest
+                                  ? 'The driver booked your ride'
+                                  : 'The passenger booked your ride'; 
+                       await FirebaseFirestore.instance
+                              .collection('conversations')
+                              .doc(widget.chatId)
+                              .collection('messages')
+                              .add({
+                                'text': systemMessage,
+                                'sender_id': 'system',
+                                'timestamp': Timestamp.now(),
+                              });
                         showSuccessSnackbar(context, 'Ride boocked succefuly!');
                       },
                       label: const Text('Book this Ride'),
@@ -547,6 +545,8 @@ class _MessagePageState extends State<MessagePage> {
                         chatId: widget.chatId,
                         senderId: currentUserId,
                         text: value,
+                        recieverId: widget.otherUserId,
+                        recieverName: recieverName!
                       );
                       _controller.clear();
                     },
@@ -560,6 +560,8 @@ class _MessagePageState extends State<MessagePage> {
                       chatId: widget.chatId,
                       senderId: currentUserId,
                       text: text,
+                      recieverId: widget.otherUserId,
+                      recieverName: recieverName!
                     );
                     _controller.clear();
                   },

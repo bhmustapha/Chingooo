@@ -55,8 +55,8 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
               final timestamp = data['date'] as Timestamp?;
               final dateTime = timestamp?.toDate() ?? DateTime.now();
 
-              final int maxPlaces = (data['vehicle']?['maxPlaces'] as num?)?.toInt() ?? 1;
-
+              final int maxPlaces =
+                  (data['vehicle']?['maxPlaces'] as num?)?.toInt() ?? 1;
 
               return FutureBuilder<QuerySnapshot>(
                 future:
@@ -141,7 +141,12 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                                   color: Colors.blue,
                                 ),
                                 onPressed:
-                                    () => _showEditSheet(context, rideId, data, maxPlaces),
+                                    () => _showEditSheet(
+                                      context,
+                                      rideId,
+                                      data,
+                                      maxPlaces,
+                                    ),
                               ),
                               IconButton(
                                 icon: const Icon(
@@ -199,6 +204,14 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                                         in conversationsSnapshot.docs) {
                                       batch.delete(doc.reference);
                                     }
+                                    final conversations =
+                                        await FirebaseFirestore.instance
+                                            .collection('bookings')
+                                            .where('rided', isEqualTo: rideId)
+                                            .get();
+                                    for (var doc in conversations.docs) {
+                                      await doc.reference.delete();
+                                    }
 
                                     // Delete the ride document
                                     final rideRef = FirebaseFirestore.instance
@@ -237,7 +250,8 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                                       builder:
                                           (context) => RideConversationsPage(
                                             rideId: ride.id,
-                                            destinationName: data['destinationName'],
+                                            destinationName:
+                                                data['destinationName'],
                                           ),
                                     ),
                                   );
@@ -342,6 +356,7 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
       },
     );
   }
+
   void _showEditPlacesSheet(
     BuildContext context,
     void Function(int newPlaceCount) onPlacesConfirmed, //! to learn
@@ -394,13 +409,16 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                       ),
                       IconButton(
                         onPressed:
-                            tempPlaceCount <maxAllowedPlaces
+                            tempPlaceCount < maxAllowedPlaces
                                 ? () => setModalState(() => tempPlaceCount++)
                                 : null,
                         icon: Icon(
                           Icons.add_circle_outline,
                           size: 50,
-                          color: tempPlaceCount < maxAllowedPlaces? Colors.blue : Colors.grey,
+                          color:
+                              tempPlaceCount < maxAllowedPlaces
+                                  ? Colors.blue
+                                  : Colors.grey,
                         ),
                       ),
                     ],
@@ -482,11 +500,16 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                     title: Text('Number of Seats: $tempPlaceCount'),
                     trailing: const Icon(Icons.edit, color: Colors.blue),
                     onTap: () {
-                      _showEditPlacesSheet(context, (newPlaceCount) {
-                        setModalState(() {
-                          tempPlaceCount = newPlaceCount;
-                        });
-                      }, tempPlaceCount,maxPlaces,);
+                      _showEditPlacesSheet(
+                        context,
+                        (newPlaceCount) {
+                          setModalState(() {
+                            tempPlaceCount = newPlaceCount;
+                          });
+                        },
+                        tempPlaceCount,
+                        maxPlaces,
+                      );
                     },
                   ),
                   const SizedBox(height: 12),
@@ -495,7 +518,6 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        
                         Text(
                           '${currentPrice?.toStringAsFixed(0) ?? 'N/A'} DZD',
                           style: const TextStyle(
@@ -508,7 +530,8 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                           onPressed: () {
                             showPriceAdjustmentSheet(
                               context,
-                              (rideData['distanceKm'] as num?)?.toDouble() ?? 0.0,
+                              (rideData['distanceKm'] as num?)?.toDouble() ??
+                                  0.0,
                               (newPrice) {
                                 setModalState(() {
                                   currentPrice = newPrice;
@@ -599,7 +622,7 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                               'date': Timestamp.fromDate(selectedDateTime),
                               'time':
                                   '${rideTime.hour.toString().padLeft(2, '0')}:${rideTime.minute.toString().padLeft(2, '0')}',
-                                  'placeCount': tempPlaceCount,
+                              'placeCount': tempPlaceCount,
                             });
                         setState(() {
                           isLoading = false;

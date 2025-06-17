@@ -1,3 +1,4 @@
+import 'package:carpooling/services/notifications_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:latlong2/latlong.dart';
@@ -131,6 +132,7 @@ class BookingService {
       };
 
       transaction.set(_firestore.collection('bookings').doc(), bookingData);
+      await NotificationsService.sendOneSignalNotification(userId: driverId, title: 'New Booking Request!', message: 'your ride to $dropoffAddress is booked by $passengerName');
     });
   }
 

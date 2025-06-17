@@ -9,6 +9,11 @@ import 'package:carpooling/views/admin/admin_dashboard_page.dart';
 import 'package:carpooling/views/auth/login_page.dart';
 import 'package:carpooling/widgets/main_navigator.dart';
 
+// for notifications
+import 'package:onesignal_flutter/onesignal_flutter.dart';
+
+
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -38,7 +43,7 @@ class _SplashScreenState extends State<SplashScreen>
         parent: _controller,
         curve:
             Curves
-                .elasticOut, // Changed animation curve for a more dynamic "bounce"
+                .elasticOut, 
       ),
     );
 
@@ -59,6 +64,9 @@ class _SplashScreenState extends State<SplashScreen>
       }
     });
   }
+
+ 
+
 
   // --- Integrated from your old SplashPage logic ---
   Future<void> _navigateBasedOnAuth() async {
@@ -83,6 +91,9 @@ class _SplashScreenState extends State<SplashScreen>
 
       final data = userDoc.data();
       final role = data?['role'];
+
+      
+
 
       if (role == 'admin') {
         // Navigate to Admin Dashboard if admin

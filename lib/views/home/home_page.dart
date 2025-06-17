@@ -167,35 +167,37 @@ class HomePageState extends State<HomePage> {
             children: [
               Visibility(
                 visible: _mapKey.currentState?.routePoints.isNotEmpty ?? false,
-                child: TextButton(
-                  style: TextButton.styleFrom(
-                    fixedSize: Size(270, 55),
-                    backgroundColor: const Color.fromRGBO(33, 150, 243, 1),
-                    foregroundColor: Colors.white,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 33, 150, 243),
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () {
+                      final destinationLatLon = _mapKey.currentState?.destinationLocation;
+                      if (destinationLatLon != null) {
+                        Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => SeeRidesPage(
+                                destinationLocation: searchController.text,
+                                initialPickupLocation:
+                                    _mapKey.currentState?.currentLocation,
+                                fetchSuggestionsCallback:
+                                    (input) => _mapKey.currentState!
+                                        .fetchSuggestions(input),
+                                distanceInKm: routeDistance!/1000 ,
+                                destinationCoords: destinationLatLon,
+                              ),
+                        ),
+                      );
+                      }
+                      
+                    },
+                    child: Text('See rides'),
                   ),
-                  onPressed: () {
-                    final destinationLatLon = _mapKey.currentState?.destinationLocation;
-                    if (destinationLatLon != null) {
-                      Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => SeeRidesPage(
-                              destinationLocation: searchController.text,
-                              initialPickupLocation:
-                                  _mapKey.currentState?.currentLocation,
-                              fetchSuggestionsCallback:
-                                  (input) => _mapKey.currentState!
-                                      .fetchSuggestions(input),
-                              distanceInKm: routeDistance!/1000 ,
-                              destinationCoords: destinationLatLon,
-                            ),
-                      ),
-                    );
-                    }
-                    
-                  },
-                  child: Text('See rides'),
                 ),
               ),
               SizedBox(width: 10),

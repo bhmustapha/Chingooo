@@ -1,4 +1,5 @@
 import 'package:carpooling/services/chat_services.dart';
+import 'package:carpooling/services/notifications_service.dart';
 import 'package:carpooling/views/messages/message_page.dart';
 import 'package:carpooling/views/profile/users_profiles.dart';
 import 'package:flutter/gestures.dart';
@@ -92,7 +93,7 @@ bool _isLoading = false;
     }
   }
 
-  Future<void> _acceptBooking(String bookingId) async {
+  Future<void> _acceptBooking(String bookingId, String passengerId, String destinationName ) async {
     try {
       await FirebaseFirestore.instance
           .collection('bookings')
@@ -102,49 +103,54 @@ bool _isLoading = false;
         'Booking Confirmed',
         'The booking has been successfully confirmed.',
       );
+      await NotificationsService.sendOneSignalNotification(userId: passengerId, title: 'Booking accepted! 🚗', message: 'Your ride to $destinationName has been accepted!');
     } catch (e) {
       _showMessageDialog('Error', 'Failed to accept booking: $e');
     }
   }
 
-  Future<void> _declineBooking(String bookingId) async {
+  Future<void> _declineBooking(String bookingId, String passengerId, String destinationName) async {
     try {
       await FirebaseFirestore.instance
           .collection('bookings')
           .doc(bookingId)
           .update({'status': 'cancelled'});
       _showMessageDialog('Booking Declined', 'The booking has been declined.');
+      await NotificationsService.sendOneSignalNotification(userId: passengerId, title: 'Booking rejected😥!', message: 'Your ride to $destinationName has been rejected!');
     } catch (e) {
       _showMessageDialog('Error', 'Failed to decline booking: $e');
     }
   }
 
-  Future<void> _markInProgress(String bookingId) async {
+  Future<void> _markInProgress(String bookingId, String passengerId, String driverId, String destinationName) async {
     try {
       await FirebaseFirestore.instance
           .collection('bookings')
           .doc(bookingId)
           .update({'status': 'in progress'});
       _showMessageDialog('Status Updated', 'Booking is now in progress.');
+      await NotificationsService.sendOneSignalNotification(userId: passengerId, title: 'Ride started', message: 'The ride to $destinationName started!');
+      await NotificationsService.sendOneSignalNotification(userId: driverId, title: 'Ride started', message: 'The ride to $destinationName started!');
     } catch (e) {
       _showMessageDialog('Error', 'Failed to update status: $e');
     }
   }
 
-  Future<void> _markCompleted(String bookingId) async {
+  Future<void> _markCompleted(String bookingId, String passengerId, String driverId, String destinationName) async {
     try {
       await FirebaseFirestore.instance
           .collection('bookings')
           .doc(bookingId)
           .update({'status': 'completed'});
       _showMessageDialog('Status Updated', 'Booking marked as completed.');
+      await NotificationsService.sendOneSignalNotification(userId: passengerId, title: 'Ride completed', message: 'The ride to $destinationName completed!');
+      await NotificationsService.sendOneSignalNotification(userId: driverId, title: 'Ride completed', message: 'The ride to $destinationName completed!');
     } catch (e) {
       _showMessageDialog('Error', 'Failed to update status: $e');
     }
   }
 
-  // Ensure your ChatService.dart has a createOrGetChat method that returns Future<DocumentReference<Map<String, dynamic>>>
-  // and accepts an optional 'isRideRequest' parameter if needed, like your working example suggests.
+  
 
   Future<void> _sendMessage(
     String otherUserId,
@@ -310,6 +316,7 @@ bool _isLoading = false;
               rideId,
               driverId,
               passengerId,
+              rideDetails['destinationName']
             ),
           ],
         ),
@@ -326,6 +333,7 @@ bool _isLoading = false;
     String rideId,
     String driverId,
     String passengerId,
+    String destinationName
   ) {
     List<Widget> buttons = [];
 
@@ -357,7 +365,7 @@ bool _isLoading = false;
         case 'pending':
           buttons.add(
             OutlinedButton(
-              onPressed: () => _acceptBooking(bookingId),
+              onPressed: () => _acceptBooking(bookingId, passengerId, destinationName),
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.green,
                 foregroundColor: Colors.white,
@@ -369,7 +377,7 @@ bool _isLoading = false;
           );
           buttons.add(
             OutlinedButton(
-              onPressed: () => _declineBooking(bookingId),
+              onPressed: () => _declineBooking(bookingId, passengerId, destinationName),
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
@@ -383,7 +391,7 @@ bool _isLoading = false;
         case 'confirmed':
           buttons.add(
             OutlinedButton(
-              onPressed: () => _markInProgress(bookingId),
+              onPressed: () => _markInProgress(bookingId, passengerId, driverId, destinationName),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.purple,
@@ -397,7 +405,7 @@ bool _isLoading = false;
         case 'in progress':
           buttons.add(
             OutlinedButton(
-              onPressed: () => _markCompleted(bookingId),
+              onPressed: () => _markCompleted(bookingId, passengerId, driverId, destinationName),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.deepOrange,
@@ -469,6 +477,7 @@ bool _isLoading = false;
       stream:
           FirebaseFirestore.instance
               .collection('bookings')
+              .where('status', isNotEqualTo: 'completed')
               .orderBy('rideDetails.date', descending: false)
               .snapshots(),
       builder: (context, snapshot) {

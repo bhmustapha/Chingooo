@@ -72,6 +72,7 @@ dependencies:
   cloud_firestore: ^5.6.8
   # firebase storage
   firebase_storage: ^12.4.6
+  
 
   #for admin page
   fl_chart: ^1.0.0
@@ -84,6 +85,9 @@ dependencies:
 
   #notifications
   firebase_messaging: ^15.2.7
+
+  # notifications 
+  onesignal_flutter: ^5.3.3
 
 
   
@@ -98,6 +102,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  #icon
+  flutter_launcher_icons: ^0.14.4
   
   
 
@@ -145,4 +151,7 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
-
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
