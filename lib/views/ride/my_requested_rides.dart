@@ -204,13 +204,17 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                                       batch.delete(doc.reference);
                                     }
 
-                                    final conversations = await FirebaseFirestore.instance
-      .collection('bookings')
-      .where('rideId', isEqualTo: rideRequestId)
-      .get();
-  for (var doc in conversations.docs) {
-    await doc.reference.delete();
-  }
+                                    final conversations =
+                                        await FirebaseFirestore.instance
+                                            .collection('bookings')
+                                            .where(
+                                              'rideId',
+                                              isEqualTo: rideRequestId,
+                                            )
+                                            .get();
+                                    for (var doc in conversations.docs) {
+                                      await doc.reference.delete();
+                                    }
 
                                     final rideRequestRef = FirebaseFirestore
                                         .instance
@@ -593,9 +597,11 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                               .update({
                                 'placeCount': tempPlaceCount,
                                 'price': currentPrice,
-                                'timestamp': Timestamp.fromDate(selectedDateTime),
+                                'timestamp': Timestamp.fromDate(
+                                  selectedDateTime,
+                                ),
                               });
-                    
+
                           if (mounted) {
                             Navigator.pop(context);
                             showSuccessSnackbar(
@@ -603,6 +609,7 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                               "Ride request updated successfully",
                             );
                           }
+                          
                         } catch (e) {
                           if (mounted) {
                             showErrorSnackbar(context, "Failed to update: $e");
@@ -613,7 +620,7 @@ class _DriverRideRequestsPageState extends State<RideRequestsPage> {
                           });
                         }
                       },
-                      
+
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,

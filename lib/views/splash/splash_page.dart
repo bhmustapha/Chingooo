@@ -9,8 +9,6 @@ import 'package:carpooling/views/admin/admin_dashboard_page.dart';
 import 'package:carpooling/views/auth/login_page.dart';
 import 'package:carpooling/widgets/main_navigator.dart';
 
-// for notifications
-import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 
 
@@ -138,7 +136,7 @@ class _SplashScreenState extends State<SplashScreen>
             opacity: _fadeAnimation,
             child: ScaleTransition(
               scale: _scaleAnimation,
-              child: SvgPicture.asset('assets/images/chingooo.svg'),
+              child: SvgPicture.asset('assets/images/chingooo.svg', color: Colors.blue,),
             ),
           ),
         ),

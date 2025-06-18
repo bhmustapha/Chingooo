@@ -132,7 +132,11 @@ class BookingService {
       };
 
       transaction.set(_firestore.collection('bookings').doc(), bookingData);
-      await NotificationsService.sendOneSignalNotification(userId: driverId, title: 'New Booking Request!', message: 'your ride to $dropoffAddress is booked by $passengerName');
+
+      final notificationsSettings = await NotificationsService.getNotificationSettings(driverId);
+      if (notificationsSettings['rideUpdates'] == true ) {
+        await NotificationsService.sendOneSignalNotification(userId: driverId, title: 'New Booking Request!', message: 'your ride to $dropoffAddress is booked by $passengerName');
+      }
     });
   }
 
@@ -275,6 +279,10 @@ class BookingService {
         'acceptedByDriverId': driverId, // Record which driver accepted
         'acceptedAt': FieldValue.serverTimestamp(),
       });
+      final notificationsSettings = await NotificationsService.getNotificationSettings(passengerId);
+      if (notificationsSettings['rideUpdates'] == true ) {
+        await NotificationsService.sendOneSignalNotification(userId: passengerId, title: 'New Booking !', message: 'your ride request to $dropoffAddress is booked by $driverName');
+      }
     });
   }
 }

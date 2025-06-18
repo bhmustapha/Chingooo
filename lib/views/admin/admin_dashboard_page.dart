@@ -29,6 +29,7 @@ class AdminDashboardPage extends StatelessWidget {
       _AdminTileData(title: "Analytics", icon: Icons.bar_chart, onTap: () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => AnalyticsPage()));
       }),
+      _AdminTileData(title: 'Announcements', icon: Icons.announcement, onTap: () {}),
       _AdminTileData(title: "Log Out", icon: Icons.logout, onTap: () {
         // Show a confirmation dialog before logging out
         showDialog(

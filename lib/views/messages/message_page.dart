@@ -312,13 +312,18 @@ class _MessagePageState extends State<MessagePage> {
               }
               final rideData = rideSnapshot.data!.data() as Map<String, dynamic>;
               final ownerId = rideData['userId'];
+              final driverName = rideData['userName'];
 
               // Only show adjust price button if current user is the owner 
               if (ownerId == currentUserId) {
                 return IconButton(
                   icon: const Icon(Icons.money, color: Colors.blue),
-                  onPressed: () {
+                  onPressed: () async{
                     showPriceAdjustmentSheet(context, widget.otherUserId );
+                    final notificationsSettings = await NotificationsService.getNotificationSettings(widget.otherUserId);
+      if (notificationsSettings['rideUpdates'] == true ) {
+        await NotificationsService.sendOneSignalNotification(userId: widget.otherUserId, title: 'Price modified!', message: '$driverName changed his ride price');
+      }
                   },
                 );
               } 

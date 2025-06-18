@@ -61,7 +61,12 @@ class ChatService {
       'last_message': text,
       'last_timestamp': FieldValue.serverTimestamp(),
     });
-    await NotificationsService.sendOneSignalNotification(userId: recieverId, title: '$recieverName sent you a new message!', message: text);
+    final notificationsSettings = await NotificationsService.getNotificationSettings(recieverId);
+
+    if (notificationsSettings['messages'] == true) {
+      await NotificationsService.sendOneSignalNotification(userId: recieverId, title: '$recieverName sent you a new message!', message: text);
+    }
+    
   }
 
   // Get real-time messages by chatId (not rideId)

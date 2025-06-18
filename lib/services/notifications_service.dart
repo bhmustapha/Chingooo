@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 
 class NotificationsService {
@@ -33,4 +34,16 @@ class NotificationsService {
     print(' Failed to send notification: ${response.body}');
   }
 }
+
+static Future<Map<String, bool>> getNotificationSettings(String uid) async {
+  final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+  final settings = doc.data()?['notificationSettings'] ?? {};
+
+  return {
+    'messages': settings['messages'] ?? true,
+    'rideUpdates': settings['rideUpdates'] ?? true,
+    'announcements': settings['announcements'] ?? true,
+  };
+}
+
 }
