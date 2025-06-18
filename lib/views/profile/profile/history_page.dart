@@ -381,6 +381,8 @@ Future<void> _submitRating({
               final String driverId = bookingData['driverId'] ?? '';
               final Timestamp? bookingTimestamp = bookingData['createdAt'] as Timestamp?;
               final String? bookingStatus = bookingData['status'] as String?;
+              final String? destinationName = bookingData['rideDetails']['destinationName'] ?? 'Unknown Destination';
+              final String? price = (bookingData['rideDetails']['price'] as num?)?.toStringAsFixed(0) ?? 'N/A';
 
               final String otherUserId = (passengerId == currentUserId) ? driverId : passengerId;
               final bool isCurrentUserManager = (driverId == currentUserId);
@@ -395,21 +397,6 @@ Future<void> _submitRating({
                   } else if (userSnapshot.hasError) {
                     otherUserName = 'Error User';
                   }
-
-                  return FutureBuilder<DocumentSnapshot>(
-                    future: FirebaseFirestore.instance.collection('rides').doc(rideId).get(),
-                    builder: (context, rideSnapshot) {
-                      String destinationName = 'Unknown Destination';
-                      String price = 'N/A';
-
-                      if (rideSnapshot.connectionState == ConnectionState.done && rideSnapshot.hasData) {
-                        final rideData = rideSnapshot.data!.data() as Map<String, dynamic>?;
-                        destinationName = rideData?['destinationName'] ?? 'Unknown Destination';
-                        price = (rideData?['price'] as num?)?.toStringAsFixed(0) ?? 'N/A';
-                      } else if (rideSnapshot.hasError) {
-                        destinationName = 'Error Destination';
-                      }
-
                       return FutureBuilder<bool>(
                         future: _hasUserRatedBooking(bookingId, currentUserId),
                         builder: (context, ratedSnapshot) {
@@ -575,9 +562,9 @@ Future<void> _submitRating({
                 },
               );
             },
+          )
           );
-        },
-      ),
-    );
+        }
+      
+    
   }
-}

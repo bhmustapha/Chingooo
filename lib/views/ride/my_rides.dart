@@ -23,11 +23,10 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
     return Scaffold(
       appBar: AppBar(title: const Text("Your Published Rides"), elevation: 0),
       body: StreamBuilder<QuerySnapshot>(
-        stream:
-            FirebaseFirestore.instance
-                .collection('rides')
-                .where('userId', isEqualTo: currentUserId)
-                .snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('rides')
+            .where('userId', isEqualTo: currentUserId)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(child: Text("Something went wrong."));
@@ -58,212 +57,210 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
               final int maxPlaces =
                   (data['vehicle']?['maxPlaces'] as num?)?.toInt() ?? 1;
 
-              return FutureBuilder<QuerySnapshot>(
-                future:
-                    FirebaseFirestore.instance
-                        .collection('conversations')
-                        .where('ride_id', isEqualTo: rideId)
-                        .get(),
-                builder: (context, chatSnapshot) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        color: Theme.of(context).cardColor,
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    color: Theme.of(context).cardColor,
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 6,
+                        offset: Offset(0, 2),
                       ),
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'You published this ride',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '$pickupName → $destinationName',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (data['price'] != null)
+                        Text(
+                          '${data['price']} DZD',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            color: Colors.green,
+                          ),
+                        ),
+                      const SizedBox(height: 8),
+                      Text('Date: ${_formatDate(dateTime)}'),
+                      Text('Time: ${_formatTime(dateTime)}'),
+                      if (data['distanceKm'] != null)
+                        Text(
+                          'Distance: ${data['distanceKm'].toStringAsFixed(2)} km',
+                        ),
+                      Text('Requests: ${data['placeCount']}'),
+                      const SizedBox(height: 8),
+                      Row(
                         children: [
                           const Text(
-                            'You published this ride',
-                            style: TextStyle(fontWeight: FontWeight.w600),
+                            'Status: ',
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          const SizedBox(height: 8),
                           Text(
-                            '$pickupName → $destinationName',
-                            style: const TextStyle(
-                              fontSize: 22,
+                            data['status'] ?? 'unknown',
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
+                              color: _getStatusColor(data['status']),
                             ),
-                          ),
-                          if (data['price'] != null)
-                            Text(
-                              '${data['price']} DZD',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                                color: Colors.green,
-                              ),
-                            ),
-                          const SizedBox(height: 8),
-                          Text('Date: ${_formatDate(dateTime)}'),
-                          Text('Time: ${_formatTime(dateTime)}'),
-                          if (data['distanceKm'] != null)
-                            Text(
-                              'Distance: ${data['distanceKm'].toStringAsFixed(2)} km',
-                            ),
-                          Text('Requests: ${data['placeCount']}'),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Text(
-                                'Status: ',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                data['status'] ?? 'unknown',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: _getStatusColor(data['status']),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.edit,
-                                  color: Colors.blue,
-                                ),
-                                onPressed:
-                                    () => _showEditSheet(
-                                      context,
-                                      rideId,
-                                      data,
-                                      maxPlaces,
-                                    ),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: Colors.blue,
-                                ),
-                                onPressed: () async {
-                                  final confirm = await showDialog<bool>(
-                                    context: context,
-                                    builder:
-                                        (context) => AlertDialog(
-                                          title: const Text("Delete Ride"),
-                                          content: const Text(
-                                            "Are you sure you want to delete this ride?",
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              child: const Text("Cancel"),
-                                              onPressed:
-                                                  () => Navigator.pop(
-                                                    context,
-                                                    false,
-                                                  ),
-                                            ),
-                                            TextButton(
-                                              child: const Text(
-                                                "Delete",
-                                                style: TextStyle(
-                                                  color: Colors.red,
-                                                ),
-                                              ),
-                                              onPressed:
-                                                  () => Navigator.pop(
-                                                    context,
-                                                    true,
-                                                  ),
-                                            ),
-                                          ],
-                                        ),
-                                  );
-
-                                  if (confirm == true) {
-                                    // Delete conversations related to this ride
-                                    final conversationsSnapshot =
-                                        await FirebaseFirestore
-                                            .instance //! to learn
-                                            .collection('conversations')
-                                            .where('ride_id', isEqualTo: rideId)
-                                            .get();
-
-                                    final batch =
-                                        FirebaseFirestore.instance.batch();
-
-                                    for (final doc
-                                        in conversationsSnapshot.docs) {
-                                      batch.delete(doc.reference);
-                                    }
-                                    final conversations =
-                                        await FirebaseFirestore.instance
-                                            .collection('bookings')
-                                            .where('rided', isEqualTo: rideId)
-                                            .get();
-                                    for (var doc in conversations.docs) {
-                                      await doc.reference.delete();
-                                    }
-
-                                    // Delete the ride document
-                                    final rideRef = FirebaseFirestore.instance
-                                        .collection('rides')
-                                        .doc(rideId);
-                                    batch.delete(rideRef);
-
-                                    await batch.commit();
-
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          "Ride and related conversations deleted",
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                },
-                              ),
-                              OutlinedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                    vertical: 14,
-                                  ),
-                                  side: BorderSide(color: Colors.transparent),
-                                ),
-
-                                child: Text('Messages'),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (context) => RideConversationsPage(
-                                            rideId: ride.id,
-                                            destinationName:
-                                                data['destinationName'],
-                                          ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
                           ),
                         ],
                       ),
-                    ),
-                  );
-                },
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.edit,
+                              color: Colors.blue,
+                            ),
+                            onPressed: () => _showEditSheet(
+                              context,
+                              rideId,
+                              data,
+                              maxPlaces,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              color: Colors.blue,
+                            ),
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text("Delete Ride"),
+                                  content: const Text(
+                                    "Are you sure you want to delete this ride and all its associated conversations and bookings?",
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      child: const Text("Cancel"),
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
+                                    ),
+                                    TextButton(
+                                      child: const Text(
+                                        "Delete",
+                                        style: TextStyle(
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                      onPressed: () =>
+                                          Navigator.pop(context, true),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (confirm == true) {
+                                try {
+                                  // Start a batch write for atomic operations
+                                  final batch = FirebaseFirestore.instance.batch();
+
+                                  // 1. Delete all messages within conversations related to this ride
+                                  final conversationsSnapshot =
+                                      await FirebaseFirestore.instance
+                                          .collection('conversations')
+                                          .where('ride_id', isEqualTo: rideId)
+                                          .get();
+
+                                  for (final convoDoc in conversationsSnapshot.docs) {
+                                    final messagesSnapshot = await convoDoc.reference
+                                        .collection('messages')
+                                        .get();
+                                    for (final messageDoc in messagesSnapshot.docs) {
+                                      batch.delete(messageDoc.reference);
+                                    }
+                                    // Then delete the conversation document itself
+                                    batch.delete(convoDoc.reference);
+                                  }
+
+                                  // 2. Delete bookings related to this ride
+                                  final bookingsSnapshot =
+                                      await FirebaseFirestore.instance
+                                          .collection('bookings')
+                                          .where('rideId',
+                                              isEqualTo:
+                                                  rideId) // Assuming 'rideId' is the field name in bookings
+                                          .get();
+
+                                  for (final bookingDoc in bookingsSnapshot.docs) {
+                                    batch.delete(bookingDoc.reference);
+                                  }
+
+                                  // 3. Delete the ride document itself
+                                  final rideRef = FirebaseFirestore.instance
+                                      .collection('rides')
+                                      .doc(rideId);
+                                  batch.delete(rideRef);
+
+                                  // Commit all batch operations
+                                  await batch.commit();
+
+                                  // Show success message
+                                  if (mounted) {
+                                    showSuccessSnackbar(context,
+                                        'Ride, conversations, and bookings deleted successfully!');
+                                  }
+                                } catch (e) {
+                                  // Show error message
+                                  if (mounted) {
+                                    showErrorSnackbar(
+                                        context, 'Error deleting ride: $e');
+                                  }
+                                  print('Error deleting ride: $e');
+                                }
+                              }
+                            },
+                          ),
+                          OutlinedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 14,
+                              ),
+                              side: BorderSide(color: Colors.transparent),
+                            ),
+                            child: const Text('Messages'),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => RideConversationsPage(
+                                    rideId: ride.id,
+                                    destinationName: data['destinationName'],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               );
             },
           );
@@ -275,14 +272,13 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
   void showPriceAdjustmentSheet(
     BuildContext context,
     double distanceKm,
-    void Function(double) onPriceChanged, //!to learn
+    void Function(double) onPriceChanged,
   ) {
     final range = RideUtils.getNegotiablePriceRange(
       distanceKm,
       marginPercent: 20,
     );
 
-    // Round values to nearest 10 (10 dzd hia sghira)
     int base = (range['base']! / 10).round() * 10;
     int min = (range['min']! / 10).floor() * 10;
     int max = (range['max']! / 10).ceil() * 10;
@@ -290,16 +286,14 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
     int tempPrice = base;
 
     showModalBottomSheet(
-      //! to learn
       context: context,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            //! learn
             return Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -339,7 +333,7 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                           onPriceChanged(tempPrice.toDouble());
                           Navigator.pop(context);
                         },
-                        icon: Icon(Icons.check),
+                        icon: const Icon(Icons.check),
                         style: IconButton.styleFrom(
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
@@ -347,7 +341,7 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                 ],
               ),
             );
@@ -359,7 +353,7 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
 
   void _showEditPlacesSheet(
     BuildContext context,
-    void Function(int newPlaceCount) onPlacesConfirmed, //! to learn
+    void Function(int newPlaceCount) onPlacesConfirmed,
     int initialPlaceCount,
     int maxAllowedPlaces,
   ) {
@@ -387,10 +381,9 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                        onPressed:
-                            tempPlaceCount > 1
-                                ? () => setModalState(() => tempPlaceCount--)
-                                : null,
+                        onPressed: tempPlaceCount > 1
+                            ? () => setModalState(() => tempPlaceCount--)
+                            : null,
                         icon: Icon(
                           Icons.remove_circle_outline,
                           size: 50,
@@ -408,17 +401,15 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                         ),
                       ),
                       IconButton(
-                        onPressed:
-                            tempPlaceCount < maxAllowedPlaces
-                                ? () => setModalState(() => tempPlaceCount++)
-                                : null,
+                        onPressed: tempPlaceCount < maxAllowedPlaces
+                            ? () => setModalState(() => tempPlaceCount++)
+                            : null,
                         icon: Icon(
                           Icons.add_circle_outline,
                           size: 50,
-                          color:
-                              tempPlaceCount < maxAllowedPlaces
-                                  ? Colors.blue
-                                  : Colors.grey,
+                          color: tempPlaceCount < maxAllowedPlaces
+                              ? Colors.blue
+                              : Colors.grey,
                         ),
                       ),
                     ],
@@ -551,10 +542,10 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                       final pickedDate = await showDatePicker(
                         context: context,
                         initialDate: selectedDateTime,
-                        firstDate: DateTime.now().subtract(
-                          const Duration(days: 365),
-                        ),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                        firstDate: DateTime.now()
+                            .subtract(const Duration(days: 365)),
+                        lastDate:
+                            DateTime.now().add(const Duration(days: 365)),
                       );
                       if (pickedDate != null) {
                         setModalState(() {
@@ -618,29 +609,28 @@ class _DriverRidesPageState extends State<DriverRidesPage> {
                             .collection('rides')
                             .doc(rideId)
                             .update({
-                              'price': currentPrice ?? rideData['price'],
-                              'date': Timestamp.fromDate(selectedDateTime),
-                              'time':
-                                  '${rideTime.hour.toString().padLeft(2, '0')}:${rideTime.minute.toString().padLeft(2, '0')}',
-                              'placeCount': tempPlaceCount,
-                            });
+                          'price': currentPrice ?? rideData['price'],
+                          'date': Timestamp.fromDate(selectedDateTime),
+                          'time':
+                              '${rideTime.hour.toString().padLeft(2, '0')}:${rideTime.minute.toString().padLeft(2, '0')}',
+                          'placeCount': tempPlaceCount,
+                        });
                         setState(() {
                           isLoading = false;
                         });
-                        Navigator.pop(context);
-                        showSuccessSnackbar(context, 'Ride updated');
+                        if (mounted) Navigator.pop(context);
+                        if (mounted) showSuccessSnackbar(context, 'Ride updated');
                         setState(() {}); // To refresh card with new price
                       },
-                      child:
-                          isLoading
-                              ? CircularProgressIndicator(color: Colors.white)
-                              : const Text(
-                                'Save Changes',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                      child: isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              'Save Changes',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
                               ),
+                            ),
                     ),
                   ),
                 ],

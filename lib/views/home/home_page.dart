@@ -167,10 +167,10 @@ class HomePageState extends State<HomePage> {
             children: [
               Visibility(
                 visible: _mapKey.currentState?.routePoints.isNotEmpty ?? false,
-                child: SizedBox(
-                  width: double.infinity,
-                  child: TextButton(
+                child:  TextButton(
+                  
                     style: TextButton.styleFrom(
+                      fixedSize: Size(200, 50),
                       backgroundColor: const Color.fromARGB(255, 33, 150, 243),
                       foregroundColor: Colors.white,
                     ),
@@ -199,7 +199,7 @@ class HomePageState extends State<HomePage> {
                     child: Text('See rides'),
                   ),
                 ),
-              ),
+              
               SizedBox(width: 10),
               FloatingActionButton(
                 onPressed: () {

@@ -1,3 +1,5 @@
+import 'package:carpooling/main.dart';
+import 'package:carpooling/themes/light_theme.dart';
 import 'package:carpooling/views/settings/account%20settings/account_settings_page.dart';
 import 'package:carpooling/views/settings/notifications_settings_page.dart';
 import 'package:carpooling/views/settings/payment_settings_page.dart';
@@ -174,7 +176,8 @@ class SettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: textColor ?? Theme.of(context).primaryColor), // Use primary color if textColor is null
+      // ignore: unrelated_type_equality_checks
+      leading: Icon(icon, color:  themeNotifier.value == ThemeMode.light ? Theme.of(context).primaryColor : Colors.white), // Use primary color if textColor is null
       title: Text(text, style: TextStyle(fontSize: 16, color: textColor)), // Apply textColor
       trailing: Row(
         mainAxisSize: MainAxisSize.min,

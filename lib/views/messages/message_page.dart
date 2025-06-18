@@ -451,8 +451,8 @@ class _MessagePageState extends State<MessagePage> {
                         await BookingService.bookRide(rideId: rideData['ride_id']);
                         final systemMessage =
                               widget.isRideRequest
-                                  ? 'The driver booked your ride'
-                                  : 'The passenger booked your ride'; 
+                                  ? 'The driver booked the ride'
+                                  : 'The passenger booked the ride'; 
                        await FirebaseFirestore.instance
                               .collection('conversations')
                               .doc(widget.chatId)
@@ -541,13 +541,15 @@ class _MessagePageState extends State<MessagePage> {
                       ),
                     ),
                     onSubmitted: (value) {
-                      ChatService.sendMessage(
+                      if (_controller.text.isNotEmpty) {
+                        ChatService.sendMessage(
                         chatId: widget.chatId,
                         senderId: currentUserId,
                         text: value,
                         recieverId: widget.otherUserId,
                         recieverName: recieverName!
                       );
+                      }
                       _controller.clear();
                     },
                   ),
@@ -556,13 +558,15 @@ class _MessagePageState extends State<MessagePage> {
                   icon: const Icon(LucideIcons.send, color: Colors.blue),
                   onPressed: () {
                     final text = _controller.text.trim();
-                    ChatService.sendMessage(
+                    if (text.isNotEmpty) {
+                      ChatService.sendMessage(
                       chatId: widget.chatId,
                       senderId: currentUserId,
                       text: text,
                       recieverId: widget.otherUserId,
                       recieverName: recieverName!
                     );
+                    }
                     _controller.clear();
                   },
                 ),
