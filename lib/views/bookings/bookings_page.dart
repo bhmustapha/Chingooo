@@ -1,14 +1,11 @@
-
 import 'package:carpooling/services/chat_services.dart';
 import 'package:carpooling/services/notifications_service.dart';
-import 'package:carpooling/views/map/map_preview.dart';
 import 'package:carpooling/views/messages/message_page.dart';
 import 'package:carpooling/views/profile/users_profiles.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:latlong2/latlong.dart';
 
 class BookingsPage extends StatefulWidget {
   @override
@@ -229,17 +226,6 @@ bool _isLoading = false;
     final String driverId = bookingData['driverId'] ?? '';
     final String passengerId = bookingData['passengerId'] ?? '';
 
-    final String destinationName = rideDetails['destinationName'];
-    final String pickupName = rideDetails['pickupName'];
-
-    final double dropoffLat = rideDetails['droppffLocation']['latitude'] as double;
-    final double dropofflon = rideDetails['droppffLocation']['longitude'] as double;
-    final LatLng dropOff = LatLng(dropoffLat, dropofflon);
-
-    final double pickupLat = rideDetails['pickupLocation']['latitude'] as double;
-    final double pickuplon = rideDetails['pickupLocation']['longitude'] as double;
-    final LatLng pickup = LatLng(pickupLat, pickuplon);
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Container(
@@ -279,60 +265,10 @@ bool _isLoading = false;
               ),
             ),
             const SizedBox(height: 8),
-            RichText(
-              textAlign: TextAlign.center, // Center the text if needed
-              text: TextSpan(
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black, // Default color for text
-                ),
-                children: <TextSpan>[
-                  TextSpan(
-                    text: rideDetails['pickUpName'] ?? 'Unknown Pickup',
-                    style: const TextStyle(color: Colors.blue), // Highlight pickup
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () {
-                        // Action when pickup is clicked
-                        print('Pickup clicked: ${rideDetails['pickUpName']}');
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => LocationPreviewPage(
-                              location: pickup,
-                              placeName: pickupName ,
-                            ),
-                          ),
-                        );
-                      },
-                  ),
-                  const TextSpan(
-                    text: ' → ', // Arrow separator
-                    style: TextStyle(color: Colors.black),
-                  ),
-                  TextSpan(
-                    text: rideDetails['destinationName'] ?? 'Unknown Dropoff',
-                    style: const TextStyle(color: Colors.red), // Highlight dropoff
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () {
-                        // Action when dropoff is clicked
-                        print('Dropoff clicked: ${rideDetails['destinationName']}');
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => LocationPreviewPage(
-                              location: dropOff,
-                              placeName: destinationName,
-                            ),
-                          ),
-                        );
-                      },
-                  ),
-                ],
-              ),
+            Text(
+              '${rideDetails['pickUpName'] ?? 'Unknown'} → ${rideDetails['destinationName'] ?? 'Unknown'}',
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
-                  
-
             if (rideDetails['price'] != null)
               Text(
                 '${rideDetails['price']} DZD',
