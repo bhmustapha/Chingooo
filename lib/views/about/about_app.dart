@@ -51,7 +51,7 @@ final String _privacyPolicyUrl = 'https://chingooocarpooling-privacy.netlify.app
                 const SizedBox(height: 24),
                 // the title
                 const Text(
-                  "About Chingooo",
+                  "About Chingoo",
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
@@ -62,7 +62,7 @@ final String _privacyPolicyUrl = 'https://chingooocarpooling-privacy.netlify.app
                 ),
                 const SizedBox(height: 24),
                 const Text(
-                  "Chingooo helps users find and offer carpool rides easily and safely. "
+                  "Chingoo helps users find and offer carpool rides easily and safely. "
                   "Connect with nearby riders and drivers to save money and reduce your carbon footprint.",
                   style: TextStyle(fontSize: 16),
                 ),

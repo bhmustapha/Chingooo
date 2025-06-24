@@ -2,10 +2,10 @@
 
 class RideUtils {
   static double calculateRidePrice(double? distanceInKm) {
-    if (distanceInKm == null || distanceInKm < 0) return 100.0;
+    if (distanceInKm == null || distanceInKm < 0) return 20.0;
 
-    const double baseFare = 100;
-    const double perKmRate = 30;
+    const double baseFare = 20;
+    const double perKmRate = 20;
 
     return baseFare + (distanceInKm * perKmRate);
   }

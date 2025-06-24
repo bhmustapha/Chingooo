@@ -93,6 +93,9 @@ class _SignUpPageState extends State<SignUpPage> {
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'Please enter your full name';
+                      }else if(!RegExp(r'^[a-zA-Z]+$').hasMatch(value))
+                      {
+                        return 'Enter your real name';
                       }
                       return null;
                     },

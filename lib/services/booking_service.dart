@@ -230,11 +230,11 @@ class BookingService {
         rideRequestData['destinationLat'] ?? 0.0, // Using updated field name: destinationLat
         rideRequestData['destinationLon'] ?? 0.0, // Using updated field name: destinationLon
       );
-      final String pickupAddress = rideRequestData['pickupName'];
+      final String pickupAddress = rideRequestData['pickUpName'];
       final String dropoffAddress = rideRequestData['destinationName'];
-      final Timestamp date = rideRequestData['timestamp'] is Timestamp
-              ? rideRequestData['timestamp']
-              : Timestamp.fromDate(DateTime.parse(rideRequestData['timestamp'].toString()));
+      final Timestamp date = rideRequestData['date'] is Timestamp
+              ? rideRequestData['date']
+              : Timestamp.fromDate(DateTime.parse(rideRequestData['date'].toString()));
 
       final double price = (rideRequestData['price'] as num).toDouble();
       final double distanceKm = (rideRequestData['distanceKm'] as num?)?.toDouble() ?? 0.0;

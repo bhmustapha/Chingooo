@@ -8,7 +8,7 @@ class OnBoardingPage extends StatelessWidget {
     return IntroductionScreen(
       pages: [
         PageViewModel(
-          title: "Welcome to Carpool",
+          title: "Welcome to Chingoo",
           body: "Share rides easily and save money.",
           image: Center(
             child: SvgPicture.asset('assets/images/Carpool.svg', height: 200),

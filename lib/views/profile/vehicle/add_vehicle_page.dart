@@ -11,6 +11,7 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
   final _formKey = GlobalKey<FormState>();
   final VehicleService _vehicleService = VehicleService();
 
+  final TextEditingController _numNatController = TextEditingController();
   final TextEditingController _makeController = TextEditingController();
   final TextEditingController _modelController = TextEditingController();
   final TextEditingController _yearController = TextEditingController();
@@ -45,8 +46,9 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
           color: _colorController.text.trim(),
           capacity: int.parse(_capacityController.text.trim()),
         );
+        final numNat = _numNatController.text.trim();
 
-        await _vehicleService.addVehicle(newVehicle);
+        await _vehicleService.addVehicle(newVehicle, numNat);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Vehicle added successfully!')),
@@ -119,6 +121,17 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              TextFormField(
+                controller: _numNatController,
+                decoration: _buildInputDecoration('Administrative Number ', Icons.badge),
+                validator: (value) {
+                  if (value == null || value.length != 18){
+                    return 'Enter a valid administrative number';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _makeController,
                 decoration: _buildInputDecoration('Make (e.g., Renault)', Icons.car_rental), 

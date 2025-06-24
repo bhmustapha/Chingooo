@@ -23,7 +23,7 @@ class NotificationsService {
       'include_external_user_ids': [userId],
       'headings': {'en': title},
       'contents': {'en': message},
-      "small_icon": "ic_stat_chingooo",
+      "small_icon": "ic_stat_chingoo",
       'data': data ?? {},
     }),
   );

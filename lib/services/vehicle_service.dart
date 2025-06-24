@@ -15,13 +15,14 @@ class VehicleService {
   }
 
   // Add a new vehicle
-  Future<void> addVehicle(Vehicle vehicle) async {
+  Future<void> addVehicle(Vehicle vehicle, String num) async {
     if (currentUserId == null) {
       throw Exception("User not logged in.");
     }
     await _userVehiclesCollection(currentUserId!).add(vehicle.toFirestore()); // to firestore returns a map (string, dunamyc)
     await _firestore.collection('users').doc(currentUserId).update({
       'role' : 'driver',
+      'n_national' : num
     });
   }
 
