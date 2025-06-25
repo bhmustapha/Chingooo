@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-//! to learn this page
+
 
 class ReviewsPage extends StatefulWidget {
   const ReviewsPage({super.key});

@@ -72,7 +72,7 @@ class _HistoryPageState extends State<HistoryPage> {
         .collection('ratings')
         .where('bookingId', isEqualTo: bookingId)
         .where('raterId', isEqualTo: raterId)
-        .limit(1) //! to learn
+        .limit(1) 
         .get();
     return querySnapshot.docs.isNotEmpty;
   }

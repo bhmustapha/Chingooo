@@ -65,7 +65,7 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
   }
 
   @override
-  void dispose() {//! to learn
+  void dispose() {
     pickupController.dispose();
     super.dispose();
   }
@@ -310,7 +310,7 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Text(
-                                '${selectedDateTime.hour.toString().padLeft(2, '0')}:${selectedDateTime.minute.toString().padLeft(2, '0')}', //! to learn
+                                '${selectedDateTime.hour.toString().padLeft(2, '0')}:${selectedDateTime.minute.toString().padLeft(2, '0')}', 
                               ),
                             ),
                           ),
@@ -452,7 +452,7 @@ class _SeeRidesPageState extends State<SeeRidesPage> {
     BuildContext context,
     void Function(void Function()) setSheetState,
   ) {
-    // TODO: //! tolearn
+    
     int tempPlaceCount = placeCount;
 
     showModalBottomSheet(

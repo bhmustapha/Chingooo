@@ -13,7 +13,7 @@ class BookingsPage extends StatefulWidget {
 }
 
 class _BookingsPageState extends State<BookingsPage>
-    with SingleTickerProviderStateMixin {//! to learn 
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final currentUserId = FirebaseAuth.instance.currentUser!.uid;
 

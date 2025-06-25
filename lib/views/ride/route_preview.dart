@@ -82,7 +82,6 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
 
   
 
-  //! confirm ride function
   Future<bool> confirmRide() async {
     try {
       final currentUser = FirebaseAuth.instance.currentUser;
@@ -220,7 +219,6 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
     int tempPrice = base;
 
     showModalBottomSheet(
-      //! to learn
       context: context,
       isScrollControlled: true,
       shape: RoundedRectangleBorder(
@@ -676,7 +674,7 @@ class _RoutePreviewPageState extends State<RoutePreviewPage> {
                             );
                             return;
                           }
-                          //! show loading
+                         
                           showDialog(
                             context: context,
                             barrierDismissible: false,

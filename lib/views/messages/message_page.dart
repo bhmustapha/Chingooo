@@ -29,7 +29,7 @@ class MessagePage extends StatefulWidget {
 }
 
 class _MessagePageState extends State<MessagePage> {
-  late final Stream<QuerySnapshot> _messagesStream; //! learn
+  late final Stream<QuerySnapshot> _messagesStream; 
   late final Stream<DocumentSnapshot> _userStream;
   late final Stream<DocumentSnapshot> _rideStream;
   bool isDriver = false;
@@ -51,8 +51,7 @@ class _MessagePageState extends State<MessagePage> {
             .doc(widget.chatId)
             .collection('messages')
             .orderBy('timestamp', descending: true) 
-            .snapshots(); //! to learn
-
+            .snapshots(); 
     _userStream =
         FirebaseFirestore.instance
             .collection('users')
@@ -373,7 +372,7 @@ class _MessagePageState extends State<MessagePage> {
 
                 if (fetchedDistance != distanceInKm || fetchedPrice != price) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
-                    //! to learn
+                    
                     setState(() {
                       distanceInKm = fetchedDistance;
                       price = fetchedPrice;
@@ -394,7 +393,7 @@ class _MessagePageState extends State<MessagePage> {
                 if (newIsDriver != isDriver) {
                   // ida kanou the same ma dir wlw wla tdkhol fi loop
                   WidgetsBinding.instance.addPostFrameCallback((_) {
-                    // !to learn
+                    
                     setState(() {
                       isDriver = newIsDriver;
                     });
@@ -488,7 +487,7 @@ class _MessagePageState extends State<MessagePage> {
           ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: _messagesStream, //! to learn
+              stream: _messagesStream, 
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());

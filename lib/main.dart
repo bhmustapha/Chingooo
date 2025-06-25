@@ -37,8 +37,7 @@ void main() async {
   OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
   OneSignal.initialize("924b44f7-e96e-477c-8547-55b98800accc");
 
-//! Use this method to prompt for push notifications.
-  //! We recommend removing this method after testing and instead use In-App Messages to prompt for notification permission.
+
   OneSignal.Notifications.requestPermission(false);
   runApp(const MyApp());
 }
